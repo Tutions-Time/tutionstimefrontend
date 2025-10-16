@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Phone, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,21 +10,95 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { OTPInput } from '@/components/auth/OTPInput';
 
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const [requestId, setRequestId] = useState('');
 
-  const handleSendOTP = (e: React.FormEvent) => {
+  const { sendOtp, login, isLoading, error } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    console.log("handle send otp")
     e.preventDefault();
-    // TODO: Validate phone format if needed
-    setStep('otp');
-    setCountdown(30);
+    
+    try {
+      const response = await sendOtp(phone, 'login');
+      if (response.requestId) {
+        setRequestId(response.requestId);
+        setStep('otp');
+        setCountdown(response.expiresIn || 30);
+        toast({
+          title: 'OTP Sent',
+          description: 'Please check your phone for the verification code',
+          variant: 'default',
+        });
+      } else {
+        throw new Error('Failed to get request ID');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Failed to send OTP',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleVerifyOTP = (otpValue: string) => {
-    console.log('Verifying OTP:', otpValue);
+  const handleVerifyOTP = async (otpValue: string) => {
+    try {
+      const result = await login(phone, otpValue, requestId);
+      
+      // Show success toast
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+        variant: 'default',
+      });
+      
+      // Let the useAuth hook handle redirection based on profile status
+      
+    } catch (error: any) {
+      toast({
+        title: 'Login Failed',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (countdown > 0) return;
+    
+    try {
+      const result = await sendOtp(phone, 'login');
+      setRequestId(result.requestId);
+      setCountdown(30);
+      toast({
+        title: 'OTP Resent',
+        description: 'Please check your phone for the new verification code',
+        variant: 'default',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to resend OTP',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -48,7 +123,7 @@ export default function LoginPage() {
           <p className="text-muted">
             {step === 'phone'
               ? 'Enter your mobile number to get started'
-              : 'Enter the 4-digit code sent to your phone'}
+              : 'Enter the 6-digit code sent to your phone'}
           </p>
         </div>
 
@@ -75,8 +150,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
+              disabled={isLoading || phone.length !== 10}
             >
-              Sign In
+              {isLoading ? 'Sending OTP...' : 'Sign In'}
             </Button>
 
             <div className="relative my-6">
@@ -88,6 +164,11 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {error && (
+              <div className="text-sm text-red-500 text-center mt-2">
+                {error}
+              </div>
+            )}
 
 
             <p className="text-center text-sm text-muted mt-6">
@@ -99,14 +180,19 @@ export default function LoginPage() {
           </form>
         ) : (
           <div className="space-y-6">
-            <OTPInput value={otp} onChange={setOTP} onComplete={handleVerifyOTP} />
+            <OTPInput 
+              value={otp} 
+              onChange={setOTP} 
+              onComplete={handleVerifyOTP}
+              length={6}
+            />
 
             <Button
               onClick={() => handleVerifyOTP(otp)}
-              disabled={otp.length !== 4}
+              disabled={isLoading || otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
-              Verify Code
+              {isLoading ? 'Verifying...' : 'Verify Code'}
             </Button>
 
             <div className="text-center">
@@ -118,12 +204,19 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className="text-sm text-primary font-medium hover:underline"
-                  onClick={() => setCountdown(30)}
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
                 >
                   Resend Code
                 </button>
               )}
             </div>
+
+            {error && (
+              <div className="text-sm text-red-500 text-center">
+                {error}
+              </div>
+            )}
 
             <button
               type="button"

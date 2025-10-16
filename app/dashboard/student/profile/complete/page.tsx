@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import { updateStudentProfile } from "@/store/slices/profileSlice";
 import {
   setField,
   setBulk,
@@ -120,9 +121,15 @@ export default function StudentProfileCompletePage() {
       fd.append("pincode", profile.pincode);
       if (photoFile) fd.append("photo", photoFile);
 
-      await fetch("/api/student/profile", { method: "POST", body: fd });
+      // Import at the top of the file:
+      // import { updateStudentProfile } from '@/services/profileService';
+      
+      const result = await dispatch(updateStudentProfile(fd)).unwrap();
+      if (result.success) {
+        router.push("/dashboard/student");
+      }
       dispatch(stopSubmitting());
-      router.push("/student/dashboard");
+      router.push("/dashboard/student");
     } catch (err) {
       console.error(err);
       dispatch(stopSubmitting());
@@ -141,11 +148,11 @@ export default function StudentProfileCompletePage() {
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
               T
             </div>
-            <span className="font-bold text-xl text-text">Tuitionstime</span>
+            <span className="font-bold text-xl text-text">Tuitions time</span>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-text font-semibold">
+          {/* <Button className="bg-primary hover:bg-primary/90 text-text font-semibold">
             Dashboard
-          </Button>
+          </Button> */}
         </div>
       </nav>
 

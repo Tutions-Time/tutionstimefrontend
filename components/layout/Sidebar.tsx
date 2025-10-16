@@ -17,6 +17,7 @@ import {
   Video,
   ClipboardList,
   TrendingUp,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,29 +30,30 @@ interface SidebarProps {
 
 const studentLinks = [
   { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/search', label: 'Find Tutors', icon: Search },
+  { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
   { href: '/dashboard/student#sessions', label: 'My Sessions', icon: Calendar },
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  { href: '/notes', label: 'Notes', icon: FileText },
-  { href: '/progress', label: 'My Progress', icon: TrendingUp },
+  { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
+  { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
 const tutorLinks = [
   { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/tutor#sessions', label: 'My Classes', icon: Calendar },
+  { href: '/dashboard/tutor/sessions', label: 'My Classes', icon: Calendar },
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  { href: '/tutor/kyc', label: 'Verification', icon: User },
-  { href: '/analytics/tutor', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
+  { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 
 const adminLinks = [
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/tutors', label: 'Tutors', icon: User },
-  { href: '/admin/subjects', label: 'Subjects', icon: BookOpen },
-  { href: '/admin/analytics#revenue', label: 'Revenue', icon: Wallet },
+  { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/admin/users', label: 'Users', icon: Users },
+  { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
+  { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },
+  { href: '/dashboard/admin/revenue', label: 'Revenue', icon: Wallet },
+   { href: '/dashboard/admin/categories', label: 'Categories', icon: Layers },
 ];
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {

@@ -21,7 +21,7 @@ export interface TutorProfileState {
   bio: string;
   achievements: string;
   certificateUrl: string;
-
+  demoVideoUrl: string;
   isSubmitting: boolean;
 }
 
@@ -32,7 +32,7 @@ const initialState: TutorProfileState = {
   gender: "",
   pincode: "",
   photoUrl: "",
-
+  demoVideoUrl: "",
   qualification: "",
   experience: "",
   subjects: [],

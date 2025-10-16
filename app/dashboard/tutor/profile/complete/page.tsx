@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import { updateTutorProfile } from "@/services/profileService";
 import {
   setField,
   setBulk,
@@ -209,7 +210,10 @@ export default function TutorProfileCompletePage() {
         fd.append("demoVideoUrl", profile.demoVideoUrl.trim());
       }
 
-      await fetch("/api/tutor/profile", { method: "POST", body: fd });
+      // Import at the top of the file:
+      // import { updateTutorProfile } from '@/services/profileService';
+      
+      await updateTutorProfile(fd);
       dispatch(stopSubmitting());
       router.push("/tutor/dashboard");
     } catch (err) {

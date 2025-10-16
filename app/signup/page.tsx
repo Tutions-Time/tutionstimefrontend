@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Phone, ArrowLeft } from 'lucide-react';
@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { RoleSelector } from '@/components/auth/RoleSelector';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SignupPage() {
   const searchParams = useSearchParams();
@@ -20,24 +22,92 @@ export default function SignupPage() {
   const [role, setRole] = useState<'student' | 'tutor' | null>(initialRole);
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
+  const [requestId, setRequestId] = useState('');
+  
+  const { sendOtp, signup, isLoading, error } = useAuth();
+  const { toast } = useToast();
 
   const handleRoleSelect = (selectedRole: 'student' | 'tutor') => {
     setRole(selectedRole);
     setStep('phone');
   };
 
-  const handleSendOTP = (e: React.FormEvent) => {
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.trim().length === 10) {
-      setStep('otp');
-      setCountdown(30);
-    } else {
-      alert('Please enter a valid 10-digit mobile number');
+    
+    if (!phone.trim() || phone.length !== 10) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Please enter a valid 10-digit mobile number',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await sendOtp(phone, 'signup');
+      console.log('OTP Response:', response); // Debug log
+      
+      if (response.requestId) {
+        console.log('Setting requestId:', response.requestId); // Debug log
+        setRequestId(response.requestId);
+        setStep('otp');
+        setCountdown(response.expiresIn || 30);
+        toast({
+          title: 'OTP Sent',
+          description: 'Please check your phone for the verification code',
+          variant: 'default',
+        });
+      } else {
+        throw new Error('No request ID received from server');
+      }
+    } catch (error: any) {
+      console.error('OTP Send Error:', error); 
+      toast({
+        title: 'Failed to send OTP',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleVerifyOTP = (otpValue: string) => {
-    console.log('Verifying OTP:', otpValue, 'Role:', role);
+  const handleVerifyOTP = async (otpValue: string) => {
+    console.log('Verifying OTP with:', { phone, otpValue, requestId, role }); // Debug log
+    
+    if (!role || !requestId || !phone) {
+      console.log('Missing required fields:', { role, requestId, phone }); // Debug log
+      toast({
+        title: 'Missing Information',
+        description: 'Please provide all required information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Don't trim the requestId as it might contain characters that look like whitespace
+      await signup(phone.trim(), otpValue.trim(), requestId, role);
+      toast({
+        title: 'Signup Successful',
+        description: 'Your account has been created successfully',
+        variant: 'default',
+      });
+    } catch (error: any) {
+      console.error('Verification Error:', error); // Debug log
+      toast({
+        title: 'Verification Failed',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -68,7 +138,7 @@ export default function SignupPage() {
               ? 'Choose your account type'
               : step === 'phone'
               ? 'Enter your mobile number to continue'
-              : 'Enter the 4-digit code sent to your phone'}
+              : 'Enter the 6-digit code sent to your phone'}
           </p>
         </div>
 
@@ -126,11 +196,16 @@ export default function SignupPage() {
         {/* 🔢 Step 3: OTP Verification */}
         {step === 'otp' && (
           <div className="space-y-6">
-            <OTPInput value={otp} onChange={setOTP} onComplete={handleVerifyOTP} />
+            <OTPInput 
+              value={otp} 
+              onChange={setOTP} 
+              onComplete={handleVerifyOTP}
+              length={6}
+            />
 
             <Button
               onClick={() => handleVerifyOTP(otp)}
-              disabled={otp.length !== 4}
+              disabled={otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
               Verify & Create Account
@@ -145,7 +220,8 @@ export default function SignupPage() {
                 <button
                   type="button"
                   className="text-sm text-primary font-medium hover:underline"
-                  onClick={() => setCountdown(30)}
+                  onClick={handleSendOTP}
+                  disabled={isLoading}
                 >
                   Resend Code
                 </button>
