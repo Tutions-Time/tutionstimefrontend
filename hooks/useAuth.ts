@@ -67,6 +67,15 @@ export const useAuth = () => {
       if (loginAsync.fulfilled.match(result)) {
         const { user } = result.payload;
         
+        // Set auth cookie for middleware-based route protection
+        try {
+          const cookiePayload = {
+            role: user.role,
+            isProfileComplete: user.isProfileComplete,
+          };
+          document.cookie = `auth=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=2592000`; // 30 days
+        } catch {}
+
         // Reset any existing profile data
         if (user.role === 'student') {
           dispatch(resetProfile());
@@ -114,6 +123,15 @@ export const useAuth = () => {
       const result = await dispatch(signupAsync({ phone, otp, requestId, role }));
       
       if (signupAsync.fulfilled.match(result)) {
+        // Set minimal auth cookie; profile not complete yet
+        try {
+          const cookiePayload = {
+            role,
+            isProfileComplete: false,
+          };
+          document.cookie = `auth=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=2592000`;
+        } catch {}
+
         // After signup, always redirect to role-specific profile completion
         if (role === 'student') {
           router.push('/dashboard/student/profile/complete');
@@ -147,6 +165,10 @@ export const useAuth = () => {
   // Logout
   const handleLogout = useCallback(async () => {
     await dispatch(logoutAsync());
+    // Clear auth cookie for middleware
+    try {
+      document.cookie = 'auth=; Max-Age=0; path=/';
+    } catch {}
     router.push('/login');
   }, [dispatch, router]);
   

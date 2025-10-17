@@ -19,7 +19,7 @@ export default function StudentSessions() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" userName="Gaurav"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
         <Topbar title="My Sessions" subtitle="Upcoming and past classes" />

@@ -19,7 +19,7 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" userName="Gaurav"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
         <Topbar title="Wallet" subtitle="Your balance and transactions" action={<Button variant="outline"><Download className="w-4 h-4 mr-2"/>Export</Button>} />

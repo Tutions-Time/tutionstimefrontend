@@ -187,7 +187,7 @@ export default function TutorProfileCompletePage() {
       fd.append("name", profile.name);
       fd.append("email", profile.email);
       fd.append("phone", profile.phone);
-      fd.append("gender", profile.gender);
+      fd.append("gender", profile.gender.toLowerCase());
       fd.append("pincode", profile.pincode);
       fd.append("qualification", profile.qualification);
       fd.append("experience", profile.experience);
@@ -201,7 +201,7 @@ export default function TutorProfileCompletePage() {
       fd.append("achievements", profile.achievements);
 
       if (photoFile) fd.append("photo", photoFile);
-      if (certificateFile) fd.append("certificateUrl", certificateFile);
+      if (certificateFile) fd.append("certificate", certificateFile);
 
       /** 🔹 DEMO VIDEO: send either file or fallback URL string */
       if (demoVideoFile) {
@@ -215,7 +215,7 @@ export default function TutorProfileCompletePage() {
       
       await updateTutorProfile(fd);
       dispatch(stopSubmitting());
-      router.push("/tutor/dashboard");
+      router.push("/dashboard/tutor");
     } catch (err) {
       console.error(err);
       dispatch(stopSubmitting());

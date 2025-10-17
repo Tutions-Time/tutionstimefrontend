@@ -19,7 +19,7 @@ export default function TutorSessions() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" userName="Dr. Meera"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
         <Topbar title="My Classes" subtitle="Upcoming and past sessions" />

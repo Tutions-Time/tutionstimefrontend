@@ -9,11 +9,17 @@ export function middleware(request: NextRequest) {
   const isAuthenticated = request.cookies.has('auth')
 
   // Public paths that don't require auth
-  const publicPaths = ['/login', '/signup', '/']
+  const publicPaths = ['/login', '/signup', '/admin-login', '/']
   if (publicPaths.includes(path)) {
     if (isAuthenticated) {
-      // Redirect authenticated users away from auth pages
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      // Redirect authenticated users away from auth pages to role-specific dashboard
+      const cookie = request.cookies.get('auth')?.value || '{}'
+      let role = 'student'
+      try {
+        const parsed = JSON.parse(cookie)
+        if (parsed?.role) role = parsed.role
+      } catch {}
+      return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
     }
     return NextResponse.next()
   }
@@ -30,7 +36,7 @@ export function middleware(request: NextRequest) {
   // Profile completion check for dashboard routes
   if (path.startsWith('/dashboard') && !path.includes('/profile/complete')) {
     const user = JSON.parse(request.cookies.get('auth')?.value || '{}')
-    if (!user.isProfileComplete) {
+    if (user && user.role && user.isProfileComplete === false) {
       return NextResponse.redirect(new URL(`/dashboard/${user.role}/profile/complete`, request.url))
     }
   }

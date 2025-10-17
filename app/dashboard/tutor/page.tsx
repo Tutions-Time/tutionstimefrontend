@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar, ClipboardList, Users, Wallet, Video, CheckCircle, Clock, BookOpen, Plus
@@ -12,6 +12,9 @@ import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { fetchUserProfile } from '@/store/slices/profileSlice';
 
 type ClassStatus = 'scheduled' | 'completed' | 'cancelled';
 
@@ -46,21 +49,31 @@ const mockClasses: Array<{
 
 export default function TutorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const tutorProfile = useAppSelector((s) => s.profile.tutorProfile);
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
+
+  const displayName = tutorProfile?.name || 'Tutor';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         unreadCount={4}
-        userRole="tutor"
-        userName="Dr. Meera"
+        userRole={(user?.role as 'student' | 'tutor' | 'admin') || 'tutor'}
+        userName={displayName}
+        onLogout={logout}
       />
 
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-64">
         <Topbar
-          title="Dr. Meera"
+          title={displayName}
           subtitle="Manage your classes, earnings & verification"
           greeting
           action={

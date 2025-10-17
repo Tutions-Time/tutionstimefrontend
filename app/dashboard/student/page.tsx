@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, BookOpen, TrendingUp, Plus, Clock, Video, CheckCircle } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
@@ -9,6 +9,9 @@ import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { fetchUserProfile } from '@/store/slices/profileSlice';
 
 const mockSessions = [
   {
@@ -33,14 +36,24 @@ const mockSessions = [
 
 export default function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const studentProfile = useAppSelector((s) => s.profile.studentProfile);
+
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
+
+  const displayName = studentProfile?.name || 'Student';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         unreadCount={3}
-        userRole="student"
-        userName="Gaurav"
+        userRole={(user?.role as 'student' | 'tutor' | 'admin') || 'student'}
+        userName={displayName}
+        onLogout={logout}
       />
 
       <Sidebar
@@ -51,7 +64,7 @@ export default function StudentDashboard() {
 
       <div className="lg:pl-64">
         <Topbar
-          title="Gaurav"
+          title={displayName}
           greeting
           action={
             <Link href="/search">
