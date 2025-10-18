@@ -1,8 +1,8 @@
-import { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { useAppDispatch } from '../store/store';
-import { useRouter } from 'next/navigation';
-import { RootState } from '../store/store';
+import { useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../store/store";
+import { useRouter } from "next/navigation";
+import { RootState } from "../store/store";
 import {
   sendOtpAsync,
   loginAsync,
@@ -10,11 +10,11 @@ import {
   adminLoginAsync,
   logoutAsync,
   clearError,
-  setUser
-} from '../store/slices/authSlice';
-import { resetProfile } from '../store/slices/studentProfileSlice';
-import { resetTutorProfile } from '../store/slices/tutorProfileSlice';
-import api from '../lib/api';
+  setUser,
+} from "../store/slices/authSlice";
+import { resetProfile } from "../store/slices/studentProfileSlice";
+import { resetTutorProfile } from "../store/slices/tutorProfileSlice";
+import api from "../lib/api";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -27,29 +27,29 @@ export const useAuth = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Only verify if authenticated but user data is missing
+      
         if (isAuthenticated && tokens?.accessToken && !user) {
-          // Verify token validity with backend
-          const response = await api.get('/users/me');
+         
+          const response = await api.get("/users/me");
           dispatch(setUser(response.data.user));
         }
       } catch (error: any) {
-        console.error('Auth check error:', error);
+        console.error("Auth check error:", error);
         // Only logout on specific error conditions
         if (error.response?.status === 401 || error.response?.status === 403) {
           dispatch(logoutAsync());
         }
       }
     };
-    
+
     checkAuth();
   }, [dispatch, isAuthenticated, tokens, user]);
-  
+
   // Send OTP
   const sendOtp = useCallback(
-    async (phone: string, purpose: 'login' | 'signup') => {
+    async (phone: string, purpose: "login" | "signup") => {
       const result = await dispatch(sendOtpAsync({ phone, purpose }));
-      
+
       if (sendOtpAsync.fulfilled.match(result)) {
         return result.payload;
       } else {
@@ -58,50 +58,52 @@ export const useAuth = () => {
     },
     [dispatch]
   );
-  
+
   // Login
   const login = useCallback(
     async (phone: string, otp: string, requestId: string) => {
       const result = await dispatch(loginAsync({ phone, otp, requestId }));
-      
+
       if (loginAsync.fulfilled.match(result)) {
         const { user } = result.payload;
-        
+
         // Set auth cookie for middleware-based route protection
         try {
           const cookiePayload = {
             role: user.role,
             isProfileComplete: user.isProfileComplete,
           };
-          document.cookie = `auth=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=2592000`; // 30 days
+          document.cookie = `auth=${encodeURIComponent(
+            JSON.stringify(cookiePayload)
+          )}; path=/; max-age=2592000`; // 30 days
         } catch {}
 
         // Reset any existing profile data
-        if (user.role === 'student') {
+        if (user.role === "student") {
           dispatch(resetProfile());
-        } else if (user.role === 'tutor') {
+        } else if (user.role === "tutor") {
           dispatch(resetTutorProfile());
         }
-        
+
         // Handle redirection based on role and profile completion
         if (!user.isProfileComplete) {
           // Redirect to role-specific profile completion page
-          if (user.role === 'student') {
-            router.push('/dashboard/student/profile/complete');
-          } else if (user.role === 'tutor') {
-            router.push('/dashboard/tutor/profile/complete');
+          if (user.role === "student") {
+            router.push("/dashboard/student/profile/complete");
+          } else if (user.role === "tutor") {
+            router.push("/dashboard/tutor/profile/complete");
           }
         } else {
           // Redirect to role-specific dashboard
-          if (user.role === 'student') {
-            router.push('/dashboard/student');
-          } else if (user.role === 'tutor') {
-            router.push('/dashboard/tutor');
-          } else if (user.role === 'admin') {
-            router.push('/dashboard/admin');
+          if (user.role === "student") {
+            router.push("/dashboard/student");
+          } else if (user.role === "tutor") {
+            router.push("/dashboard/tutor");
+          } else if (user.role === "admin") {
+            router.push("/dashboard/admin");
           }
         }
-        
+
         return result.payload;
       } else {
         throw new Error(result.payload as string);
@@ -109,19 +111,26 @@ export const useAuth = () => {
     },
     [dispatch, router]
   );
-  
+
   // Signup
   const signup = useCallback(
-    async (phone: string, otp: string, requestId: string, role: 'student' | 'tutor') => {
+    async (
+      phone: string,
+      otp: string,
+      requestId: string,
+      role: "student" | "tutor"
+    ) => {
       // Reset any existing profile data
-      if (role === 'student') {
+      if (role === "student") {
         dispatch(resetProfile());
       } else {
         dispatch(resetTutorProfile());
       }
-      
-      const result = await dispatch(signupAsync({ phone, otp, requestId, role }));
-      
+
+      const result = await dispatch(
+        signupAsync({ phone, otp, requestId, role })
+      );
+
       if (signupAsync.fulfilled.match(result)) {
         // Set minimal auth cookie; profile not complete yet
         try {
@@ -129,14 +138,16 @@ export const useAuth = () => {
             role,
             isProfileComplete: false,
           };
-          document.cookie = `auth=${encodeURIComponent(JSON.stringify(cookiePayload))}; path=/; max-age=2592000`;
+          document.cookie = `auth=${encodeURIComponent(
+            JSON.stringify(cookiePayload)
+          )}; path=/; max-age=2592000`;
         } catch {}
 
         // After signup, always redirect to role-specific profile completion
-        if (role === 'student') {
-          router.push('/dashboard/student/profile/complete');
-        } else if (role === 'tutor') {
-          router.push('/dashboard/tutor/profile/complete');
+        if (role === "student") {
+          router.push("/dashboard/student/profile/complete");
+        } else if (role === "tutor") {
+          router.push("/dashboard/tutor/profile/complete");
         }
         return result.payload;
       } else {
@@ -145,15 +156,31 @@ export const useAuth = () => {
     },
     [dispatch, router]
   );
-  
-  // Admin Login (direct URL)
+
+
   const adminLogin = useCallback(
     async (username: string, password: string) => {
       const result = await dispatch(adminLoginAsync({ username, password }));
-      
+
       if (adminLoginAsync.fulfilled.match(result)) {
-        // Redirect to admin dashboard
-        router.push('/dashboard/admin');
+        const { user } = result.payload;
+
+        // ✅ Set auth cookie (for middleware protection)
+        try {
+          const cookiePayload = {
+            role: user.role || "admin",
+            isProfileComplete: true,
+          };
+          document.cookie = `auth=${encodeURIComponent(
+            JSON.stringify(cookiePayload)
+          )}; path=/; max-age=2592000`; // 30 days
+        } catch {}
+
+        // ✅ Persist user state (Redux Persist handles tokens automatically)
+        dispatch(setUser(user));
+
+        // ✅ Redirect to admin dashboard
+        router.push("/dashboard/admin");
         return result.payload;
       } else {
         throw new Error(result.payload as string);
@@ -161,22 +188,22 @@ export const useAuth = () => {
     },
     [dispatch, router]
   );
-  
+
   // Logout
   const handleLogout = useCallback(async () => {
     await dispatch(logoutAsync());
     // Clear auth cookie for middleware
     try {
-      document.cookie = 'auth=; Max-Age=0; path=/';
+      document.cookie = "auth=; Max-Age=0; path=/";
     } catch {}
-    router.push('/login');
+    router.push("/");
   }, [dispatch, router]);
-  
+
   // Clear error
   const handleClearError = useCallback(() => {
     dispatch(clearError());
   }, [dispatch]);
-  
+
   return {
     user,
     isLoading,
@@ -187,6 +214,6 @@ export const useAuth = () => {
     signup,
     adminLogin,
     logout: handleLogout,
-    clearError: handleClearError
+    clearError: handleClearError,
   };
 };

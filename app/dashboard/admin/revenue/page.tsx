@@ -146,7 +146,7 @@ export default function AdminRevenuePage() {
           subtitle="Financial overview, breakdowns, and payouts"
           greeting
           action={
-            <Link href="/dashboard/admin/analytics">
+            <Link href="/dashboard/admin/">
               <Button className="bg-primary hover:bg-primary/90 text-text">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Go to Analytics

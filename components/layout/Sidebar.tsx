@@ -48,7 +48,7 @@ const tutorLinks = [
 ];
 
 const adminLinks = [
-  { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/admin/', label: 'Analytics', icon: BarChart3 },
   { href: '/dashboard/admin/users', label: 'Users', icon: Users },
   { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
   { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },

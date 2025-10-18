@@ -59,9 +59,9 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
           )}
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-              E
+              T
             </div>
-            <span className="font-bold text-xl text-text hidden sm:inline">EduConnect</span>
+            <span className="font-bold text-xl text-text hidden sm:inline">Tuitions time</span>
           </Link>
         </div>
 

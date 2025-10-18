@@ -13,9 +13,9 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-                E
+                T
               </div>
-              <span className="font-bold text-xl text-text">EduConnect</span>
+              <span className="font-bold text-xl text-text">Tuitions time</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/login">
@@ -97,7 +97,7 @@ export default function Home() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-text mb-4">Why Choose EduConnect?</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-text mb-4">Why Choose Tuitions time?</h2>
             <p className="text-lg text-muted max-w-2xl mx-auto">
               Experience the future of online education with our comprehensive platform
             </p>
@@ -176,7 +176,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-muted italic mb-4">
-                "EduConnect transformed my learning experience. The tutors are incredibly knowledgeable and the platform is so easy to use!"
+                "Tuitions time transformed my learning experience. The tutors are incredibly knowledgeable and the platform is so easy to use!"
               </p>
               <p className="text-sm font-medium text-text">Computer Science Student</p>
             </Card>
@@ -242,7 +242,7 @@ export default function Home() {
             Ready to Get Started?
           </h2>
           <p className="text-lg text-muted mb-8">
-            Join thousands of students and tutors already using EduConnect
+            Join thousands of students and tutors already using Tuitions time
           </p>
           <Link href="/signup">
             <Button size="lg" className="bg-text hover:bg-text/90 text-white font-semibold">
@@ -258,9 +258,9 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-                  E
+                  T
                 </div>
-                <span className="font-bold text-xl text-text">EduConnect</span>
+                <span className="font-bold text-xl text-text">Tuitions time</span>
               </div>
               <p className="text-sm text-muted">
                 Empowering education through technology
@@ -289,7 +289,7 @@ export default function Home() {
             </div>
           </div>
           <div className="pt-8 border-t text-center text-sm text-muted">
-            <p>&copy; 2024 EduConnect. All rights reserved.</p>
+            <p>&copy; 2024 Tuitions time. All rights reserved.</p>
           </div>
         </div>
       </footer>
