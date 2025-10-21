@@ -22,7 +22,7 @@ export default function SearchTutors() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={1} userRole="student" userName="Gaurav"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={1} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-64">

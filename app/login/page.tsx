@@ -20,8 +20,9 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
 
-  const { sendOtp, login, isLoading, error } = useAuth();
+  const { sendOtp, login, isLoading, error, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -30,6 +31,14 @@ export default function LoginPage() {
     }
     return () => clearInterval(timer);
   }, [countdown]);
+
+  // If already authenticated, redirect away from login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const rolePath = `/dashboard/${user.role}`;
+      router.replace(rolePath);
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     console.log("handle send otp")

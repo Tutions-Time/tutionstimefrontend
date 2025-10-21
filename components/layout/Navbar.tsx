@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Bell, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,15 +12,42 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { fetchUserProfile } from '@/store/slices/profileSlice';
 
 interface NavbarProps {
   onMenuClick?: () => void;
   unreadCount?: number;
   userRole?: 'student' | 'tutor' | 'admin';
   userName?: string;
+  onLogout?: () => void;
 }
 
-export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName }: NavbarProps) {
+export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLogout }: NavbarProps) {
+  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const { studentProfile, tutorProfile } = useAppSelector((s) => s.profile);
+
+  useEffect(() => {
+    if ((user?.role === 'student' && !studentProfile) || (user?.role === 'tutor' && !tutorProfile)) {
+      dispatch(fetchUserProfile());
+    }
+  }, [user?.role, studentProfile, tutorProfile, dispatch]);
+
+  const resolvedName =
+    userName ??
+    (user?.role === 'student'
+      ? studentProfile?.name
+      : user?.role === 'tutor'
+      ? tutorProfile?.name
+      : userRole === 'admin'
+      ? 'Admin'
+      : undefined) ?? 'User';
+  const handleLogout = () => {
+    if (onLogout) return onLogout();
+    logout();
+  };
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
@@ -31,9 +59,9 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName }: Nav
           )}
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-              E
+              T
             </div>
-            <span className="font-bold text-xl text-text hidden sm:inline">EduConnect</span>
+            <span className="font-bold text-xl text-text hidden sm:inline">Tuitions time</span>
           </Link>
         </div>
 
@@ -68,7 +96,7 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName }: Nav
                 <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                   <User className="h-4 w-4" />
                 </div>
-                <span className="hidden sm:inline text-sm font-medium">{userName || 'User'}</span>
+                <span className="hidden sm:inline text-sm font-medium">{resolvedName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -91,7 +119,7 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName }: Nav
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-danger">Logout</DropdownMenuItem>
+              <DropdownMenuItem className="text-danger" onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

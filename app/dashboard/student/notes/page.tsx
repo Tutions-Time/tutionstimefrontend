@@ -24,7 +24,7 @@ export default function NotesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" userName="Gaurav"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
         <Topbar title="Notes" subtitle="Keep your study notes organized" action={<Button className="bg-primary text-text" onClick={add}><Plus className="w-4 h-4 mr-2"/>Add</Button>} />

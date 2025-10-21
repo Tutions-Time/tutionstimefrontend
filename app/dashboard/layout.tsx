@@ -1,9 +1,10 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
+  const pathname = usePathname();
+
+ 
+  let allowedRoles: ('admin' | 'tutor' | 'student')[] = ['student'];
+
+  if (pathname.startsWith('/dashboard/admin')) {
+    allowedRoles = ['admin'];
+  } else if (pathname.startsWith('/dashboard/tutor')) {
+    allowedRoles = ['tutor'];
+  } else if (pathname.startsWith('/dashboard/student')) {
+    allowedRoles = ['student'];
+  }
+
 
   const getDashboardTitle = () => {
     switch (user?.role) {
@@ -25,18 +39,18 @@ export default function DashboardLayout({
     }
   };
 
+  console.log('📍 Current Path:', pathname);
+  console.log('✅ Allowed Roles:', allowedRoles);
+
   return (
-    <ProtectedRoute>
-      <div className="">
-        {/* <Topbar 
-          title={getDashboardTitle()} 
-          greeting={true}
-        /> */}
-        <div className="flex">
-          {/* <Sidebar /> */}
+    <ProtectedRoute allowedRoles={allowedRoles}>
+      
+   
+        
+        
           <main className="flex-1">{children}</main>
-        </div>
-      </div>
+       
+      
     </ProtectedRoute>
   );
 }

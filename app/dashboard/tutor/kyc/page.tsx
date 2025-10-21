@@ -16,7 +16,7 @@ export default function TutorKycPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" userName="Dr. Meera"/>
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
         <Topbar title="Verification" subtitle="Upload your KYC documents" />

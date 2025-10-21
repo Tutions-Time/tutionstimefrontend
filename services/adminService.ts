@@ -1,6 +1,7 @@
 import api, { handleApiError } from '../lib/api';
 
 // User Management
+// ✅ Corrected version
 export const getAllUsers = async (params?: { 
   role?: 'student' | 'tutor' | 'admin';
   status?: 'active' | 'inactive' | 'pending';
@@ -8,12 +9,17 @@ export const getAllUsers = async (params?: {
   limit?: number;
 }) => {
   try {
-    const response = await api.get('/admin/users', { params });
-    return response.data;
+    const response = await api.get('admin/users', { params });
+    return {
+      success: response.data.success,
+      users: response.data.data?.users || [],
+      pagination: response.data.data?.pagination || {},
+    };
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
+
 
 export const getUserById = async (userId: string) => {
   try {
@@ -26,7 +32,7 @@ export const getUserById = async (userId: string) => {
 
 export const updateUserStatus = async (userId: string, status: 'active' | 'inactive') => {
   try {
-    const response = await api.put(`/admin/users/${userId}/status`, { status });
+    const response = await api.put(`admin/users/${userId}/status`, { status });
     return response.data.user;
   } catch (error) {
     throw new Error(handleApiError(error));
@@ -111,6 +117,34 @@ export const getDashboardStats = async () => {
   try {
     const response = await api.get('/admin/dashboard/stats');
     return response.data.stats;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
+export const getAllTutors = async () => {
+  try {
+    const res = await api.get('/admin/tutors');
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateTutorKyc = async (id: string, kyc: 'approved' | 'rejected' | 'pending') => {
+  try {
+    const res = await api.put(`/admin/tutors/${id}/kyc`, { kyc });
+    return res.data.profile;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateTutorStatus = async (id: string, status: 'active' | 'suspended') => {
+  try {
+    const res = await api.put(`/admin/tutors/${id}/status`, { status });
+    return res.data.user;
   } catch (error) {
     throw new Error(handleApiError(error));
   }

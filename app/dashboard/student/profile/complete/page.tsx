@@ -415,12 +415,12 @@ export default function StudentProfileCompletePage() {
             </SecondaryButton>
 
             <div className="flex items-center gap-3">
-              <SecondaryButton
+              {/* <SecondaryButton
                 type="button"
                 onClick={() => alert("Progress saved locally")}
               >
                 Save Draft
-              </SecondaryButton>
+              </SecondaryButton> */}
 
               <PrimaryButton
                 type="button"
