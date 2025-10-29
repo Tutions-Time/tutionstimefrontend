@@ -9,12 +9,16 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
-"resolutions": {
-  "@types/react": "18.2.67",
-  "@types/react-dom": "18.2.18"
-},
+  "resolutions": {
+    "@types/react": "18.2.67",
+    "@types/react-dom": "18.2.18"
+  },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^3.9.0",
+    "@mui/material": "^7.3.4",
+    "@mui/x-date-pickers": "^8.15.0",
     "@next/swc-wasm-nodejs": "13.5.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -55,6 +59,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dayjs": "^1.11.18",
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",

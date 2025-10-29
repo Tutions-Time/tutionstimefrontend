@@ -50,20 +50,19 @@ export const getStudentBookings = async (params?: { status?: string; page?: numb
 
 // Create a new booking
 export const createBooking = async (bookingData: {
-  tutorId: string;
-  subjectId: string;
+  tutorId: string | undefined; // allow undefined
+  subject: string;
   date: string;
   startTime: string;
   endTime: string;
-  mode: 'online' | 'in-person';
+  type: 'demo' | 'regular';
+  amount?: number;
 }) => {
-  try {
-    const response = await api.post('/bookings', bookingData);
-    return response.data.booking;
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
+  if (!bookingData.tutorId) throw new Error("Tutor ID is required");
+  const response = await api.post('/bookings', bookingData);
+  return response.data.data;
 };
+
 
 // Add rating and feedback to a booking
 export const addRatingAndFeedback = async (
@@ -119,17 +118,62 @@ export const getAllSubjects = async () => {
 };
 
 // Find tutors
-export const findTutors = async (params?: { 
-  subjectId?: string; 
-  rating?: number;
-  availability?: string;
-  page?: number;
-  limit?: number;
-}) => {
+export const fetchTutors = async (params?: { subject?: string; teachingMode?: string }) => {
   try {
-    const response = await api.get('/tutors', { params });
-    return response.data;
+    const response = await api.get('/tutors/search', { params });
+    return response.data.data; 
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
+
+export const getTutorById = async (id: string) => {
+  try {
+    const response = await api.get(`/tutors/${id}`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getTutorAvailability = async (tutorId: string) => {
+  try {
+    const response = await api.get(`/availability/${tutorId}`);
+    console.log('Availability response:', response.data);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getBookingById = async (bookingId: string) => {
+  try {
+    const response = await api.get(`/bookings/${bookingId}`);
+    return response.data.data; // ensure backend sends { success, data }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Get all tutor demo bookings
+export const getTutorBookings = async (params?: { status?: string; type?: string }) => {
+  try {
+    const res = await api.get('/bookings/tutor', { params });
+    return res.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Update booking status (accept / reject)
+export const updateBookingStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+  try {
+    const res = await api.patch(`/bookings/${id}/status`, { status });
+    return res.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
+

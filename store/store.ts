@@ -9,6 +9,9 @@ import tutorProfileReducer from "./slices/tutorProfileSlice";
 import authReducer from "./slices/authSlice";
 import profileReducer from './slices/profileSlice';
 
+import availabilityReducer from "./slices/availabilitySlice";
+import bookingReducer from "./slices/bookingSlice";
+
 // Configure persist for auth slice
 const authPersistConfig = {
   key: 'auth',
@@ -28,6 +31,8 @@ const rootReducer = combineReducers({
   tutorProfile: tutorProfileReducer, // for form state
   auth: persistReducer(authPersistConfig, authReducer),
   profile: persistReducer(profilePersistConfig, profileReducer), // for actual profile data
+   availability: availabilityReducer,
+  booking: bookingReducer,
 });
 
 export const store = configureStore({
