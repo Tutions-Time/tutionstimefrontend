@@ -136,11 +136,13 @@ export const getTutorById = async (id: string) => {
   }
 };
 
-export const getTutorAvailability = async (tutorId: string) => {
+export const getTutorAvailability = async (
+  tutorId: string,
+  type: "demo" | "regular" = "demo"
+) => {
   try {
-    const response = await api.get(`/availability/${tutorId}`);
-    console.log('Availability response:', response.data);
-    return response.data.data;
+    const response = await api.get(`/availability/${tutorId}?type=${type}`);
+    return response.data?.data || [];
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -148,12 +150,13 @@ export const getTutorAvailability = async (tutorId: string) => {
 
 export const getBookingById = async (bookingId: string) => {
   try {
-    const response = await api.get(`/bookings/${bookingId}`);
-    return response.data.data; // ensure backend sends { success, data }
+    const res = await api.get('/bookings');
+    return res.data?.data?.find((b: any) => b._id === bookingId);
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
+
 
 // Get all tutor demo bookings
 export const getTutorBookings = async (params?: { status?: string; type?: string }) => {

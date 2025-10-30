@@ -37,8 +37,10 @@ export default function TutorSessions() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <div className="lg:pl-64">
         <Topbar title="My Classes" subtitle="Upcoming and past sessions" />
+
         <main className="p-4 lg:p-6 space-y-4">
           {loading && (
             <div className="text-center text-muted py-10 animate-pulse">
@@ -103,7 +105,8 @@ export default function TutorSessions() {
                     Materials
                   </Button>
 
-                  {b.status === 'confirmed' && (
+                  {/* ✅ Show Start Class for confirmed or pending demo sessions */}
+                  {(['confirmed', 'pending'].includes(b.status)) && (
                     <Button className="bg-primary hover:bg-primary/90 text-text">
                       <Video className="w-4 h-4 mr-2" />
                       Start Class

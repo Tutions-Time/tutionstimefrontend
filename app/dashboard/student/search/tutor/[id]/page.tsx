@@ -1,9 +1,9 @@
 "use client";
 
-export const dynamic = "force-dynamic"; // ✅ Fix: tells Next.js to render this page dynamically (no static build error)
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   getTutorById,
   getTutorAvailability,
@@ -14,13 +14,11 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import dayjs from "dayjs";
 import { CalendarDays, Clock, Star } from "lucide-react";
+import dayjs from "dayjs";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
 
-// Define interfaces for clarity and safety
 interface Slot {
   _id: string;
   startTime: string;
@@ -40,27 +38,26 @@ interface Tutor {
 }
 
 export default function TutorProfilePage() {
-const router = useRouter();
-
-  const { id } = useParams(); // Tutor ID from route
+  const { id } = useParams();
+  const userId = useSearchParams().get("userId");
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tutor, setTutor] = useState<Tutor | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookingType, setBookingType] = useState<"demo" | "regular">("demo");
-  const { user } = useAuth();
-  const userId = searchParams.get("userId");
 
-  // 🔹 Fetch tutor info and availability
+  // 🔹 Fetch tutor info and slots
   useEffect(() => {
     if (!id) return;
-
     const fetchData = async () => {
       try {
         setLoading(true);
         const tutorData = await getTutorById(id as string);
-        const slotData = await getTutorAvailability(userId as string);
+        const slotData = await getTutorAvailability(userId as string, bookingType);
         setTutor(tutorData);
         setSlots(slotData);
       } catch (err) {
@@ -73,40 +70,37 @@ const router = useRouter();
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [id]);
+  }, [id, bookingType]);
 
   // 🔹 Handle booking a slot
   const handleBookSlot = async (slot: Slot) => {
-    try {
-      if (!user) {
-        toast({
-          title: "Login Required",
-          description: "Only students can book slots. Please log in first.",
-        });
-        return;
-      }
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in as a student to book a slot.",
+      });
+      return;
+    }
 
-      const bookingData = {
+    try {
+      const payload = {
         tutorId: tutor?.userId || tutor?._id,
         subject: tutor?.subjects?.[0] || "General",
         date: dayjs(slot.startTime).toISOString(),
         startTime: slot.startTime,
         endTime: slot.endTime,
-        type: bookingType, 
-        amount: 0,
+        type: bookingType,
+        amount: bookingType === "regular" ? tutor?.hourlyRate || 0 : 0,
       };
 
-      const res = await createBooking(bookingData);
-      console.log("Booking Success:", res);
-
+      const res = await createBooking(payload);
       toast({
-        title: "Demo booked!",
+        title: bookingType === "demo" ? "Demo booked!" : "Class booked!",
         description: "We’ve notified your tutor.",
       });
 
-      router.push(`dashboard/student/search/tutor/booking/success?bookingId=${res._id}`);
+      // router.push(`/booking/success?bookingId=${res?._id}`);
     } catch (err: any) {
       console.error("Booking Error:", err);
       toast({
@@ -116,25 +110,20 @@ const router = useRouter();
     }
   };
 
-  // 🔹 Loading state
-  if (loading) {
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
-        <div className="animate-pulse text-lg">Loading tutor profile...</div>
+        Loading tutor profile...
       </div>
     );
-  }
 
-  // 🔹 Tutor not found
-  if (!tutor) {
+  if (!tutor)
     return (
       <div className="min-h-screen flex items-center justify-center text-red-500">
         Tutor not found or unavailable.
       </div>
     );
-  }
 
-  // 🔹 Main UI
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -190,8 +179,7 @@ const router = useRouter();
           <Card className="p-6 bg-white rounded-2xl shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-primary" /> Available
-                Slots
+                <CalendarDays className="w-5 h-5 text-primary" /> Available Slots
               </h3>
 
               <div className="flex gap-2">
@@ -199,20 +187,20 @@ const router = useRouter();
                   variant={bookingType === "demo" ? "default" : "outline"}
                   onClick={() => setBookingType("demo")}
                 >
-                  Book Demo (15 min)
+                  Demo (15 min)
                 </Button>
                 <Button
                   variant={bookingType === "regular" ? "default" : "outline"}
                   onClick={() => setBookingType("regular")}
                 >
-                  Book Regular (30 min)
+                  Regular Class
                 </Button>
               </div>
             </div>
 
             {slots.length === 0 ? (
               <div className="text-center text-gray-500">
-                No slots available.
+                No {bookingType} slots available.
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

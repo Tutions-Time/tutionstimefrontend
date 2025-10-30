@@ -43,29 +43,15 @@ export default function SearchTutors() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar
-        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        unreadCount={1}
-        userRole="student"
-      />
-      <Sidebar
-        userRole="student"
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
+      <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-64">
-        <Topbar
-          title="Find Tutors"
-          subtitle="Search and book your next class"
-        />
+        <Topbar title="Find Tutors" subtitle="Search and book your next class" />
 
         <main className="p-4 lg:p-6 space-y-6">
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
-            <form
-              onSubmit={handleSearch}
-              className="grid grid-cols-1 md:grid-cols-4 gap-3"
-            >
+            <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="relative md:col-span-2">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
                 <Input
@@ -88,24 +74,18 @@ export default function SearchTutors() {
               </select>
 
               <Button type="submit" variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                Search
+                <Filter className="w-4 h-4 mr-2" /> Search
               </Button>
             </form>
           </Card>
 
-          {loading && (
-            <Card className="p-10 text-center text-muted">Loading tutors…</Card>
-          )}
+          {loading && <Card className="p-10 text-center text-muted">Loading tutors…</Card>}
 
           {!loading && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {tutors.length > 0 ? (
                 tutors.map((tutor) => (
-                  <Card
-                    key={tutor._id}
-                    className="p-4 rounded-2xl bg-white shadow-sm hover:shadow-lg transition-base"
-                  >
+                  <Card key={tutor._id} className="p-4 rounded-2xl bg-white shadow-sm hover:shadow-lg transition-base">
                     <div className="flex items-center gap-3 mb-3">
                       <img
                         src={tutor.photoUrl || "/default-avatar.png"}
@@ -132,23 +112,13 @@ export default function SearchTutors() {
                       <div>₹{tutor.hourlyRate || 0}/hr</div>
                     </div>
 
-                    <Link
-                      href={{
-                        pathname: `search/tutor/${tutor._id}`,
-                        query: { userId: tutor.userId },
-                      }}
-                      className="mt-3 block"
-                    >
-                      <Button className="w-full bg-primary hover:bg-primary/90 text-text">
-                        View Profile
-                      </Button>
+                    <Link href={`search/tutor/${tutor._id}?userId=${tutor.userId}`} className="mt-3 block">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white">View Profile</Button>
                     </Link>
                   </Card>
                 ))
               ) : (
-                <Card className="p-10 text-center text-muted">
-                  No tutors found.
-                </Card>
+                <Card className="p-10 text-center text-muted">No tutors found.</Card>
               )}
             </div>
           )}
