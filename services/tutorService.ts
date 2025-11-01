@@ -129,3 +129,16 @@ export const requestPayout = async (amount: number) => {
     throw new Error(handleApiError(error));
   }
 };
+
+
+// Upload Tutor KYC (Aadhaar, PAN, Bank Proof)
+export const uploadTutorKyc = async (formData: FormData) => {
+  try {
+    const response = await api.post('/users/tutor-kyc', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
