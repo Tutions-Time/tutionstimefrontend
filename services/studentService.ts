@@ -20,6 +20,8 @@ export const updateStudentProfile = async (profileData: any) => {
   }
 };
 
+
+
 // Upload profile photo
 export const uploadProfilePhoto = async (file: File) => {
   try {
@@ -177,6 +179,40 @@ export const updateBookingStatus = async (id: string, status: 'confirmed' | 'can
     throw new Error(handleApiError(error));
   }
 };
+
+
+
+
+
+// Cancel a booking
+export const cancelBooking = async (bookingId: string) => {
+  try {
+    const res = await api.patch(`/bookings/${bookingId}/cancel`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+// Get current user's subscriptions
+export const getMySubscriptions = async () => {
+  try {
+    const res = await api.get(`/subscriptions/my`);
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Ensure getMyBookings hits the right existing backend route
+export const getMyBookings = async () => {
+  try {
+    const res = await api.get("/bookings/my"); // you added this route
+    return res.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 
 
