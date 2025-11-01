@@ -14,10 +14,9 @@ import {
   Users,
   Settings,
   X,
-  Video,
   ClipboardList,
   TrendingUp,
-  Layers
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,8 +27,16 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const studentLinks = [
-  { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard },
+type NavLink = {
+  href: string;
+  label: string;
+  icon: any;
+  /** if true, only exact path matches will mark this link active */
+  exact?: boolean;
+};
+
+const studentLinks: NavLink[] = [
+  { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
   // { href: '/dashboard/student/sessions', label: 'My Sessions', icon: Calendar },
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
@@ -38,8 +45,8 @@ const studentLinks = [
   // { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
-const tutorLinks = [
-  { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard },
+const tutorLinks: NavLink[] = [
+  { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/tutor/sessions', label: 'My Classes', icon: Calendar },
   { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
@@ -47,27 +54,36 @@ const tutorLinks = [
   { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 
-const adminLinks = [
-  { href: '/dashboard/admin/', label: 'Analytics', icon: BarChart3 },
+const adminLinks: NavLink[] = [
+  { href: '/dashboard/admin', label: 'Analytics', icon: BarChart3, exact: true },
   { href: '/dashboard/admin/users', label: 'Users', icon: Users },
   { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
   { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },
   { href: '/dashboard/admin/revenue', label: 'Revenue', icon: Wallet },
-   { href: '/dashboard/admin/categories', label: 'Categories', icon: Layers },
+  { href: '/dashboard/admin/categories', label: 'Categories', icon: Layers },
 ];
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  const links = userRole === 'admin' ? adminLinks : userRole === 'tutor' ? tutorLinks : studentLinks;
+  const links =
+    userRole === 'admin' ? adminLinks : userRole === 'tutor' ? tutorLinks : studentLinks;
+
+  const isLinkActive = (href: string, exact?: boolean) => {
+    // normalize trailing slashes
+    const cleanHref = href.endsWith('/') ? href.slice(0, -1) : href;
+    const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+
+    if (exact) return cleanPath === cleanHref; // Dashboard must be exact
+
+    // Non-exact links: active on exact match OR sub-paths
+    return cleanPath === cleanHref || cleanPath.startsWith(cleanHref + '/');
+  };
 
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
       )}
 
       <aside
@@ -86,7 +102,7 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
 
         <nav className="flex flex-col gap-1 p-4">
           {links.map((link) => {
-            const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+            const active = isLinkActive(link.href, link.exact);
             const Icon = link.icon;
 
             return (
@@ -96,7 +112,7 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
                 onClick={onClose}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-base',
-                  isActive
+                  active
                     ? 'bg-primary text-text'
                     : 'text-muted hover:bg-primaryWeak hover:text-text'
                 )}

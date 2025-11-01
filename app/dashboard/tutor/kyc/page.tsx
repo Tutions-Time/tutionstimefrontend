@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState, ChangeEvent } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { setTutorKyc } from '@/store/slices/tutorKycSlice';
 import { ShieldCheck, Upload } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -12,59 +15,65 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { uploadTutorKyc, getTutorProfile } from '@/services/tutorService';
 
+// ✅ Helper for building correct image URLs
+const getImageUrl = (path?: string | null) => {
+  if (!path) return '';
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') ||
+    'http://127.0.0.1:5000';
+  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
 export default function TutorKycPage() {
+  const dispatch = useDispatch();
+  const { kycStatus, aadhaarUrls, panUrl, bankProofUrl } = useSelector(
+    (state: RootState) => state.tutorKyc
+  );
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [status, setStatus] = useState<'pending' | 'submitted' | 'approved' | 'rejected'>('pending');
   const [aadhaarFiles, setAadhaarFiles] = useState<File[]>([]);
-  const [aadhaarPreviews, setAadhaarPreviews] = useState<string[]>([]);
   const [panFile, setPanFile] = useState<File | null>(null);
-  const [panPreview, setPanPreview] = useState<string | null>(null);
   const [bankFile, setBankFile] = useState<File | null>(null);
-  const [bankPreview, setBankPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 🧠 Fetch KYC status and existing files on mount
+  // 🧠 Fetch KYC data on mount
   useEffect(() => {
     const fetchKycData = async () => {
       try {
         const profile = await getTutorProfile();
-        if (profile?.kycStatus) setStatus(profile.kycStatus);
-        if (profile?.aadhaarUrls?.length) setAadhaarPreviews(profile.aadhaarUrls);
-        if (profile?.panUrl) setPanPreview(profile.panUrl);
-        if (profile?.bankProofUrl) setBankPreview(profile.bankProofUrl);
+        dispatch(
+          setTutorKyc({
+            kycStatus: profile.kycStatus || 'pending',
+            aadhaarUrls: profile.aadhaarUrls || [],
+            panUrl: profile.panUrl || null,
+            bankProofUrl: profile.bankProofUrl || null,
+          })
+        );
       } catch (error: any) {
         console.error('Failed to load KYC info:', error.message);
       }
     };
     fetchKycData();
-  }, []);
+  }, [dispatch]);
 
+  // 📂 File Handlers
   const handleAadhaarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setAadhaarFiles(files);
-    setAadhaarPreviews(files.map((f) => URL.createObjectURL(f)));
   };
+  const handlePanChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setPanFile(e.target.files?.[0] || null);
+  const handleBankChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setBankFile(e.target.files?.[0] || null);
 
-  const handlePanChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setPanFile(file);
-    setPanPreview(file ? URL.createObjectURL(file) : null);
-  };
-
-  const handleBankChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setBankFile(file);
-    setBankPreview(file ? URL.createObjectURL(file) : null);
-  };
-
+  // 🧩 Submit handler
   const handleSubmit = async () => {
     if (!aadhaarFiles.length || !panFile || !bankFile) {
-      toast({
+      return toast({
         title: 'Missing files',
         description: 'Please upload all required documents.',
         variant: 'destructive',
       });
-      return;
     }
 
     try {
@@ -75,12 +84,22 @@ export default function TutorKycPage() {
       formData.append('bankProof', bankFile);
 
       const res = await uploadTutorKyc(formData);
-      setStatus('submitted');
+      const data = res.data;
+
+      // ✅ Update Redux
+      dispatch(
+        setTutorKyc({
+          kycStatus: data.kycStatus || 'submitted',
+          aadhaarUrls: data.aadhaarUrls || [],
+          panUrl: data.panUrl || null,
+          bankProofUrl: data.bankProofUrl || null,
+        })
+      );
+
       toast({
         title: 'KYC Submitted',
         description: 'Your KYC documents have been submitted for review.',
       });
-      console.log('KYC Upload Response:', res);
     } catch (err: any) {
       toast({
         title: 'Upload Failed',
@@ -93,7 +112,7 @@ export default function TutorKycPage() {
   };
 
   const getStatusBadgeClass = () => {
-    switch (status) {
+    switch (kycStatus) {
       case 'approved':
         return 'bg-green-100 text-green-700';
       case 'rejected':
@@ -122,58 +141,61 @@ export default function TutorKycPage() {
                   <div className="text-sm text-muted">Aadhaar / PAN / Bank Proof</div>
                 </div>
               </div>
-              <Badge className={`capitalize ${getStatusBadgeClass()}`}>{status}</Badge>
+              <Badge className={`capitalize ${getStatusBadgeClass()}`}>{kycStatus}</Badge>
             </div>
 
-            {/* If already verified, show message */}
-            {status === 'approved' ? (
-              <div className="mt-6 text-center p-6 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 font-semibold text-lg">✅ Your KYC is already verified.</p>
+            {/* ✅ Display existing KYC images */}
+            {kycStatus === 'approved' || kycStatus === 'submitted' ? (
+              <div className="mt-6">
+                <p className="font-medium mb-3">
+                  {kycStatus === 'approved'
+                    ? '✅ Your KYC is verified.'
+                    : '🕓 Your KYC is under review.'}
+                </p>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  {Array.isArray(aadhaarUrls) &&
+                    aadhaarUrls.map((src, i) => (
+                      <img
+                        key={i}
+                        src={getImageUrl(src)}
+                        alt={`aadhaar-${i}`}
+                        className="w-32 h-24 rounded object-cover border"
+                      />
+                    ))}
+
+                  {panUrl && (
+                    <img
+                      src={getImageUrl(panUrl)}
+                      alt="PAN"
+                      className="w-32 h-24 rounded object-cover border"
+                    />
+                  )}
+
+                  {bankProofUrl && (
+                    <img
+                      src={getImageUrl(bankProofUrl)}
+                      alt="Bank Proof"
+                      className="w-32 h-24 rounded object-cover border"
+                    />
+                  )}
+                </div>
               </div>
             ) : (
               <>
-                {/* File Inputs + Previews */}
+                {/* Upload Fields */}
                 <div className="grid md:grid-cols-3 gap-4 mt-6">
-                  {/* Aadhaar */}
                   <div>
                     <label className="text-sm font-medium">Aadhaar (front/back)</label>
                     <Input type="file" multiple onChange={handleAadhaarChange} />
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {aadhaarPreviews.map((src, i) => (
-                        <img
-                          key={i}
-                          src={src}
-                          alt={`Aadhaar-${i}`}
-                          className="w-24 h-16 rounded object-cover border"
-                        />
-                      ))}
-                    </div>
                   </div>
-
-                  {/* PAN */}
                   <div>
                     <label className="text-sm font-medium">PAN Card</label>
                     <Input type="file" onChange={handlePanChange} />
-                    {panPreview && (
-                      <img
-                        src={panPreview}
-                        alt="PAN"
-                        className="w-24 h-16 rounded mt-2 object-cover border"
-                      />
-                    )}
                   </div>
-
-                  {/* Bank Proof */}
                   <div>
                     <label className="text-sm font-medium">Bank Proof (Passbook/Cheque)</label>
                     <Input type="file" onChange={handleBankChange} />
-                    {bankPreview && (
-                      <img
-                        src={bankPreview}
-                        alt="Bank Proof"
-                        className="w-24 h-16 rounded mt-2 object-cover border"
-                      />
-                    )}
                   </div>
                 </div>
 

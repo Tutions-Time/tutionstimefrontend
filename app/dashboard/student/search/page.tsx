@@ -88,10 +88,12 @@ export default function SearchTutors() {
                   <Card key={tutor._id} className="p-4 rounded-2xl bg-white shadow-sm hover:shadow-lg transition-base">
                     <div className="flex items-center gap-3 mb-3">
                       <img
-                        src={tutor.photoUrl || "/default-avatar.png"}
-                        alt={tutor.name}
+                        src="/default-avatar.png"
+                        onError={(e) => (e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png")}
+                        alt={tutor.name || "Tutor"}
                         className="w-10 h-10 rounded-full object-cover border"
                       />
+
                       <div>
                         <div className="font-semibold">{tutor.name}</div>
                         <div className="text-sm text-muted">
