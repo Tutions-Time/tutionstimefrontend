@@ -40,34 +40,29 @@ export const testAuthAPIs = async () => {
   console.log("Testing Authentication APIs...");
   try {
     // Test student login flow
-    console.log("Testing student login flow...");
-    await authService.sendOtp(testCredentials.student.phone, "login");
-    console.log("✅ Send OTP successful");
-
-    await authService.verifyOtp({
+    console.log('Testing student login flow...');
+    const sendRes = await authService.sendOtp(testCredentials.student.phone, 'login');
+    console.log('✅ Send OTP successful');
+    
+    const verifyRes = await authService.verifyOtp({
       phone: testCredentials.student.phone,
       otp: testCredentials.student.otp,
-      requestId: "test-request-id",
-      purpose: "login",
-      role: "student",
+      requestId: sendRes.requestId,
+      purpose: 'login',
     });
-
-    console.log("✅ Verify OTP successful");
-
+    console.log('✅ Verify OTP successful');
+    
     // Test admin login flow
-    console.log("Testing admin login flow...");
-    await authService.adminLogin(
-      testCredentials.admin.username,
-      testCredentials.admin.password
-    );
-    console.log("✅ Admin login successful");
-
+    console.log('Testing admin login flow...');
+    const adminRes = await authService.adminLogin(testCredentials.admin.username, testCredentials.admin.password);
+    console.log('✅ Admin login successful');
+    
     // Test logout
-    console.log("Testing logout...");
-    await authService.logout("test-refresh-token");
-
-    console.log("✅ Logout successful");
-
+    console.log('Testing logout...');
+    const refreshToken = adminRes?.tokens?.refreshToken || verifyRes?.tokens?.refreshToken || '';
+    await authService.logout(refreshToken);
+    console.log('✅ Logout successful');
+    
     return true;
   } catch (error) {
     console.error("❌ Authentication API test failed:", error);
@@ -81,14 +76,15 @@ export const testStudentAPIs = async () => {
 
   try {
     // Login as student first
+    const sendRes = await authService.sendOtp(testCredentials.student.phone, 'login');
     await authService.verifyOtp({
       phone: testCredentials.student.phone,
       otp: testCredentials.student.otp,
-      requestId: "test-request-id",
-      purpose: "login",
-      role: "student",
+      requestId: sendRes.requestId,
+      purpose: 'login',
+      role: 'student',
     });
-
+    
     // Test profile
     console.log("Testing student profile...");
     const profile = await studentService.getStudentProfile();
@@ -130,14 +126,16 @@ export const testTutorAPIs = async () => {
   console.log("Testing Tutor APIs...");
 
   try {
+    // Login as tutor first
+    const sendRes = await authService.sendOtp(testCredentials.tutor.phone, 'login');
     await authService.verifyOtp({
-      phone: testCredentials.student.phone,
-      otp: testCredentials.student.otp,
-      requestId: "test-request-id",
-      purpose: "login",
-      role: "tutor",
+      phone: testCredentials.tutor.phone,
+      otp: testCredentials.tutor.otp,
+      requestId: sendRes.requestId,
+      purpose: 'login',
+      role: 'tutor',
     });
-
+    
     // Test profile
     console.log("Testing tutor profile...");
     const profile = await tutorService.getTutorProfile();

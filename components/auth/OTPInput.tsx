@@ -1,6 +1,7 @@
-"use client";
+'use client';
 
-import { useRef, useState, KeyboardEvent, ClipboardEvent } from "react";
+import { useRef, useState, KeyboardEvent, ClipboardEvent } from 'react';
+import { cn } from '@/lib/utils';
 
 interface OTPInputProps {
   length?: number;
@@ -21,9 +22,9 @@ export function OTPInput({
   const handleChange = (index: number, digit: string) => {
     if (!/^\d*$/.test(digit)) return;
 
-    const newValue = value.split("");
+    const newValue = value.split('');
     newValue[index] = digit;
-    const newOTP = newValue.join("");
+    const newOTP = newValue.join('');
     onChange(newOTP);
 
     if (digit && index < length - 1) {
@@ -36,23 +37,23 @@ export function OTPInput({
   };
 
   const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
+    if (e.key === 'Backspace') {
       if (!value[index] && index > 0) {
         inputRefs.current[index - 1]?.focus();
       }
-      const newValue = value.split("");
-      newValue[index] = "";
-      onChange(newValue.join(""));
-    } else if (e.key === "ArrowLeft" && index > 0) {
+      const newValue = value.split('');
+      newValue[index] = '';
+      onChange(newValue.join(''));
+    } else if (e.key === 'ArrowLeft' && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    } else if (e.key === "ArrowRight" && index < length - 1) {
+    } else if (e.key === 'ArrowRight' && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text/plain").slice(0, length);
+    const pastedData = e.clipboardData.getData('text/plain').slice(0, length);
     if (!/^\d+$/.test(pastedData)) return;
 
     onChange(pastedData);
@@ -66,36 +67,30 @@ export function OTPInput({
 
   return (
     <div className="flex gap-3 justify-center">
-      {Array.from({ length }, (_, index) => {
-        const baseClass =
-          "w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold rounded-lg border-2 transition-base";
-
-        const focusClass =
-          focusedIndex === index
-            ? "border-primary ring-2 ring-primary/50"
-            : "border-border";
-
-        const filledClass = value[index] ? "bg-primaryWeak" : "";
-
-        return (
-          <input
-            key={index}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
-            type="text"
-            inputMode="numeric"
-            maxLength={1}
-            value={value[index] || ""}
-            onChange={(e) => handleChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
-            onPaste={handlePaste}
-            onFocus={() => setFocusedIndex(index)}
-            onBlur={() => setFocusedIndex(null)}
-            className={`${baseClass} ${focusClass} ${filledClass}`}
-          />
-        );
-      })}
+      {Array.from({ length }, (_, index) => (
+        <input
+          key={index}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={value[index] || ''}
+          onChange={(e) => handleChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          onFocus={() => setFocusedIndex(index)}
+          onBlur={() => setFocusedIndex(null)}
+          className={cn(
+            'w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold rounded-lg border-2 transition-all outline-none',
+            focusedIndex === index
+              ? 'border-primary ring-2 ring-primary/50'
+              : 'border-border',
+            value[index] && 'bg-primaryWeak text-primary-foreground'
+          )}
+        />
+      ))}
     </div>
   );
 }
