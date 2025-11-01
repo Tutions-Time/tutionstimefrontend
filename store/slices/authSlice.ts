@@ -15,7 +15,7 @@ export type Tokens = {
 };
 
 export type AuthState = {
-  user: User | null;
+  user: User | null;  
   tokens: Tokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;

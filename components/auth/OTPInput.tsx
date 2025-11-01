@@ -10,7 +10,12 @@ interface OTPInputProps {
   onComplete?: (value: string) => void;
 }
 
-export function OTPInput({ length = 4, value, onChange, onComplete }: OTPInputProps) {
+export function OTPInput({
+  length = 4,
+  value,
+  onChange,
+  onComplete,
+}: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
@@ -65,7 +70,9 @@ export function OTPInput({ length = 4, value, onChange, onComplete }: OTPInputPr
       {Array.from({ length }, (_, index) => (
         <input
           key={index}
-          ref={(el) => { inputRefs.current[index] = el; }}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           type="text"
           inputMode="numeric"
           maxLength={1}
@@ -76,11 +83,11 @@ export function OTPInput({ length = 4, value, onChange, onComplete }: OTPInputPr
           onFocus={() => setFocusedIndex(index)}
           onBlur={() => setFocusedIndex(null)}
           className={cn(
-            'w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold rounded-lg border-2 transition-base',
+            'w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold rounded-lg border-2 transition-all outline-none',
             focusedIndex === index
               ? 'border-primary ring-2 ring-primary/50'
               : 'border-border',
-            value[index] && 'bg-primaryWeak'
+            value[index] && 'bg-primaryWeak text-primary-foreground'
           )}
         />
       ))}

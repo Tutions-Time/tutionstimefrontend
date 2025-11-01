@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '../../lib/api';
 
 export interface StudentProfile {
-  userId: string;
+  userId: number;
   name: string;
   email: string;
   phone: string;
@@ -15,7 +15,7 @@ export interface StudentProfile {
 }
 
 export interface TutorProfile {
-  userId: string;
+  userId: number;
   name: string;
   email: string;
   phone: string;
