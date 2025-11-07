@@ -1,52 +1,88 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface TutorProfileState {
+  // ----- Personal -----
   name: string;
   email: string;
-  phone: string;
   gender: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
   pincode: string;
   photoUrl: string;
 
+  // ----- Academic & Teaching -----
   qualification: string;
+  specialization: string;
   experience: string;
-  subjects: string[];
-  classLevels: string[];
   teachingMode: string;
 
+  // ----- Subjects & Filters -----
+  subjects: string[];
+  classLevels: string[];
+  boards: string[];
+  exams: string[];
+  studentTypes: string[];
+  groupSize: string;
+
+  // ----- Rates & Availability -----
   hourlyRate: string;
   monthlyRate: string;
-  availableDays: string[];
+  availability: string[]; // calendar-based
 
+  // ----- About -----
   bio: string;
   achievements: string;
-  certificateUrl: string;
+
+  // ----- Uploads -----
+  resumeUrl: string;
   demoVideoUrl: string;
+
+  // ----- Control -----
   isSubmitting: boolean;
 }
 
 const initialState: TutorProfileState = {
+  // Personal
   name: "",
   email: "",
-  phone: "",
   gender: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  state: "",
   pincode: "",
   photoUrl: "",
-  demoVideoUrl: "",
+
+  // Academic
   qualification: "",
+  specialization: "",
   experience: "",
-  subjects: [],
-  classLevels: [],
   teachingMode: "",
 
+  // Subjects
+  subjects: [],
+  classLevels: [],
+  boards: [],
+  exams: [],
+  studentTypes: [],
+  groupSize: "",
+
+  // Rates & Availability
   hourlyRate: "",
   monthlyRate: "",
-  availableDays: [],
+  availability: [],
 
+  // About
   bio: "",
   achievements: "",
-  certificateUrl: "",
 
+  // Uploads
+  resumeUrl: "",
+  demoVideoUrl: "",
+
+  // Control
   isSubmitting: false,
 };
 

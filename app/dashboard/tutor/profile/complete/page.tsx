@@ -15,7 +15,6 @@ import SecondaryButton from "@/components/SecondaryButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   User,
@@ -23,49 +22,94 @@ import {
   BookOpen,
   Wallet,
   Target,
-  Upload,
+  PlayCircle,
   FileText,
-  PlayCircle, // icon for video section
+  Trash2,
+  Calendar as CalendarIcon,
 } from "lucide-react";
+import OtherInline from "@/components/forms/OtherInline";
+import AvailabilityPicker from "@/components/forms/AvailabilityPicker";
 
-const SUBJECTS = [
-  "Mathematics", "Physics", "Chemistry", "Biology",
-  "English", "Computer Science", "Economics", "Accountancy", "History",
-];
-
-const CLASS_LEVELS = [
-  "Class 6", "Class 7", "Class 8", "Class 9", "Class 10",
-  "Class 11", "Class 12", "Undergraduate",
-];
-
-const EXPERIENCE_OPTIONS = [
-  "Less than 1 year", "1–2 years", "3–5 years", "6–10 years", "10+ years",
-];
-
+/* -------------------- Filter-driven options -------------------- */
 const QUALIFICATIONS = [
-  "B.Sc", "M.Sc", "B.Tech", "M.Tech", "B.A", "M.A", "B.Ed", "M.Ed", "Ph.D",
+  "B.Sc",
+  "M.Sc",
+  "B.Tech",
+  "M.Tech",
+  "B.A",
+  "M.A",
+  "B.Ed",
+  "M.Ed",
+  "Ph.D",
+  "Other",
 ];
-
+const SPECIALIZATIONS = [
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "English",
+  "Computer Science",
+  "Economics",
+  "Accountancy",
+  "History",
+  "Other",
+];
+const EXPERIENCE_OPTIONS = [
+  "Less than 1 year",
+  "1–2 years",
+  "3–5 years",
+  "6–10 years",
+  "10+ years",
+];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const SUBJECTS = [
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "English",
+  "Economics",
+  "Accountancy",
+  "Computer Science",
+  "Other",
+];
+const CLASS_LEVELS = [
+  "Class 6",
+  "Class 7",
+  "Class 8",
+  "Class 9",
+  "Class 10",
+  "Class 11",
+  "Class 12",
+  "Undergraduate",
+  "Postgraduate",
+  "Other",
+];
+const BOARDS = ["CBSE", "ICSE", "State Board", "IB", "Cambridge", "Other"];
+const EXAMS = ["JEE", "NEET", "CUET", "UPSC", "SSC", "Banking", "CAT", "Other"];
+const STUDENT_TYPES = ["School", "College", "Working Professional"];
+const GROUP_SIZES = ["One-to-One", "Small Batch (2–5)", "Large Batch (6+)"];
+const GENDER = ["Male", "Female", "Other"];
 
-// Max video size (approx) for local file uploads
 const MAX_VIDEO_MB = 100;
+const MAX_RESUME_MB = 10;
+
+const toOptions = (arr: string[]) => arr.map((v) => ({ value: v, label: v }));
 
 export default function TutorProfileCompletePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
+  // Local file states for previews
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
-
-  /** 🔹 NEW: local file state for demo video uploads */
   const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Prefill if cached
+  /* -------------------- Prefill / Persist -------------------- */
   useEffect(() => {
     try {
       const cache = localStorage.getItem("tt_tutor_prefill");
@@ -73,7 +117,6 @@ export default function TutorProfileCompletePage() {
     } catch {}
   }, [dispatch]);
 
-  // Save to localStorage (files are NOT saved locally; we only persist string fields)
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -83,136 +126,89 @@ export default function TutorProfileCompletePage() {
     } catch {}
   }, [profile]);
 
-  // Validation helpers
-  const setFieldError = (key: string, err: string) =>
-    setErrors((p) => ({ ...p, [key]: err }));
+  /* -------------------- Validation -------------------- */
+  const setError = (k: string, m: string) =>
+    setErrors((p) => ({ ...p, [k]: m }));
 
-  const validateField = (key: string, value: any) => {
-    let err = "";
-    switch (key) {
-      case "name":
-        if (!value.trim()) err = "Name is required";
-        break;
-      case "email":
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) err = "Valid email required";
-        break;
-      case "phone":
-        if (!value.trim() || value.replace(/\D/g, "").length < 10) err = "Valid phone required";
-        break;
-      case "pincode":
-        if (!value.trim() || value.replace(/\D/g, "").length < 6) err = "Valid pincode required";
-        break;
-      case "qualification":
-        if (!value.trim()) err = "Qualification required";
-        break;
-      case "experience":
-        if (!value.trim()) err = "Experience required";
-        break;
-      case "subjects":
-        if (!value.length) err = "Select at least one subject";
-        break;
-      case "hourlyRate":
-        if (!String(value).trim() || isNaN(Number(value))) err = "Enter valid hourly rate";
-        break;
-      case "bio":
-        if (!String(value).trim()) err = "Bio is required";
-        break;
-      /** 🔹 special key: demoVideo (requires either file or URL) */
-      case "demoVideo":
-        if (!demoVideoFile && !profile.demoVideoUrl.trim()) {
-          err = "Add a demo video (upload a file or paste a URL)";
-        }
-        break;
-      default:
-        break;
-    }
-    setFieldError(key, err);
-    return !err;
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!profile.name?.trim()) e.name = "Name is required";
+    if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
+      e.email = "Valid email required";
+    if (!profile.pincode?.trim()) e.pincode = "Pincode required";
+    if (!profile.qualification) e.qualification = "Qualification required";
+    if (!profile.experience) e.experience = "Experience required";
+    if (!profile.subjects?.length) e.subjects = "Select at least one subject";
+    if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
+    if (!profile.bio?.trim()) e.bio = "Bio is required";
+    if (!demoVideoFile) e.demoVideo = "Upload a demo video";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const toggleSubject = (s: string) => {
-    const next = profile.subjects.includes(s)
-      ? profile.subjects.filter((x) => x !== s)
-      : [...profile.subjects, s];
-    dispatch(setField({ key: "subjects", value: next }));
-    validateField("subjects", next);
-  };
-
-  const toggleDay = (d: string) => {
-    const next = profile.availableDays.includes(d)
-      ? profile.availableDays.filter((x) => x !== d)
-      : [...profile.availableDays, d];
-    dispatch(setField({ key: "availableDays", value: next }));
-  };
-
-  const onPickDemoVideo = (file?: File | null) => {
-    const f = file || null;
-    if (!f) {
-      setDemoVideoFile(null);
-      return;
-    }
+  /* -------------------- Handlers -------------------- */
+  const onPickDemoVideo = (f: File) => {
+    if (!f) return;
     const sizeMB = f.size / (1024 * 1024);
-    if (sizeMB > MAX_VIDEO_MB) {
-      setDemoVideoFile(null);
-      setFieldError("demoVideo", `Max ${MAX_VIDEO_MB} MB allowed`);
-      return;
-    }
+    if (sizeMB > MAX_VIDEO_MB)
+      return setError("demoVideo", `Max ${MAX_VIDEO_MB}MB allowed`);
     setDemoVideoFile(f);
-    // If a file is chosen, we can clear URL (optional)
-    // dispatch(setField({ key: "demoVideoUrl", value: "" })); // uncomment if you want mutual exclusivity
-    // clear any error
-    setFieldError("demoVideo", "");
+    setError("demoVideo", "");
+  };
+
+  const onPickResume = (f: File) => {
+    if (!f) return;
+    const sizeMB = f.size / (1024 * 1024);
+    if (sizeMB > MAX_RESUME_MB)
+      return setError("resume", `Max ${MAX_RESUME_MB}MB allowed`);
+    setResumeFile(f);
+    setError("resume", "");
   };
 
   const handleSubmit = async () => {
-    const required = [
-      "name", "email", "phone", "pincode", "qualification",
-      "experience", "subjects", "hourlyRate", "bio",
-      /** 🔹 ensure demo video present */
-      "demoVideo",
-    ];
-
-    let valid = true;
-    required.forEach((k) => {
-      const value =
-        k === "demoVideo" ? null : (profile as any)[k as keyof typeof profile];
-      const ok = validateField(k, value);
-      if (!ok) valid = false;
-    });
-    if (!valid) return;
-
+    if (!validate()) return;
     try {
       dispatch(startSubmitting());
       const fd = new FormData();
+
+      // Personal
       fd.append("name", profile.name);
       fd.append("email", profile.email);
-      fd.append("phone", profile.phone);
-      fd.append("gender", profile.gender.toLowerCase());
+      fd.append("gender", profile.gender);
+      fd.append("addressLine1", profile.addressLine1 || "");
+      fd.append("addressLine2", profile.addressLine2 || "");
+      fd.append("city", profile.city || "");
+      fd.append("state", profile.state || "");
       fd.append("pincode", profile.pincode);
-      fd.append("qualification", profile.qualification);
-      fd.append("experience", profile.experience);
-      fd.append("subjects", JSON.stringify(profile.subjects));
-      fd.append("classLevels", JSON.stringify(profile.classLevels));
+
+      // Academic & teaching
       fd.append("teachingMode", profile.teachingMode);
+      fd.append("qualification", profile.qualification);
+      fd.append("specialization", profile.specialization);
+      fd.append("experience", profile.experience);
+
+      // Subjects & filter-driven fields
+      fd.append("subjects", JSON.stringify(profile.subjects || []));
+      fd.append("classLevels", JSON.stringify(profile.classLevels || []));
+      fd.append("boards", JSON.stringify(profile.boards || []));
+      fd.append("exams", JSON.stringify(profile.exams || []));
+      fd.append("studentTypes", JSON.stringify(profile.studentTypes || []));
+      fd.append("groupSize", profile.groupSize || "");
+
+      // Rates & availability
       fd.append("hourlyRate", profile.hourlyRate);
-      fd.append("monthlyRate", profile.monthlyRate);
-      fd.append("availableDays", JSON.stringify(profile.availableDays));
+      fd.append("monthlyRate", profile.monthlyRate || "");
+      fd.append("availability", JSON.stringify(profile.availability || []));
+
+      // About
       fd.append("bio", profile.bio);
-      fd.append("achievements", profile.achievements);
+      fd.append("achievements", profile.achievements || "");
 
+      // Files
       if (photoFile) fd.append("photo", photoFile);
-      if (certificateFile) fd.append("certificate", certificateFile);
+      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      if (resumeFile) fd.append("resume", resumeFile);
 
-      /** 🔹 DEMO VIDEO: send either file or fallback URL string */
-      if (demoVideoFile) {
-        fd.append("demoVideo", demoVideoFile);
-      } else if (profile.demoVideoUrl.trim()) {
-        fd.append("demoVideoUrl", profile.demoVideoUrl.trim());
-      }
-
-      // Import at the top of the file:
-      // import { updateTutorProfile } from '@/services/profileService';
-      
       await updateTutorProfile(fd);
       dispatch(stopSubmitting());
       router.push("/dashboard/tutor");
@@ -225,41 +221,39 @@ export default function TutorProfileCompletePage() {
 
   const disabled = profile.isSubmitting;
 
+  /* -------------------- UI -------------------- */
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navbar */}
       <nav className="border-b sticky top-0 bg-white/90 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white">
               T
             </div>
-            <span className="font-bold text-xl text-text">Tuitions time</span>
+            <span className="font-bold text-xl text-text">Tuitions Time</span>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primaryWeak to-white py-10 border-b">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-text mb-3">
-            Complete Your Profile
-          </h1>
-          <p className="text-muted text-base max-w-2xl mx-auto">
-            Add your qualifications, experience, and rates to attract the right students.
-          </p>
-        </div>
+      {/* Header */}
+      <section className="bg-gradient-to-br from-primaryWeak to-white py-10 border-b text-center">
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          Complete Your Tutor Profile
+        </h1>
+        <p className="text-gray-600">
+          Add your details, rates, and demo video to get started.
+        </p>
       </section>
 
       {/* Form */}
       <main className="flex-grow">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
-
-          {/* Personal Info */}
-          <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-8">
+          {/* 1) Personal */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <User className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">Personal Information</h2>
+              <h2 className="text-xl font-semibold">Personal Information</h2>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -271,7 +265,11 @@ export default function TutorProfileCompletePage() {
                 >
                   <div className="h-28 w-28 rounded-full border-2 border-primary flex items-center justify-center overflow-hidden shadow-md bg-gray-50">
                     {photoFile ? (
-                      <img src={URL.createObjectURL(photoFile)} className="h-full w-full object-cover" />
+                      <img
+                        src={URL.createObjectURL(photoFile)}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <User className="w-10 h-10 text-gray-400" />
                     )}
@@ -288,198 +286,205 @@ export default function TutorProfileCompletePage() {
 
               {/* Fields */}
               <div className="md:col-span-2 space-y-5">
-                <div>
-                  <Label>Full Name</Label>
-                  <Input
-                    value={profile.name}
-                    onChange={(e) => {
-                      dispatch(setField({ key: "name", value: e.target.value }));
-                      validateField("name", e.target.value);
-                    }}
-                    placeholder="e.g., your name"
+                <Input
+                  value={profile.name}
+                  onChange={(e) =>
+                    dispatch(setField({ key: "name", value: e.target.value }))
+                  }
+                  placeholder="Full Name"
+                  className="h-10"
+                />
+
+                <Input
+                  value={profile.email}
+                  onChange={(e) =>
+                    dispatch(setField({ key: "email", value: e.target.value }))
+                  }
+                  placeholder="Email"
+                  className="h-10"
+                />
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <OtherInline
+                    label="Gender"
+                    value={profile.gender}
+                    options={toOptions(GENDER)}
+                    onChange={(v) =>
+                      dispatch(setField({ key: "gender", value: v }))
+                    }
                   />
-                  {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
+                  <OtherInline
+                    label="Teaching Mode"
+                    value={profile.teachingMode}
+                    options={toOptions(TEACHING_MODES)}
+                    onChange={(v) =>
+                      dispatch(setField({ key: "teachingMode", value: v }))
+                    }
+                  />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Email</Label>
-                    <Input
-                      value={profile.email}
-                      onChange={(e) => {
-                        dispatch(setField({ key: "email", value: e.target.value }));
-                        validateField("email", e.target.value);
-                      }}
-                      placeholder="you@example.com"
-                    />
-                    {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
-                  </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input
-                      value={profile.phone}
-                      onChange={(e) => {
-                        dispatch(setField({ key: "phone", value: e.target.value }));
-                        validateField("phone", e.target.value);
-                      }}
-                      placeholder="10-digit number"
-                    />
-                    {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
-                  </div>
-                </div>
+                <Input
+                  placeholder="Address Line 1"
+                  value={profile.addressLine1}
+                  onChange={(e) =>
+                    dispatch(setField({ key: "addressLine1", value: e.target.value }))
+                  }
+                  className="h-10"
+                />
+                <Input
+                  placeholder="Address Line 2"
+                  value={profile.addressLine2}
+                  onChange={(e) =>
+                    dispatch(setField({ key: "addressLine2", value: e.target.value }))
+                  }
+                  className="h-10"
+                />
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Gender</Label>
-                    <select
-                      className="mt-2 w-full border rounded-lg h-10 px-3 bg-background"
-                      value={profile.gender}
-                      onChange={(e) =>
-                        dispatch(setField({ key: "gender", value: e.target.value }))
-                      }
-                    >
-                      <option value="">Select</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Pincode</Label>
-                    <Input
-                      value={profile.pincode}
-                      onChange={(e) => {
-                        dispatch(setField({ key: "pincode", value: e.target.value }));
-                        validateField("pincode", e.target.value);
-                      }}
-                      placeholder="e.g., 110001"
-                    />
-                    {errors.pincode && <p className="text-red-600 text-xs mt-1">{errors.pincode}</p>}
-                  </div>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <Input
+                    placeholder="City"
+                    value={profile.city}
+                    onChange={(e) =>
+                      dispatch(setField({ key: "city", value: e.target.value }))
+                    }
+                    className="h-10"
+                  />
+                  <Input
+                    placeholder="State"
+                    value={profile.state}
+                    onChange={(e) =>
+                      dispatch(setField({ key: "state", value: e.target.value }))
+                    }
+                    className="h-10"
+                  />
+                  <Input
+                    placeholder="Pincode"
+                    value={profile.pincode}
+                    onChange={(e) =>
+                      dispatch(setField({ key: "pincode", value: e.target.value }))
+                    }
+                    className="h-10"
+                  />
                 </div>
+                {errors.pincode && (
+                  <p className="text-rose-600 text-xs">{errors.pincode}</p>
+                )}
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Academic & Teaching */}
-          <div className="bg-white rounded-2xl shadow p-8">
+          {/* 2) Academic & Teaching */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <GraduationCap className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">Academic & Teaching Details</h2>
+              <h2 className="text-xl font-semibold">Academic & Teaching</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <Label>Highest Qualification</Label>
-                <select
-                  className="mt-2 w-full border rounded-lg h-10 px-3 bg-background"
-                  value={profile.qualification}
-                  onChange={(e) => {
-                    dispatch(setField({ key: "qualification", value: e.target.value }));
-                    validateField("qualification", e.target.value);
-                  }}
-                >
-                  <option value="">Select</option>
-                  {QUALIFICATIONS.map((q) => (
-                    <option key={q}>{q}</option>
-                  ))}
-                </select>
-                {errors.qualification && (
-                  <p className="text-red-600 text-xs mt-1">{errors.qualification}</p>
-                )}
-              </div>
-
-              <div>
-                <Label>Experience</Label>
-                <select
-                  className="mt-2 w-full border rounded-lg h-10 px-3 bg-background"
-                  value={profile.experience}
-                  onChange={(e) => {
-                    dispatch(setField({ key: "experience", value: e.target.value }));
-                    validateField("experience", e.target.value);
-                  }}
-                >
-                  <option value="">Select</option>
-                  {EXPERIENCE_OPTIONS.map((ex) => (
-                    <option key={ex}>{ex}</option>
-                  ))}
-                </select>
-                {errors.experience && (
-                  <p className="text-red-600 text-xs mt-1">{errors.experience}</p>
-                )}
-              </div>
-
-              <div>
-                <Label>Teaching Mode</Label>
-                <select
-                  className="mt-2 w-full border rounded-lg h-10 px-3 bg-background"
-                  value={profile.teachingMode}
-                  onChange={(e) =>
-                    dispatch(setField({ key: "teachingMode", value: e.target.value }))
-                  }
-                >
-                  <option value="">Select</option>
-                  {TEACHING_MODES.map((m) => (
-                    <option key={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
+              <OtherInline
+                label="Highest Qualification"
+                value={profile.qualification}
+                options={toOptions(QUALIFICATIONS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "qualification", value: v }))
+                }
+              />
+              <OtherInline
+                label="Specialization / Major"
+                value={profile.specialization}
+                options={toOptions(SPECIALIZATIONS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "specialization", value: v }))
+                }
+              />
+              <OtherInline
+                label="Experience"
+                value={profile.experience}
+                options={toOptions(EXPERIENCE_OPTIONS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "experience", value: v }))
+                }
+              />
             </div>
-          </div>
+          </section>
 
-          {/* Subjects */}
-          <div className="bg-white rounded-2xl shadow p-8">
+          {/* 3) Subjects & Classes */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <BookOpen className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">Subjects & Classes</h2>
+              <h2 className="text-xl font-semibold">Subjects & Classes</h2>
             </div>
-            <div className="mb-4">
-              <Label>Subjects</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-3">
-                {SUBJECTS.map((s) => (
-                  <label
-                    key={s}
-                    className={cn(
-                      "flex items-center justify-center text-sm font-medium rounded-lg border cursor-pointer px-3 py-2 transition-base",
-                      profile.subjects.includes(s)
-                        ? "bg-primaryWeak border-primary ring-1 ring-primary"
-                        : "hover:bg-gray-50 border-gray-200"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      className="hidden"
-                      checked={profile.subjects.includes(s)}
-                      onChange={() => toggleSubject(s)}
-                    />
-                    {s}
-                  </label>
-                ))}
-              </div>
-              {errors.subjects && (
-                <p className="text-red-600 text-xs mt-2">{errors.subjects}</p>
-              )}
+            <div className="grid md:grid-cols-2 gap-6">
+              <OtherInline
+                label="Subjects You Teach"
+                value={profile.subjects?.[0] || ""}
+                options={toOptions(SUBJECTS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "subjects", value: [v] }))
+                }
+              />
+              <OtherInline
+                label="Classes You Teach"
+                value={profile.classLevels?.[0] || ""}
+                options={toOptions(CLASS_LEVELS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "classLevels", value: [v] }))
+                }
+              />
+              <OtherInline
+                label="Boards / Curriculums"
+                value={profile.boards?.[0] || ""}
+                options={toOptions(BOARDS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "boards", value: [v] }))
+                }
+              />
+              <OtherInline
+                label="Exams You Prepare For"
+                value={profile.exams?.[0] || ""}
+                options={toOptions(EXAMS)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "exams", value: [v] }))
+                }
+              />
+              <OtherInline
+                label="Preferred Student Type"
+                value={profile.studentTypes?.[0] || ""}
+                options={toOptions(STUDENT_TYPES)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "studentTypes", value: [v] }))
+                }
+              />
+              <OtherInline
+                label="Group Size Preference"
+                value={profile.groupSize || ""}
+                options={toOptions(GROUP_SIZES)}
+                onChange={(v) =>
+                  dispatch(setField({ key: "groupSize", value: v }))
+                }
+              />
             </div>
-          </div>
+          </section>
 
-          {/* Rates & Availability */}
-          <div className="bg-white rounded-2xl shadow p-8">
+          {/* 4) Rates & Availability */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <Wallet className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">Rates & Availability</h2>
+              <h2 className="text-xl font-semibold">Rates & Availability</h2>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div>
                 <Label>Hourly Rate (₹)</Label>
                 <Input
                   value={profile.hourlyRate}
-                  onChange={(e) => {
-                    dispatch(setField({ key: "hourlyRate", value: e.target.value }));
-                    validateField("hourlyRate", e.target.value);
-                  }}
+                  onChange={(e) =>
+                    dispatch(setField({ key: "hourlyRate", value: e.target.value }))
+                  }
                   placeholder="e.g., 500"
+                  className="h-10"
                 />
                 {errors.hourlyRate && (
-                  <p className="text-red-600 text-xs mt-1">{errors.hourlyRate}</p>
+                  <p className="text-rose-600 text-xs mt-1">{errors.hourlyRate}</p>
                 )}
               </div>
 
@@ -491,37 +496,28 @@ export default function TutorProfileCompletePage() {
                     dispatch(setField({ key: "monthlyRate", value: e.target.value }))
                   }
                   placeholder="e.g., 12000"
+                  className="h-10"
                 />
               </div>
-
-              <div>
-                <Label>Available Days</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {DAYS.map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => toggleDay(d)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-full border text-sm",
-                        profile.availableDays.includes(d)
-                          ? "bg-primaryWeak border-primary"
-                          : "border-gray-300 hover:bg-gray-50"
-                      )}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
-          </div>
 
-          {/* About & Achievements */}
-          <div className="bg-white rounded-2xl shadow p-8">
+            <Label className="flex items-center gap-2 mb-2">
+              <CalendarIcon className="w-4 h-4 text-primary" />
+              Availability (Select Dates)
+            </Label>
+            <AvailabilityPicker
+              value={(profile.availability as string[]) || []}
+              onChange={(next) =>
+                dispatch(setField({ key: "availability", value: next }))
+              }
+            />
+          </section>
+
+          {/* 5) About & Highlights */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <Target className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">About & Achievements</h2>
+              <h2 className="text-xl font-semibold">About & Highlights</h2>
             </div>
             <div className="space-y-4">
               <div>
@@ -529,14 +525,14 @@ export default function TutorProfileCompletePage() {
                 <Textarea
                   className="min-h-[100px]"
                   value={profile.bio}
-                  onChange={(e) => {
-                    dispatch(setField({ key: "bio", value: e.target.value }));
-                    validateField("bio", e.target.value);
-                  }}
-                  placeholder="Describe your teaching style, approach, and what makes you unique."
+                  onChange={(e) =>
+                    dispatch(setField({ key: "bio", value: e.target.value }))
+                  }
+                  placeholder="Describe your teaching style and what makes you effective."
                 />
-                {errors.bio && <p className="text-red-600 text-xs mt-1">{errors.bio}</p>}
+                {errors.bio && <p className="text-rose-600 text-xs mt-1">{errors.bio}</p>}
               </div>
+
               <div>
                 <Label>Teaching Highlights / Achievements</Label>
                 <Textarea
@@ -545,127 +541,116 @@ export default function TutorProfileCompletePage() {
                   onChange={(e) =>
                     dispatch(setField({ key: "achievements", value: e.target.value }))
                   }
-                  placeholder="Certifications, awards, or accomplishments..."
-                />
-              </div>
-
-              {/* Certificate Upload */}
-              <div>
-                <Label>Qualification Certificate (optional)</Label>
-                <div
-                  className="mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50 transition"
-                  onClick={() =>
-                    document.getElementById("certificateUpload")?.click()
-                  }
-                >
-                  <FileText className="text-primary w-5 h-5" />
-                  <span className="text-sm text-gray-700">
-                    {certificateFile
-                      ? certificateFile.name
-                      : "Click to upload or drag your certificate"}
-                  </span>
-                </div>
-                <input
-                  id="certificateUpload"
-                  type="file"
-                  accept=".pdf,.png,.jpg"
-                  className="hidden"
-                  onChange={(e) =>
-                    setCertificateFile(e.target.files?.[0] || null)
-                  }
+                  placeholder="Awards, certifications, competition results, etc."
                 />
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* 🔹 NEW: Demo Video (Required) */}
-          <div className="bg-white rounded-2xl shadow p-8">
+          {/* 6) Demo / Introduction Video */}
+          <section className="bg-white rounded-2xl shadow p-8">
             <div className="flex items-center gap-3 mb-6">
               <PlayCircle className="text-primary w-5 h-5" />
-              <h2 className="text-xl font-semibold text-text">Demo Teaching Video (required)</h2>
+              <h2 className="text-xl font-semibold">Demo / Introduction Video</h2>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Upload a file */}
-              <div>
-                <Label>Upload Video (MP4/WebM, up to {MAX_VIDEO_MB} MB)</Label>
-                <div
-                  className="mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50 transition"
-                  onClick={() => document.getElementById("demoVideoUpload")?.click()}
+            <Label>Upload Demo Video (MP4/WebM, up to {MAX_VIDEO_MB}MB)</Label>
+            <div
+              className="mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50 transition"
+              onClick={() => document.getElementById("demoVideoUpload")?.click()}
+            >
+              <PlayCircle className="text-primary w-5 h-5" />
+              <span className="text-sm text-gray-700">
+                {demoVideoFile
+                  ? demoVideoFile.name
+                  : "Click to upload or drag your video"}
+              </span>
+            </div>
+            <input
+              id="demoVideoUpload"
+              type="file"
+              accept="video/mp4,video/webm"
+              className="hidden"
+              onChange={(e) =>
+                e.target.files?.[0] && onPickDemoVideo(e.target.files[0])
+              }
+            />
+
+            {demoVideoFile && (
+              <div className="mt-4 relative">
+                <video
+                  controls
+                  className="w-full max-h-[420px] rounded-lg border"
+                  src={URL.createObjectURL(demoVideoFile)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setDemoVideoFile(null)}
+                  className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-red-100"
+                  aria-label="Remove video"
                 >
-                  <Upload className="text-primary w-5 h-5" />
-                  <span className="text-sm text-gray-700">
-                    {demoVideoFile ? demoVideoFile.name : "Click to upload or drag your video"}
-                  </span>
-                </div>
-                <input
-                  id="demoVideoUpload"
-                  type="file"
-                  accept="video/mp4,video/webm"
-                  className="hidden"
-                  onChange={(e) => onPickDemoVideo(e.target.files?.[0] || null)}
-                />
-
-                {/* Inline preview if file selected */}
-                {demoVideoFile && (
-                  <div className="mt-4">
-                    <video
-                      className="w-full rounded-lg border"
-                      src={URL.createObjectURL(demoVideoFile)}
-                      controls
-                    />
-                  </div>
-                )}
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
               </div>
+            )}
+            {errors.demoVideo && (
+              <p className="text-rose-600 text-xs mt-2">{errors.demoVideo}</p>
+            )}
+          </section>
 
-              {/* OR paste a URL */}
-              <div>
-                <Label>Or paste a video URL (YouTube/Drive/direct link)</Label>
-                <Input
-                  className="mt-2"
-                  value={profile.demoVideoUrl}
-                  onChange={(e) => {
-                    dispatch(setField({ key: "demoVideoUrl", value: e.target.value }));
-                    // validate presence when typing
-                    setFieldError("demoVideo", "");
-                  }}
-                  placeholder="https://youtu.be/… or https://drive.google.com/…"
-                />
-
-                {/* Preview if URL present and no file chosen */}
-                {!demoVideoFile && profile.demoVideoUrl && (
-                  <p className="text-xs text-muted mt-2">
-                    URL will be saved with your profile. For YouTube links, we’ll embed the player on your public profile.
-                  </p>
-                )}
-              </div>
+          {/* 7) Resume (Optional) */}
+          <section className="bg-white rounded-2xl shadow p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <FileText className="text-primary w-5 h-5" />
+              <h2 className="text-xl font-semibold">Resume (Optional)</h2>
             </div>
 
-            {errors.demoVideo && (
-              <p className="text-red-600 text-xs mt-3">{errors.demoVideo}</p>
+            <Label>Upload Resume (PDF/DOC, up to {MAX_RESUME_MB}MB)</Label>
+            <div
+              className="mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50 transition"
+              onClick={() => document.getElementById("resumeUpload")?.click()}
+            >
+              <FileText className="text-primary w-5 h-5" />
+              <span className="text-sm text-gray-700">
+                {resumeFile ? resumeFile.name : "Click to upload or drag your resume"}
+              </span>
+            </div>
+            <input
+              id="resumeUpload"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="hidden"
+              onChange={(e) =>
+                e.target.files?.[0] && onPickResume(e.target.files[0])
+              }
+            />
+
+            {resumeFile && (
+              <div className="mt-4 flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <FileText className="text-primary w-5 h-5" />
+                  <span className="text-sm">{resumeFile.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setResumeFile(null)}
+                  className="text-red-500 hover:text-red-700"
+                  aria-label="Remove resume"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )}
+          </section>
 
-            <p className="text-xs text-gray-500 mt-4">
-              Tip: Keep the demo 30–120 seconds. Introduce yourself, subjects, class levels, and your teaching approach.
-            </p>
-          </div>
-
-          {/* Buttons */}
+          {/* Footer Buttons */}
           <div className="flex items-center justify-between gap-3 pt-4 border-t">
             <SecondaryButton type="button" onClick={() => router.back()}>
               Back
             </SecondaryButton>
-            <div className="flex items-center gap-3">
-              {/* <SecondaryButton
-                type="button"
-                onClick={() => alert("Progress saved locally")}
-              >
-                Save Draft
-              </SecondaryButton> */}
-              <PrimaryButton type="button" disabled={disabled} onClick={handleSubmit}>
-                {disabled ? "Saving…" : "Save & Continue"}
-              </PrimaryButton>
-            </div>
+            <PrimaryButton type="button" disabled={disabled} onClick={handleSubmit}>
+              {disabled ? "Saving…" : "Save & Continue"}
+            </PrimaryButton>
           </div>
         </div>
       </main>

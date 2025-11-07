@@ -249,8 +249,6 @@ fd.append('availability', JSON.stringify(profile.availability || []));
     alert('Something went wrong. Try again later.');
   }
 };
-
-
   const disabled = profile.isSubmitting;
 
   return (

@@ -172,7 +172,7 @@ export default function StudentProfilePage() {
           <SectionHeader icon={<Calendar />} title="Availability" />
           <div className="mt-3">
             <AvailabilityPicker
-              disabled={!editMode}
+              // disabled={!editMode}
               value={formData.availability || []}
               onChange={(dates: string[]) =>
                 setFormData((prev: any) => ({ ...prev, availability: dates }))
@@ -193,7 +193,7 @@ export default function StudentProfilePage() {
         </section>
 
         {/* 6️⃣ GOALS */}
-        <section>
+        {/* <section>
           <SectionHeader title="Learning Goals" />
           <Textarea
             name="goals"
@@ -203,7 +203,7 @@ export default function StudentProfilePage() {
             placeholder="Write about your goals..."
             className="mt-3"
           />
-        </section>
+        </section> */}
 
         {/* SAVE BUTTON */}
         {editMode && (
