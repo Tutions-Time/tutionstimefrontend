@@ -101,7 +101,7 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/profile/setup">Profile</Link>
+                <Link href="/dashboard/student/profile">Profile</Link>
               </DropdownMenuItem>
               {userRole === 'tutor' && (
                 <>

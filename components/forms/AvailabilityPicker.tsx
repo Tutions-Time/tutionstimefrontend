@@ -1,0 +1,229 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, CalendarCheck, Sparkles } from 'lucide-react';
+
+// ───────────────── utils ─────────────────
+const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+const toISO = (d: Date) => {
+  const y = d.getFullYear();
+  const m = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  return `${y}-${m}-${day}`;
+};
+const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+const endOfMonth   = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+const addMonths    = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1);
+
+const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+type Cell = { iso?: string; day?: number; inMonth: boolean; date?: Date };
+
+export default function AvailabilityPicker({
+  value,
+  onChange,
+}: {
+  value: string[];               // array of 'YYYY-MM-DD'
+  onChange: (next: string[]) => void;
+}) {
+  const today = new Date();
+  const todayISO = toISO(today);
+
+  const [cursor, setCursor] = useState<Date>(() => {
+    if (value?.length) {
+      const [y, m] = value[0].split('-').map(Number);
+      return new Date(y, (m || 1) - 1, 1);
+    }
+    return startOfMonth(new Date());
+  });
+
+  const selected = useMemo(() => new Set(value || []), [value]);
+
+  const monthMeta = useMemo(() => {
+    const first = startOfMonth(cursor);
+    const last  = endOfMonth(cursor);
+    const total = last.getDate();
+    const startWeekday = first.getDay();
+
+    const cells: Cell[] = [];
+    for (let i = 0; i < startWeekday; i++) cells.push({ inMonth: false });
+
+    for (let d = 1; d <= total; d++) {
+      const date = new Date(cursor.getFullYear(), cursor.getMonth(), d);
+      cells.push({ iso: toISO(date), day: d, inMonth: true, date });
+    }
+
+    while (cells.length % 7 !== 0) cells.push({ inMonth: false });
+    while (cells.length < 42) cells.push({ inMonth: false });
+
+    return {
+      monthLabel: first.toLocaleString('en-IN', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata',
+      }),
+      cells,
+    };
+  }, [cursor, value]);
+
+  const toggle = (iso?: string) => {
+    if (!iso) return;
+    const next = new Set(selected);
+    next.has(iso) ? next.delete(iso) : next.add(iso);
+    onChange(Array.from(next).sort());
+  };
+
+  // ───────────── Quick picks ─────────────
+  const clearAll = () => onChange([]);
+  const jumpToday = () => setCursor(startOfMonth(new Date()));
+
+  const pickWeekendsThisMonth = () => {
+    const first = startOfMonth(cursor);
+    const last  = endOfMonth(cursor);
+    const next  = new Set(selected);
+    for (let d = 1; d <= last.getDate(); d++) {
+      const date = new Date(cursor.getFullYear(), cursor.getMonth(), d);
+      const wd = date.getDay();
+      if (wd === 0 || wd === 6) next.add(toISO(date));
+    }
+    onChange(Array.from(next).sort());
+  };
+
+  const pickNext7Days = () => {
+    const next = new Set<string>(selected);
+    const base = new Date(); // from today
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      next.add(toISO(d));
+    }
+    onChange(Array.from(next).sort());
+    setCursor(startOfMonth(new Date())); // focus current month
+  };
+
+  return (
+    <div className="rounded-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden">
+      {/* Header */}
+      <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        <div className="flex items-center justify-between px-4 md:px-6 py-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCursor((c) => addMonths(c, -1))}
+              className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
+              aria-label="Previous month"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="px-3 py-1.5 rounded-xl bg-white/80 backdrop-blur border text-sm font-semibold">
+              {monthMeta.monthLabel}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCursor((c) => addMonths(c, +1))}
+              className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
+              aria-label="Next month"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" onClick={pickWeekendsThisMonth} className="h-9 rounded-xl">
+              <CalendarCheck className="h-4 w-4 mr-2" /> Weekends
+            </Button>
+            <Button type="button" variant="secondary" onClick={pickNext7Days} className="h-9 rounded-xl">
+              <Sparkles className="h-4 w-4 mr-2" /> Next 7 days
+            </Button>
+            <Button type="button" variant="secondary" onClick={jumpToday} className="h-9 rounded-xl">
+              Today
+            </Button>
+            <Button type="button" variant="secondary" onClick={clearAll} className="h-9 rounded-xl">
+              Clear
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 text-[11px] md:text-xs border-b bg-white">
+        {WEEKDAYS.map((w) => (
+          <div key={w} className="px-2 py-2 text-center font-semibold text-gray-600">{w}</div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7">
+        {monthMeta.cells.map((cell, idx) => {
+          const isSelected = !!cell.iso && selected.has(cell.iso);
+          const isToday = cell?.iso === todayISO;
+          const base =
+            'relative h-14 md:h-16 border-t flex items-center justify-center select-none transition-colors';
+          const interactive = cell.inMonth ? 'cursor-pointer hover:bg-primary/5' : 'bg-gray-50 opacity-60';
+          return (
+            <div
+              key={idx}
+              role={cell.inMonth ? 'button' : undefined}
+              aria-pressed={isSelected}
+              className={cn(base, interactive)}
+              onClick={() => cell.inMonth && toggle(cell.iso)}
+            >
+              {/* Ripple / hover glow */}
+              {cell.inMonth && (
+                <span className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity" />
+              )}
+
+              {/* Day badge */}
+              <span
+                className={cn(
+                  'inline-flex h-8 w-8 items-center justify-center rounded-full text-sm',
+                  isSelected
+                    ? 'bg-primary text-white shadow-sm ring-2 ring-primary/60'
+                    : isToday
+                      ? 'ring-2 ring-primary/60 text-primary font-semibold bg-white'
+                      : 'text-gray-800'
+                )}
+              >
+                {cell.day ?? ''}
+              </span>
+
+              {/* little dot for weekends */}
+              {cell.inMonth && cell.date && [0, 6].includes(cell.date.getDay()) && (
+                <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary/40" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer / legend + selected chips */}
+      <div className="px-4 md:px-6 py-4 border-t space-y-3">
+        <div className="text-xs text-muted-foreground">
+          Tap dates you’re available (no time). IST assumed for display only.
+        </div>
+
+        {value?.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {value.map((iso) => (
+              <button
+                key={iso}
+                onClick={() => toggle(iso)}
+                className="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                title="Click to remove"
+              >
+                {iso}
+                <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] group-hover:bg-primary/30">
+                  ×
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
