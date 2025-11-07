@@ -175,7 +175,7 @@ export default function StudentProfilePage() {
           <PreferredSubjectsSection errors={{}} />
 
           {/* 👨‍🏫 Tutor Preferences */}
-          <TutorPreferencesSection />
+          <TutorPreferencesSection disabled={!editMode} />
 
           {/* 💾 Save Button */}
           {editMode && (
