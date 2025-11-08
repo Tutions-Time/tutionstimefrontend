@@ -19,16 +19,16 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden py-24 lg:py-36 bg-[#FFD54F]" // ✅ Yellow background
+      className="relative overflow-hidden bg-[#FFD54F] min-h-screen flex items-center"
     >
-      {/* Soft background glow (lighter yellow for depth) */}
+      {/* Background glow */}
       <motion.div
         className="absolute -top-24 -left-24 w-96 h-96 bg-white/30 blur-3xl rounded-full"
         animate={floatLoop.animate}
       />
 
       <motion.div
-        className="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center relative"
+        className="w-full max-w-7xl mx-auto grid lg:grid-cols-2 items-center px-6 lg:px-8 gap-12 relative z-10"
         variants={staggerContainer}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
@@ -36,7 +36,6 @@ export default function HeroSection() {
         {/* ---------- LEFT CONTENT ---------- */}
         <motion.div variants={slideInLeft}>
           <motion.h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6 space-y-2">
-            {/* Learn Smarter */}
             <motion.span
               className="block text-gray-900"
               animate={{ y: [0, -8, 0], scale: [1, 1.05, 1] }}
@@ -55,7 +54,6 @@ export default function HeroSection() {
               Learn Smarter
             </motion.span>
 
-            {/* Teach Better */}
             <motion.span
               className="block text-gray-900"
               animate={{ y: [0, 8, 0], scale: [1, 1.03, 1] }}
@@ -137,37 +135,23 @@ export default function HeroSection() {
           </motion.div>
         </motion.div>
 
-        {/* ---------- RIGHT IMAGE ---------- */}
+        {/* ---------- RIGHT IMAGE (Static, Full Height Split) ---------- */}
         <motion.div
-          className="relative hidden lg:block"
+          className="relative hidden lg:block h-[100vh] w-full"
           initial={{ opacity: 0, x: 100 }}
           animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
           transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
         >
-          <motion.div
-            className="absolute -inset-8 bg-white/25 blur-2xl rounded-[2rem]"
-            animate={floatLoop.animate}
-          />
-
-          <motion.div
-            animate={floatLoop.animate}
-            whileHover={{
-              y: -8,
-              scale: 1.05,
-              boxShadow: '0 0 40px rgba(0,0,0,0.25)',
-              transition: { type: 'spring', stiffness: 90, damping: 10 },
-            }}
-            className="relative aspect-[4/3] w-full max-w-xl mx-auto border-[5px] border-gray-900 rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.2)]"
-          >
+          <div className="relative h-full mt-2 w-full">
             <Image
-              src="/images/children.jpg"
-              alt="Happy students learning together"
+              src="/images/newgirlll.png"
+              alt="Girl standing with books"
               fill
               priority
-              sizes="(min-width:1024px) 520px, 100vw"
-              className="object-cover"
+              sizes="(min-width:1024px) 50vw, 110vw"
+              className="object-cover object-center"
             />
-          </motion.div>
+          </div>
         </motion.div>
       </motion.div>
     </section>

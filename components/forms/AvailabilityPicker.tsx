@@ -14,19 +14,21 @@ const toISO = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
-const endOfMonth   = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
-const addMonths    = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1);
+const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
+const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, 1);
 
-const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type Cell = { iso?: string; day?: number; inMonth: boolean; date?: Date };
 
 export default function AvailabilityPicker({
   value,
   onChange,
+  disabled = false, // ✅ new prop
 }: {
-  value: string[];               // array of 'YYYY-MM-DD'
+  value: string[]; // array of 'YYYY-MM-DD'
   onChange: (next: string[]) => void;
+  disabled?: boolean;
 }) {
   const today = new Date();
   const todayISO = toISO(today);
@@ -43,7 +45,7 @@ export default function AvailabilityPicker({
 
   const monthMeta = useMemo(() => {
     const first = startOfMonth(cursor);
-    const last  = endOfMonth(cursor);
+    const last = endOfMonth(cursor);
     const total = last.getDate();
     const startWeekday = first.getDay();
 
@@ -69,20 +71,21 @@ export default function AvailabilityPicker({
   }, [cursor, value]);
 
   const toggle = (iso?: string) => {
-    if (!iso) return;
+    if (disabled || !iso) return; // ✅ block clicks when disabled
     const next = new Set(selected);
     next.has(iso) ? next.delete(iso) : next.add(iso);
     onChange(Array.from(next).sort());
   };
 
   // ───────────── Quick picks ─────────────
-  const clearAll = () => onChange([]);
-  const jumpToday = () => setCursor(startOfMonth(new Date()));
+  const clearAll = () => !disabled && onChange([]);
+  const jumpToday = () => !disabled && setCursor(startOfMonth(new Date()));
 
   const pickWeekendsThisMonth = () => {
+    if (disabled) return;
     const first = startOfMonth(cursor);
-    const last  = endOfMonth(cursor);
-    const next  = new Set(selected);
+    const last = endOfMonth(cursor);
+    const next = new Set(selected);
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(cursor.getFullYear(), cursor.getMonth(), d);
       const wd = date.getDay();
@@ -92,6 +95,7 @@ export default function AvailabilityPicker({
   };
 
   const pickNext7Days = () => {
+    if (disabled) return;
     const next = new Set<string>(selected);
     const base = new Date(); // from today
     for (let i = 0; i < 7; i++) {
@@ -104,16 +108,27 @@ export default function AvailabilityPicker({
   };
 
   return (
-    <div className="rounded-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden">
+    <div
+      className={cn(
+        'rounded-2xl border shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden relative',
+        disabled && 'opacity-60 pointer-events-none'
+      )}
+    >
+      {/* Optional overlay lock */}
+      {disabled && (
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 cursor-not-allowed" />
+      )}
+
       {/* Header */}
       <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
         <div className="flex items-center justify-between px-4 md:px-6 py-4">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCursor((c) => addMonths(c, -1))}
+              onClick={() => !disabled && setCursor((c) => addMonths(c, -1))}
               className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
               aria-label="Previous month"
+              disabled={disabled}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -124,25 +139,26 @@ export default function AvailabilityPicker({
 
             <button
               type="button"
-              onClick={() => setCursor((c) => addMonths(c, +1))}
+              onClick={() => !disabled && setCursor((c) => addMonths(c, +1))}
               className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
               aria-label="Next month"
+              disabled={disabled}
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" onClick={pickWeekendsThisMonth} className="h-9 rounded-xl">
+            <Button type="button" variant="secondary" onClick={pickWeekendsThisMonth} disabled={disabled} className="h-9 rounded-xl">
               <CalendarCheck className="h-4 w-4 mr-2" /> Weekends
             </Button>
-            <Button type="button" variant="secondary" onClick={pickNext7Days} className="h-9 rounded-xl">
+            <Button type="button" variant="secondary" onClick={pickNext7Days} disabled={disabled} className="h-9 rounded-xl">
               <Sparkles className="h-4 w-4 mr-2" /> Next 7 days
             </Button>
-            <Button type="button" variant="secondary" onClick={jumpToday} className="h-9 rounded-xl">
+            <Button type="button" variant="secondary" onClick={jumpToday} disabled={disabled} className="h-9 rounded-xl">
               Today
             </Button>
-            <Button type="button" variant="secondary" onClick={clearAll} className="h-9 rounded-xl">
+            <Button type="button" variant="secondary" onClick={clearAll} disabled={disabled} className="h-9 rounded-xl">
               Clear
             </Button>
           </div>
@@ -152,7 +168,9 @@ export default function AvailabilityPicker({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 text-[11px] md:text-xs border-b bg-white">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="px-2 py-2 text-center font-semibold text-gray-600">{w}</div>
+          <div key={w} className="px-2 py-2 text-center font-semibold text-gray-600">
+            {w}
+          </div>
         ))}
       </div>
 
@@ -163,38 +181,35 @@ export default function AvailabilityPicker({
           const isToday = cell?.iso === todayISO;
           const base =
             'relative h-14 md:h-16 border-t flex items-center justify-center select-none transition-colors';
-          const interactive = cell.inMonth ? 'cursor-pointer hover:bg-primary/5' : 'bg-gray-50 opacity-60';
+          const interactive = cell.inMonth
+            ? 'cursor-pointer hover:bg-primary/5'
+            : 'bg-gray-50 opacity-60';
           return (
             <div
               key={idx}
               role={cell.inMonth ? 'button' : undefined}
               aria-pressed={isSelected}
               className={cn(base, interactive)}
-              onClick={() => cell.inMonth && toggle(cell.iso)}
+              onClick={() => !disabled && cell.inMonth && toggle(cell.iso)}
             >
-              {/* Ripple / hover glow */}
-              {cell.inMonth && (
-                <span className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity" />
-              )}
-
-              {/* Day badge */}
               <span
                 className={cn(
                   'inline-flex h-8 w-8 items-center justify-center rounded-full text-sm',
                   isSelected
                     ? 'bg-primary text-white shadow-sm ring-2 ring-primary/60'
                     : isToday
-                      ? 'ring-2 ring-primary/60 text-primary font-semibold bg-white'
-                      : 'text-gray-800'
+                    ? 'ring-2 ring-primary/60 text-primary font-semibold bg-white'
+                    : 'text-gray-800'
                 )}
               >
                 {cell.day ?? ''}
               </span>
 
-              {/* little dot for weekends */}
-              {cell.inMonth && cell.date && [0, 6].includes(cell.date.getDay()) && (
-                <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary/40" />
-              )}
+              {cell.inMonth &&
+                cell.date &&
+                [0, 6].includes(cell.date.getDay()) && (
+                  <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary/40" />
+                )}
             </div>
           );
         })}
@@ -211,9 +226,10 @@ export default function AvailabilityPicker({
             {value.map((iso) => (
               <button
                 key={iso}
-                onClick={() => toggle(iso)}
+                onClick={() => !disabled && toggle(iso)}
+                disabled={disabled}
                 className="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                title="Click to remove"
+                title={disabled ? '' : 'Click to remove'}
               >
                 {iso}
                 <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] group-hover:bg-primary/30">
