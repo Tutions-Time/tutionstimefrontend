@@ -4,6 +4,7 @@ export interface TutorProfileState {
   // ----- Personal -----
   name: string;
   email: string;
+  phone: string;
   gender: string;
   addressLine1: string;
   addressLine2: string;
@@ -30,6 +31,7 @@ export interface TutorProfileState {
   hourlyRate: string;
   monthlyRate: string;
   availability: string[]; // calendar-based
+  availableDays: string[]; // ✅ added for optional day-based slots
 
   // ----- About -----
   bio: string;
@@ -38,6 +40,12 @@ export interface TutorProfileState {
   // ----- Uploads -----
   resumeUrl: string;
   demoVideoUrl: string;
+  certificateUrl: string; // ✅ optional upload future support
+
+  // ----- Optional UI fields -----
+  subjectOther?: string;
+  boardsOther?: string;
+  subjectsOther?: string;
 
   // ----- Control -----
   isSubmitting: boolean;
@@ -47,6 +55,7 @@ const initialState: TutorProfileState = {
   // Personal
   name: "",
   email: "",
+  phone: "",
   gender: "",
   addressLine1: "",
   addressLine2: "",
@@ -73,6 +82,7 @@ const initialState: TutorProfileState = {
   hourlyRate: "",
   monthlyRate: "",
   availability: [],
+  availableDays: [],
 
   // About
   bio: "",
@@ -81,6 +91,12 @@ const initialState: TutorProfileState = {
   // Uploads
   resumeUrl: "",
   demoVideoUrl: "",
+  certificateUrl: "",
+
+  // Optionals
+  subjectOther: "",
+  boardsOther: "",
+  subjectsOther: "",
 
   // Control
   isSubmitting: false,

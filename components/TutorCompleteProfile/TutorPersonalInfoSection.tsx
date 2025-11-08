@@ -9,7 +9,11 @@ const GENDER = ["Male", "Female", "Other"];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
 const toOptions = (arr: string[]) => arr.map((v) => ({ value: v, label: v }));
 
-export default function TutorPersonalInfoSection({ photoFile, setPhotoFile, errors }: any) {
+export default function TutorPersonalInfoSection({
+  photoFile,
+  setPhotoFile,
+  errors,
+}: any) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
@@ -21,6 +25,7 @@ export default function TutorPersonalInfoSection({ photoFile, setPhotoFile, erro
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
+        {/* ---------------------- Photo Upload ---------------------- */}
         <div className="flex justify-center md:justify-start">
           <div
             className="relative group cursor-pointer"
@@ -28,7 +33,10 @@ export default function TutorPersonalInfoSection({ photoFile, setPhotoFile, erro
           >
             <div className="h-28 w-28 rounded-full border-2 border-primary flex items-center justify-center overflow-hidden shadow-md bg-gray-50">
               {photoFile ? (
-                <img src={URL.createObjectURL(photoFile)} className="h-full w-full object-cover" />
+                <img
+                  src={URL.createObjectURL(photoFile)}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <User className="w-10 h-10 text-gray-400" />
               )}
@@ -43,31 +51,60 @@ export default function TutorPersonalInfoSection({ photoFile, setPhotoFile, erro
           />
         </div>
 
+        {/* ---------------------- Info Fields ---------------------- */}
         <div className="md:col-span-2 space-y-5">
           <Input
             value={profile.name}
-            onChange={(e) => dispatch(setField({ key: "name", value: e.target.value }))}
+            onChange={(e) =>
+              dispatch(setField({ key: "name", value: e.target.value }))
+            }
             placeholder="Full Name"
             className="h-10"
           />
           <Input
             value={profile.email}
-            onChange={(e) => dispatch(setField({ key: "email", value: e.target.value }))}
+            onChange={(e) =>
+              dispatch(setField({ key: "email", value: e.target.value }))
+            }
             placeholder="Email"
             className="h-10"
           />
+
           <div className="grid md:grid-cols-2 gap-4">
-            <OtherInline
-              label="Gender"
-              value={profile.gender}
-              options={toOptions(GENDER)}
-              onChange={(v) => dispatch(setField({ key: "gender", value: v }))}
-            />
+            {/* ---------------------- Gender ---------------------- */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Gender</label>
+              <div className="flex flex-wrap gap-2">
+                {GENDER.map((g) => {
+                  const selected = profile.gender === g;
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() =>
+                        dispatch(setField({ key: "gender", value: g }))
+                      }
+                      className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                        selected
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white border-gray-300 hover:bg-gray-100"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ---------------------- Teaching Mode ---------------------- */}
             <OtherInline
               label="Teaching Mode"
               value={profile.teachingMode}
               options={toOptions(TEACHING_MODES)}
-              onChange={(v) => dispatch(setField({ key: "teachingMode", value: v }))}
+              onChange={(v) =>
+                dispatch(setField({ key: "teachingMode", value: v }))
+              }
             />
           </div>
         </div>

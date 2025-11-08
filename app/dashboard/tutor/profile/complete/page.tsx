@@ -48,26 +48,64 @@ export default function TutorProfileCompletePage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    try {
-      dispatch(startSubmitting());
-      const fd = new FormData();
-      Object.entries(profile).forEach(([k, v]) =>
-        fd.append(k, typeof v === "object" ? JSON.stringify(v) : v || "")
-      );
-      if (photoFile) fd.append("photo", photoFile);
-      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
-      if (resumeFile) fd.append("resume", resumeFile);
+const handleSubmit = async () => {
+  try {
+    dispatch(startSubmitting());
 
-      await updateTutorProfile(fd);
-      dispatch(stopSubmitting());
-      router.push("/dashboard/tutor");
-    } catch {
-      dispatch(stopSubmitting());
-      alert("Something went wrong. Try again later.");
-    }
-  };
+    const fd = new FormData();
+
+    // ---------- Clean payload ----------
+    const cleanProfile = {
+      name: profile.name,
+      email: profile.email,
+      gender: profile.gender,
+      addressLine1: profile.addressLine1,
+      addressLine2: profile.addressLine2,
+      city: profile.city,
+      state: profile.state,
+      pincode: profile.pincode,
+      qualification: profile.qualification,
+      specialization: profile.specialization,
+      experience: profile.experience,
+      teachingMode: profile.teachingMode,
+      subjects: profile.subjects,
+      classLevels: profile.classLevels,
+      boards: profile.boards,
+      exams: profile.exams,
+      studentTypes: profile.studentTypes,
+      groupSize: profile.groupSize,
+      hourlyRate: profile.hourlyRate,
+      monthlyRate: profile.monthlyRate,
+      availability: profile.availability,
+      availableDays: profile.availableDays || [],
+      bio: profile.bio,
+      achievements: profile.achievements,
+      phone: profile.phone || "",
+    };
+
+    // ---------- Append text/arrays ----------
+    Object.entries(cleanProfile).forEach(([k, v]) => {
+      if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
+      else fd.append(k, v ?? "");
+    });
+
+    // ---------- Append files ----------
+    if (photoFile) fd.append("photo", photoFile);
+    if (resumeFile) fd.append("resume", resumeFile);
+    if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+
+    // ---------- Submit ----------
+    await updateTutorProfile(fd);
+
+    dispatch(stopSubmitting());
+    router.push("/dashboard/tutor");
+  } catch (err) {
+    console.error("❌ Submit failed:", err);
+    dispatch(stopSubmitting());
+    alert("Something went wrong. Try again later.");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
