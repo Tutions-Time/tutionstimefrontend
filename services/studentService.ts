@@ -123,7 +123,7 @@ export const getAllSubjects = async () => {
 export const fetchTutors = async (params?: { subject?: string; teachingMode?: string }) => {
   try {
     const response = await api.get('/tutors/search', { params });
-    return response.data.data; 
+    return response.data; 
   } catch (error) {
     throw new Error(handleApiError(error));
   }
