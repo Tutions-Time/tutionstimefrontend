@@ -152,7 +152,7 @@ const handleSubmit = async () => {
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(35,165,213,0.12),transparent),radial-gradient(900px_500px_at_-10%_20%,rgba(0,0,0,0.06),transparent)]">
       {/* —— Header —— */}
-      <HeaderSection />
+      {/* <HeaderSection /> */}
 
       {/* —— Hero —— */}
       <section className="py-12 border-b bg-gradient-to-br from-white to-primaryWeak/40">

@@ -8,11 +8,16 @@ const QUALIFICATIONS = [
   "B.Sc","M.Sc","B.Tech","M.Tech","B.A","M.A","B.Ed","M.Ed","Ph.D","Other"
 ];
 const SPECIALIZATIONS = [
-  "Mathematics","Physics","Chemistry","Biology","English","Computer Science","Economics","Accountancy","History","Other"
+  "Mathematics","Physics","Chemistry","Biology","English",
+  "Computer Science","Economics","Accountancy","History","Other"
 ];
-const EXPERIENCE_OPTIONS = [
-  "Less than 1 year","1–2 years","3–5 years","6–10 years","10+ years"
-];
+
+// ✅ Generate experience options dynamically
+const EXPERIENCE_OPTIONS = Array.from({ length: 51 }, (_, i) => ({
+  value: i.toString(),
+  label: i === 0 ? "Less than 1 year" : `${i} year${i > 1 ? "s" : ""}`,
+}));
+
 const toOptions = (arr: string[]) => arr.map(v => ({ value: v, label: v }));
 
 export default function TutorAcademicSection() {
@@ -33,16 +38,19 @@ export default function TutorAcademicSection() {
           options={toOptions(QUALIFICATIONS)}
           onChange={v => dispatch(setField({ key: "qualification", value: v }))}
         />
+
         <OtherInline
           label="Specialization / Major"
           value={profile.specialization}
           options={toOptions(SPECIALIZATIONS)}
           onChange={v => dispatch(setField({ key: "specialization", value: v }))}
         />
+
+        {/* ✅ Updated numeric dropdown for experience */}
         <OtherInline
-          label="Experience"
+          label="Years of Experience"
           value={profile.experience}
-          options={toOptions(EXPERIENCE_OPTIONS)}
+          options={EXPERIENCE_OPTIONS}
           onChange={v => dispatch(setField({ key: "experience", value: v }))}
         />
       </div>

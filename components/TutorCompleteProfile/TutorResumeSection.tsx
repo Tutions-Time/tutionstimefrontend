@@ -6,16 +6,25 @@ const MAX_RESUME_MB = 10;
 
 export default function TutorResumeSection({
   resumeFile,
-  setResumeFile
+  setResumeFile,
+  resumeUrl, // ✅ new prop
 }: {
   resumeFile: File | null;
   setResumeFile: (f: File | null) => void;
+  resumeUrl?: string | null; // ✅ new prop type
 }) {
   const onPickResume = (f: File) => {
     const sizeMB = f.size / (1024 * 1024);
     if (sizeMB > MAX_RESUME_MB) return alert(`Max ${MAX_RESUME_MB}MB allowed`);
     setResumeFile(f);
   };
+
+  // ✅ choose source priority
+  const resumeName = resumeFile
+    ? resumeFile.name
+    : resumeUrl
+    ? resumeUrl.split("/").pop()
+    : null;
 
   return (
     <section className="bg-white rounded-2xl shadow p-8">
@@ -31,7 +40,9 @@ export default function TutorResumeSection({
       >
         <FileText className="text-primary w-5 h-5" />
         <span className="text-sm text-gray-700">
-          {resumeFile ? resumeFile.name : "Click to upload or drag your resume"}
+          {resumeName
+            ? resumeName
+            : "Click to upload or drag your resume"}
         </span>
       </div>
 
@@ -40,14 +51,25 @@ export default function TutorResumeSection({
         type="file"
         accept=".pdf,.doc,.docx"
         className="hidden"
-        onChange={e => e.target.files?.[0] && onPickResume(e.target.files[0])}
+        onChange={(e) => e.target.files?.[0] && onPickResume(e.target.files[0])}
       />
 
-      {resumeFile && (
+      {(resumeFile || resumeUrl) && (
         <div className="mt-4 flex items-center justify-between p-3 rounded-lg border">
           <div className="flex items-center gap-2">
             <FileText className="text-primary w-5 h-5" />
-            <span className="text-sm">{resumeFile.name}</span>
+            {resumeUrl && !resumeFile ? (
+              <a
+                href={resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline"
+              >
+                View / Download Resume
+              </a>
+            ) : (
+              <span className="text-sm">{resumeFile?.name}</span>
+            )}
           </div>
           <button
             type="button"

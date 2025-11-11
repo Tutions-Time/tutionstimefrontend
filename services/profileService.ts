@@ -3,9 +3,7 @@ import api, { handleApiError } from '../lib/api';
 export const updateStudentProfile = async (formData: FormData) => {
   try {
     const response = await api.post('/users/student-profile', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data', // Important for file uploads
-      },
+    
     });
     return response.data;
   } catch (error) {
@@ -15,9 +13,10 @@ export const updateStudentProfile = async (formData: FormData) => {
 
 export const updateTutorProfile = async (formData: FormData) => {
   try {
-    const response = await api.post('/users/tutor-profile', formData, {
+    const response = await api.post("/users/tutor-profile", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data', // Important for file uploads
+        // Let Axios detect boundaries automatically
+        "Accept": "application/json",
       },
     });
     return response.data;
@@ -25,6 +24,7 @@ export const updateTutorProfile = async (formData: FormData) => {
     throw new Error(handleApiError(error));
   }
 };
+
 
 export const getUserProfile = async () => {
   try {

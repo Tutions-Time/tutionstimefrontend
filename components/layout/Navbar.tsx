@@ -40,10 +40,10 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
     (user?.role === 'student'
       ? studentProfile?.name
       : user?.role === 'tutor'
-      ? tutorProfile?.name
-      : userRole === 'admin'
-      ? 'Admin'
-      : undefined) ?? 'User';
+        ? tutorProfile?.name
+        : userRole === 'admin'
+          ? 'Admin'
+          : undefined) ?? 'User';
   const handleLogout = () => {
     if (onLogout) return onLogout();
     logout();
@@ -101,8 +101,19 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/student/profile">Profile</Link>
+                <Link
+                  href={
+                    userRole === "tutor"
+                      ? "/dashboard/tutor/profile"
+                      : userRole === "admin"
+                        ? "/admin/profile"
+                        : "/dashboard/student/profile"
+                  }
+                >
+                  Profile
+                </Link>
               </DropdownMenuItem>
+
               {userRole === 'tutor' && (
                 <>
                   <DropdownMenuItem asChild>
