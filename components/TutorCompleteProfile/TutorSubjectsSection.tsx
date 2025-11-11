@@ -100,19 +100,21 @@ export default function TutorSubjectsSection() {
   }, [selectedTypes]);
 
   /* ---------------------- Common Handlers ---------------------- */
-  const toggleArrayField = (key: keyof typeof profile, value: string) => {
-    const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
-    const exists = arr.includes(value);
-    const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
+const toggleArrayField = (key: keyof typeof profile, value: string) => {
+  const currentValue = profile[key];
+  const arr: string[] = Array.isArray(currentValue) ? [...currentValue] : [];
 
-   if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
-  const computedKey = `${key}Other` as keyof typeof profile;
-  dispatch(setField({ key: computedKey, value: "" }));
-}
+  const exists = arr.includes(value);
+  const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
+  if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
+    const computedKey = `${key}Other` as keyof typeof profile;
+    dispatch(setField({ key: computedKey, value: "" }));
+  }
 
-    dispatch(setField({ key, value: next }));
-  };
+  dispatch(setField({ key, value: next }));
+};
+
 
   const addCustomValue = (
     field: "subjects" | "boards",
