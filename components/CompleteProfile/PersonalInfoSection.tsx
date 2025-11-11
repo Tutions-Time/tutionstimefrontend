@@ -43,46 +43,23 @@ export default function PersonalInfoSection({
       {/* Avatar + Form */}
       <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-10">
         {/* -------- Profile Photo (Top Left) -------- */}
-        <div className="flex justify-center md:justify-start">
-          <button
-            type="button"
-            className="relative group focus:outline-none"
-            onClick={() => document.getElementById("photoUpload")?.click()}
-          >
-            <div className="relative h-36 w-36 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-[3px] transition-transform duration-300 hover:scale-[1.04]">
-              <div className="h-full w-full rounded-full bg-white overflow-hidden flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
-                {photoFile ? (
-                  <img
-                    src={URL.createObjectURL(photoFile)}
-                    alt="Profile"
-                    className="h-full w-full object-cover transition-all duration-300 group-hover:brightness-90"
-                  />
-                ) : profile.photoUrl ? (
-                  <img
-                    src={profile.photoUrl}
-                    alt="Profile"
-                    className="h-full w-full object-cover transition-all duration-300 group-hover:brightness-90"
-                  />
-                ) : (
-                  <User className="w-14 h-14 text-gray-300" />
-                )}
+    {/* -------- Profile Photo (Top Left) -------- */}
+<div className="flex justify-center md:justify-start">
+  <div className="relative h-36 w-36 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-[3px]">
+    <div className="h-full w-full rounded-full bg-white overflow-hidden flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
+      <img
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s"
+        alt="Profile"
+        className="h-full w-full object-cover"
+        onError={(e) => {
+          e.currentTarget.src =
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s";
+        }}
+      />
+    </div>
+  </div>
+</div>
 
-                {/* Floating camera icon */}
-                <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm border border-gray-100 rounded-full h-10 w-10 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Camera className="w-4.5 h-4.5 text-primary" />
-                </div>
-              </div>
-            </div>
-          </button>
-
-          <input
-            id="photoUpload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
-          />
-        </div>
 
         {/* -------- Form Fields -------- */}
         <div className="space-y-6">

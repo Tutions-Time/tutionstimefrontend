@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Loader2, Save, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
-import Image from "next/image";
 
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/studentProfileSlice";
@@ -17,20 +16,10 @@ import AcademicDetailsSection from "@/components/CompleteProfile/AcademicDetails
 import PreferredSubjectsSection from "@/components/CompleteProfile/PreferredSubjectsSection";
 import TutorPreferencesSection from "@/components/CompleteProfile/TutorPreferencesSection";
 
-const getImageUrl = (path?: string | null) => {
-  if (!path) return "";
-  const base =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:5000";
-  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
 export default function StudentProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -41,14 +30,11 @@ export default function StudentProfilePage() {
       try {
         const res = await getUserProfile();
         if (res.success && res.data.profile) {
-          const profileData = res.data.profile;
-          dispatch(setBulk(profileData)); // ✅ hydrate Redux store
-          setPhotoPreview(getImageUrl(profileData.photoUrl) || null);
-
+          dispatch(setBulk(res.data.profile)); // ✅ hydrate Redux store
         } else {
           toast.error("Profile not found");
         }
-      } catch (err: any) {
+      } catch {
         toast.error("Error loading profile");
       } finally {
         setLoading(false);
@@ -59,28 +45,19 @@ export default function StudentProfilePage() {
 
   // -------- Auto Disable / Enable Inputs --------
   useEffect(() => {
-    // Run only when loading is done and form is rendered
     if (loading) return;
-
     const toggleFormInputs = () => {
       const form = document.getElementById("student-profile-form");
       if (!form) return;
-
       const inputs = form.querySelectorAll("input, textarea, select, button[type='radio']");
       inputs.forEach((input) => {
         (input as HTMLInputElement).disabled = !editMode;
       });
     };
-
-    // Initial disable right after render
     const timer = setTimeout(() => toggleFormInputs(), 100);
-
-    // Run again whenever editMode changes
     toggleFormInputs();
-
     return () => clearTimeout(timer);
   }, [editMode, loading]);
-
 
   // -------- Save Handler --------
   const handleSave = async () => {
@@ -88,14 +65,11 @@ export default function StudentProfilePage() {
       setSaving(true);
       const fd = new FormData();
 
-      // ✅ Use latest Redux state (not stale formData)
       Object.keys(profile || {}).forEach((key) => {
         const value = (profile as any)[key];
         if (Array.isArray(value)) fd.append(key, JSON.stringify(value));
         else if (value !== undefined && value !== null) fd.append(key, value);
       });
-
-      if (photoFile) fd.append("photo", photoFile);
 
       const res = await updateStudentProfile(fd);
       if (res.success) {
@@ -163,8 +137,8 @@ export default function StudentProfilePage() {
         >
           {/* 👤 Personal Info */}
           <PersonalInfoSection
-            photoFile={photoFile}
-            setPhotoFile={setPhotoFile}
+            photoFile={null}
+            setPhotoFile={() => {}}
             errors={{}}
           />
 
@@ -198,3 +172,4 @@ export default function StudentProfilePage() {
     </div>
   );
 }
+  

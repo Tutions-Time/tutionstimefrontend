@@ -63,7 +63,7 @@ export default function TutorPersonalInfoSection({
                 }}
                 className="absolute top-0 right-0 bg-white/80 p-1 rounded-full hover:bg-red-100"
               >
-                <Trash2 className="w-4 h-4 text-red-500" />
+              
               </button>
             )}
           </div>
