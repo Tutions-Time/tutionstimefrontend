@@ -142,3 +142,35 @@ export const uploadTutorKyc = async (formData: FormData) => {
     throw new Error(handleApiError(error));
   }
 };
+
+
+export const getTutorDemoRequests = async (params?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}) => {
+  try {
+    const response = await api.get('/bookings/tutor', { params });
+    return response.data; // contains { success, data, message }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+/**
+ * Update demo booking status (Accept / Reject)
+ * Endpoint: PATCH /api/bookings/:id/status
+ * @param bookingId - The booking ID
+ * @param status - Either "confirmed" or "cancelled"
+ */
+export const updateDemoRequestStatus = async (
+  bookingId: string,
+  status: 'confirmed' | 'cancelled'
+) => {
+  try {
+    const response = await api.patch(`/bookings/${bookingId}/status`, { status });
+    return response.data; // contains { success, message, data }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
