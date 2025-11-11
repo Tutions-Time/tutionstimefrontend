@@ -123,13 +123,13 @@ export const getAllSubjects = async () => {
 export const fetchTutors = async (params?: { subject?: string; teachingMode?: string }) => {
   try {
     const response = await api.get('/tutors/search', { params });
-    return response.data.data; 
+    return response.data; 
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
 
-export const getTutorById = async (id: string) => {
+export const fetchTutorById = async (id: string) => {
   try {
     const response = await api.get(`/tutors/${id}`);
     return response.data.data;
@@ -208,6 +208,34 @@ export const getMyBookings = async () => {
   try {
     const res = await api.get("/bookings/my"); // you added this route
     return res.data.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const createDemoBooking = async (data: {
+  tutorId: string;
+  subject: string;
+  date: string;
+  note?: string;
+}) => {
+  try {
+    const response = await api.post("/bookings/demo", data);
+    return response.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Send enquiry to a tutor
+export const sendTutorEnquiry = async (data: {
+  tutorId: string;
+  subject: string;
+  message: string;
+}) => {
+  try {
+    const response = await api.post("/enquiries", data);
+    return response.data;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
