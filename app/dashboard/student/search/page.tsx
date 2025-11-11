@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { fetchTutors } from "@/services/studentService";
 import clsx from "clsx";
+import Image from "next/image";
 
 /* ---------- Filter Definitions ---------- */
 const PRICE_BUCKETS = [
@@ -88,6 +89,20 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
 export default function SearchTutors() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+
+  function getImageUrl(photoUrl?: string) {
+    if (!photoUrl) return "/default-avatar.png";
+
+    const cleaned = photoUrl
+      // remove any "D:/tutionstimebackend" or "D:\tutionstimebackend" prefix
+      .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+      // normalize backslashes to forward slashes
+      .replace(/\\/g, "/")
+      // make sure it starts at "uploads/"
+      .replace(/^.*uploads\//, "uploads/");
+
+    return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
+  }
 
   // centralize filter state for URL sync
   const [filter, setFilter] = useState<QueryMap>({
@@ -390,97 +405,100 @@ export default function SearchTutors() {
                 {loading
                   ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                   : tutors.map((tutor) => (
-                      <Card
-                        key={tutor._id}
-                        className="relative p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
-                      >
-                        {/* Featured ribbon */}
-                        {tutor.isFeatured ? (
-                          <div className="absolute -top-2 -left-2">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-1 shadow-sm border border-amber-200">
-                              <Sparkles className="w-3 h-3" /> Featured
+                    <Card
+                      key={tutor._id}
+                      className="relative p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all"
+                    >
+                      {/* Featured ribbon */}
+                      {tutor.isFeatured ? (
+                        <div className="absolute -top-2 -left-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-1 shadow-sm border border-amber-200">
+                            <Sparkles className="w-3 h-3" /> Featured
+                          </span>
+                        </div>
+                      ) : null}
+
+                      <div className="flex items-center gap-3 mb-2">
+                        <Image
+                          src={getImageUrl(tutor.photoUrl)}
+                          alt={tutor.name || "Tutor"}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover"
+                        />
+
+                        <div>
+                          <div className="font-medium text-sm text-gray-800">{tutor.name}</div>
+                          <div className="text-[11px] text-gray-500">
+                            {tutor.qualification || tutor.specialization || "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-yellow-500" />
+                          {tutor.rating || "—"}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {tutor.city || tutor.pincode || "N/A"}
+                        </div>
+                        <div className="font-semibold text-primary">₹{tutor.hourlyRate || 0}/hr</div>
+                      </div>
+
+                      <ul className="text-[11px] text-gray-600 mb-2 space-y-0.5">
+                        {tutor.gender && <li>{tutor.gender}</li>}
+                        {tutor.age && <li>Age: {tutor.age} yrs</li>}
+                        {tutor.experience && (
+                          <li>
+                            <span className="inline-flex items-center rounded-full border px-2 py-[2px] text-[10px]">
+                              {tutor.experience} yrs experience
                             </span>
-                          </div>
-                        ) : null}
+                          </li>
+                        )}
+                        {Array.isArray(tutor.subjects) && tutor.subjects.length > 0 && (
+                          <li>Subjects: {tutor.subjects.slice(0, 3).join(", ")}</li>
+                        )}
+                        {tutor.lastLogin && (
+                          <li className="flex items-center gap-1">
+                            <Clock3 className="w-3 h-3" />
+                            Last Login: {new Date(tutor.lastLogin).toLocaleDateString()}
+                          </li>
+                        )}
+                        {tutor.addressLine1 && <li>{tutor.addressLine1}, {tutor.city}</li>}
+                      </ul>
 
-                        <div className="flex items-center gap-3 mb-2">
-                          <img
-                            src={`${IMAGE_BASE}${tutor.photoUrl}` || "/default-avatar.png"}
-                            alt={tutor.name || "Tutor"}
-                            className="w-10 h-10 rounded-full object-cover border"
-                          />
-                          <div>
-                            <div className="font-medium text-sm text-gray-800">{tutor.name}</div>
-                            <div className="text-[11px] text-gray-500">
-                              {tutor.qualification || tutor.specialization || "—"}
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`search/tutor/${tutor._id}?userId=${tutor.userId?._id ?? ""}`}
 
-                        <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-yellow-500" />
-                            {tutor.rating || "—"}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {tutor.city || tutor.pincode || "N/A"}
-                          </div>
-                          <div className="font-semibold text-primary">₹{tutor.hourlyRate || 0}/hr</div>
-                        </div>
-
-                        <ul className="text-[11px] text-gray-600 mb-2 space-y-0.5">
-                          {tutor.gender && <li>{tutor.gender}</li>}
-                          {tutor.age && <li>Age: {tutor.age} yrs</li>}
-                          {tutor.experience && (
-                            <li>
-                              <span className="inline-flex items-center rounded-full border px-2 py-[2px] text-[10px]">
-                                {tutor.experience} yrs experience
-                              </span>
-                            </li>
-                          )}
-                          {Array.isArray(tutor.subjects) && tutor.subjects.length > 0 && (
-                            <li>Subjects: {tutor.subjects.slice(0, 3).join(", ")}</li>
-                          )}
-                          {tutor.lastLogin && (
-                            <li className="flex items-center gap-1">
-                              <Clock3 className="w-3 h-3" />
-                              Last Login: {new Date(tutor.lastLogin).toLocaleDateString()}
-                            </li>
-                          )}
-                          {tutor.addressLine1 && <li>{tutor.addressLine1}, {tutor.city}</li>}
-                        </ul>
-
-                        <div className="flex gap-2">
-                          <Link
-                           href={`search/tutor/${tutor._id}?userId=${tutor.userId?._id ?? ""}`}
-
-                            className="flex-1"
+                          className="flex-1"
+                        >
+                          <Button
+                            variant="outline"
+                            className="w-full h-8 text-xs rounded-full border-primary text-primary hover:bg-primary hover:text-white"
                           >
-                            <Button
-                              variant="outline"
-                              className="w-full h-8 text-xs rounded-full border-primary text-primary hover:bg-primary hover:text-white"
-                            >
-                              View Profile
-                            </Button>
-                          </Link>
+                            View Profile
+                          </Button>
+                        </Link>
 
-                          <Link href={`/student/demo/${tutor._id}`} className="flex-1">
-                            {/* iOS-like pill */}
-                            <button
-                              className={clsx(
-                                "w-full h-8 text-[11px] font-semibold rounded-full",
-                                "bg-gradient-to-b from-white to-primary/10 text-primary",
-                                "border border-primary/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(0,0,0,0.06)]",
-                                "hover:from-white hover:to-primary/20 active:scale-[0.99] transition-all"
-                              )}
-                            >
-                              Get Free Demo
-                            </button>
-                          </Link>
-                        </div>
-                      </Card>
-                    ))}
+                        <Link href={`/student/demo/${tutor._id}`} className="flex-1">
+                          {/* iOS-like pill */}
+                          <button
+                            className={clsx(
+                              "w-full h-8 text-[11px] font-semibold rounded-full",
+                              "bg-gradient-to-b from-white to-primary/10 text-primary",
+                              "border border-primary/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(0,0,0,0.06)]",
+                              "hover:from-white hover:to-primary/20 active:scale-[0.99] transition-all"
+                            )}
+                          >
+                            Get Free Demo
+                          </button>
+                        </Link>
+                      </div>
+                    </Card>
+                  ))}
               </div>
 
               {mode === "filter" && totalPages > 1 && (
@@ -491,7 +509,7 @@ export default function SearchTutors() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      disabled={Number(filter.page) <= 1}      
+                      disabled={Number(filter.page) <= 1}
                       onClick={() => setPage(Math.max(1, Number(filter.page) - 1))}
                       className="rounded-full h-8 text-xs px-4"
                     >
@@ -504,7 +522,7 @@ export default function SearchTutors() {
                       className="rounded-full h-8 text-xs px-4"
                     >
                       Next
-                    </Button> 
+                    </Button>
                   </div>
                 </div>
               )}
