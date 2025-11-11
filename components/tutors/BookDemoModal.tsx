@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { createDemoBooking } from "@/services/studentService";
-import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { X, CalendarDays } from "lucide-react";
+import { useToast } from "@/hooks/use-toast"; // ✅ use custom toast hook
 
 interface BookDemoModalProps {
   open: boolean;
@@ -28,27 +28,50 @@ export default function BookDemoModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { toast } = useToast(); // ✅ use custom toast
+
   if (!open) return null;
 
   const handleSubmit = async () => {
     if (!subject || !date) {
-      toast.error("Please fill all required fields");
+      toast({
+        title: "Missing Fields",
+        description: "Please select both subject and date before booking.",
+      });
       return;
     }
 
     try {
       setLoading(true);
       const res = await createDemoBooking({ tutorId, subject, date, note });
+
       if (res.success) {
-        toast.success("Demo booked successfully!");
+        toast({
+          title: "Demo Booked 🎉",
+          description: "Your demo has been booked successfully!",
+        });
         onClose();
       } else if (res.message?.includes("not available")) {
-        toast.error("Tutor isn’t available on that date. Please choose another day.");
+        toast({
+          title: "Tutor Not Available",
+          description: "Tutor isn’t available on that date. Please choose another day.",
+        });
+      } else if (res.message?.includes("already booked")) {
+        toast({
+          title: "Duplicate Booking",
+          description: "You already booked this tutor for that date.",
+        });
       } else {
-        toast.error(res.message || "Booking failed");
+        toast({
+          title: "Booking Failed",
+          description: res.message || "Something went wrong while booking.",
+        });
       }
     } catch (err: any) {
-      toast.error(err.message || "Error booking demo");
+      toast({
+        title: "Server Error",
+        description: err.message || "Unable to create booking. Try again later.",
+      });
     } finally {
       setLoading(false);
     }

@@ -47,11 +47,11 @@ const studentLinks: NavLink[] = [
 
 const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/tutor/sessions', label: 'My Classes', icon: Calendar },
-  { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
-  { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
-  { href: '/wallet', label: 'Earnings', icon: Wallet },
+  { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
+  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
+  // { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
+  // { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
+  // { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 
 const adminLinks: NavLink[] = [
