@@ -50,7 +50,7 @@ export default function MyClassesSection() {
     <section className="lg:col-span-2 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-text">My Classes</h2>
-        <Link href="/dashboard/tutor#sessions">
+        <Link href="/dashboard/tutor/demo_sessions">
           <Button variant="ghost" size="sm">View All</Button>
         </Link>
       </div>
