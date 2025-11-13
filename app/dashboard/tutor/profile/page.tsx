@@ -34,30 +34,27 @@ export default function TutorProfilePage() {
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await getUserProfile();
-      if (res.success && res.data.profile) {
-        const tutor = res.data.profile;
-        dispatch(setBulk(tutor));
-
-        // Always use the static fallback image
-        setPhotoPreview("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s");
-
-        // Keep video and resume handling as usual
-        setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
-        setResumeUrl(getImageUrl(tutor.resumeUrl));
-      } else toast.error("Profile not found");
-    } catch {
-      toast.error("Error loading tutor profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchProfile();
-}, [dispatch]);
-
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        if (res.success && res.data.profile) {
+          const tutor = res.data.profile;
+          dispatch(setBulk(tutor));
+          setPhotoPreview(
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s"
+          );
+          setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
+          setResumeUrl(getImageUrl(tutor.resumeUrl));
+        } else toast.error("Profile not found");
+      } catch {
+        toast.error("Error loading tutor profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [dispatch]);
 
   const handleSave = async () => {
     try {
@@ -81,7 +78,6 @@ useEffect(() => {
       if (res.success && res.data) {
         toast.success("Tutor profile updated!");
         setEditMode(false);
-
         const { photoUrl, resumeUrl, demoVideoUrl } = res.data;
         setPhotoPreview(getImageUrl(photoUrl));
         setDemoVideoUrl(getImageUrl(demoVideoUrl));
@@ -105,6 +101,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(35,165,213,0.12),transparent),radial-gradient(900px_500px_at_-10%_20%,rgba(0,0,0,0.06),transparent)]">
+      {/* ===== Header ===== */}
       <header className="border-b bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-6">
           <div className="flex items-center gap-2">
@@ -114,18 +111,43 @@ useEffect(() => {
             <span className="font-semibold text-xl">Tutor Profile</span>
           </div>
 
-          {!editMode ? (
-            <Button variant="outline" onClick={() => setEditMode(true)}>
-              <Pencil className="w-4 h-4 mr-2" /> Edit
-            </Button>
-          ) : (
-            <Button variant="secondary" onClick={() => setEditMode(false)}>
-              Cancel
-            </Button>
-          )}
+          {/* ===== Header Actions ===== */}
+          <div className="flex items-center gap-3">
+            {!editMode ? (
+              <Button variant="outline" onClick={() => setEditMode(true)}>
+                <Pencil className="w-4 h-4 mr-2" /> Edit
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditMode(false)}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-primary text-white hover:bg-primary/90"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" /> Save Changes
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
+      {/* ===== Main Form ===== */}
       <main className="flex-grow">
         <form
           id="tutor-profile-form"
@@ -136,41 +158,25 @@ useEffect(() => {
             setPhotoFile={setPhotoFile}
             photoPreview={photoPreview}
             errors={{}}
+            disabled={!editMode}
           />
-
-          <TutorAcademicSection />
-          <TutorSubjectsSection />
-          <TutorRatesAvailabilitySection errors={{}} />
-          <TutorAboutSection errors={{}} />
+          <TutorAcademicSection disabled={!editMode} />
+          <TutorSubjectsSection disabled={!editMode} />
+          <TutorRatesAvailabilitySection errors={{}} disabled={!editMode} />
+          <TutorAboutSection errors={{}} disabled={!editMode} />
           <TutorDemoVideoSection
             demoVideoFile={demoVideoFile}
             setDemoVideoFile={setDemoVideoFile}
             demoVideoUrl={demoVideoUrl}
             errors={{}}
+            disabled={!editMode}
           />
           <TutorResumeSection
             resumeFile={resumeFile}
             setResumeFile={setResumeFile}
             resumeUrl={resumeUrl}
+            disabled={!editMode}
           />
-
-          {editMode && (
-            <div className="flex justify-end border-t pt-6">
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
         </form>
       </main>
     </div>
