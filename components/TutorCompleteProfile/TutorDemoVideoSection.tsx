@@ -7,15 +7,18 @@ const MAX_VIDEO_MB = 100;
 export default function TutorDemoVideoSection({
   demoVideoFile,
   setDemoVideoFile,
-  demoVideoUrl, // ✅ new prop
+  demoVideoUrl,
   errors,
+  disabled = false, // ✅ new prop
 }: {
   demoVideoFile: File | null;
   setDemoVideoFile: (f: File | null) => void;
-  demoVideoUrl?: string | null; // ✅ new prop type
+  demoVideoUrl?: string | null;
   errors: Record<string, string>;
+  disabled?: boolean;
 }) {
   const onPickDemoVideo = (f: File) => {
+    if (disabled) return; // 🚫 Prevent uploads when not in edit mode
     const sizeMB = f.size / (1024 * 1024);
     if (sizeMB > MAX_VIDEO_MB) return alert(`Max ${MAX_VIDEO_MB}MB allowed`);
     setDemoVideoFile(f);
@@ -27,7 +30,11 @@ export default function TutorDemoVideoSection({
     : demoVideoUrl || null;
 
   return (
-    <section className="bg-white rounded-2xl shadow p-8">
+    <section
+      className={`bg-white rounded-2xl shadow p-8 transition ${
+        disabled ? "opacity-80 pointer-events-none" : ""
+      }`}
+    >
       <div className="flex items-center gap-3 mb-6">
         <PlayCircle className="text-primary w-5 h-5" />
         <h2 className="text-xl font-semibold">Demo / Introduction Video</h2>
@@ -35,8 +42,14 @@ export default function TutorDemoVideoSection({
 
       <Label>Upload Demo Video (MP4/WebM, up to {MAX_VIDEO_MB}MB)</Label>
       <div
-        className="mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50 transition"
-        onClick={() => document.getElementById("demoVideoUpload")?.click()}
+        className={`mt-2 flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 transition ${
+          disabled
+            ? "opacity-70 cursor-not-allowed bg-gray-50"
+            : "cursor-pointer hover:bg-gray-50"
+        }`}
+        onClick={() =>
+          !disabled && document.getElementById("demoVideoUpload")?.click()
+        }
       >
         <PlayCircle className="text-primary w-5 h-5" />
         <span className="text-sm text-gray-700">
@@ -48,13 +61,17 @@ export default function TutorDemoVideoSection({
         </span>
       </div>
 
-      <input
-        id="demoVideoUpload"
-        type="file"
-        accept="video/mp4,video/webm"
-        className="hidden"
-        onChange={(e) => e.target.files?.[0] && onPickDemoVideo(e.target.files[0])}
-      />
+      {!disabled && (
+        <input
+          id="demoVideoUpload"
+          type="file"
+          accept="video/mp4,video/webm"
+          className="hidden"
+          onChange={(e) =>
+            e.target.files?.[0] && onPickDemoVideo(e.target.files[0])
+          }
+        />
+      )}
 
       {videoSrc && (
         <div className="mt-4 relative">
@@ -63,15 +80,15 @@ export default function TutorDemoVideoSection({
             className="w-full max-h-[420px] rounded-lg border"
             src={videoSrc}
           />
-          <button
-            type="button"
-            onClick={() => {
-              setDemoVideoFile(null);
-            }}
-            className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-red-100"
-          >
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </button>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={() => setDemoVideoFile(null)}
+              className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-red-100"
+            >
+              <Trash2 className="w-4 h-4 text-red-500" />
+            </button>
+          )}
         </div>
       )}
 

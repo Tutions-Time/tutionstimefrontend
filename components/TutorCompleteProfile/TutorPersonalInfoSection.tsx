@@ -1,5 +1,5 @@
 "use client";
-import { User, Trash2 } from "lucide-react";
+import { User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
@@ -12,20 +12,25 @@ const toOptions = (arr: string[]) => arr.map((v) => ({ value: v, label: v }));
 export default function TutorPersonalInfoSection({
   photoFile,
   setPhotoFile,
-  photoPreview, // ✅ new prop from parent
+  photoPreview,
   errors,
-}: any) {
+  disabled, // ✅ new prop
+}: {
+  photoFile: File | null;
+  setPhotoFile: (f: File | null) => void;
+  photoPreview: string | null;
+  errors: Record<string, string>;
+  disabled?: boolean;
+}) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
   const Err = ({ msg }: { msg?: string }) =>
     msg ? <p className="text-xs text-red-600 mt-1">{msg}</p> : null;
 
-  // ✅ show file preview if uploaded, otherwise use photoPreview URL from API
   const currentPhotoSrc = photoFile
     ? URL.createObjectURL(photoFile)
     : photoPreview || null;
-    console.log("🖼️ currentPhotoSrc =>", currentPhotoSrc);
 
   return (
     <section className="bg-white rounded-2xl shadow p-8">
@@ -35,13 +40,17 @@ export default function TutorPersonalInfoSection({
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
-        {/* ---------------------- Photo Upload ---------------------- */}
+        {/* Photo Upload */}
         <div className="flex justify-center md:justify-start">
-          <div className="relative group cursor-pointer">
-            <div
-              className="h-28 w-28 rounded-full border-2 border-primary flex items-center justify-center overflow-hidden shadow-md bg-gray-50"
-              onClick={() => document.getElementById("photoUpload")?.click()}
-            >
+          <div
+            className={`relative group ${
+              disabled ? "cursor-not-allowed opacity-80" : "cursor-pointer"
+            }`}
+            onClick={() =>
+              !disabled && document.getElementById("photoUpload")?.click()
+            }
+          >
+            <div className="h-28 w-28 rounded-full border-2 border-primary flex items-center justify-center overflow-hidden shadow-md bg-gray-50">
               {currentPhotoSrc ? (
                 <img
                   src={currentPhotoSrc}
@@ -52,20 +61,6 @@ export default function TutorPersonalInfoSection({
                 <User className="w-10 h-10 text-gray-400" />
               )}
             </div>
-
-            {/* 🗑 remove photo button */}
-            {currentPhotoSrc && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPhotoFile(null);
-                }}
-                className="absolute top-0 right-0 bg-white/80 p-1 rounded-full hover:bg-red-100"
-              >
-              
-              </button>
-            )}
           </div>
 
           <input
@@ -73,15 +68,16 @@ export default function TutorPersonalInfoSection({
             type="file"
             accept="image/*"
             className="hidden"
+            disabled={disabled} // ✅ block file input
             onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
           />
         </div>
 
-        {/* ---------------------- Info Fields ---------------------- */}
+        {/* Info Fields */}
         <div className="md:col-span-2 space-y-5">
-          {/* Name */}
           <div>
             <Input
+              disabled={disabled}
               value={profile.name || ""}
               onChange={(e) =>
                 dispatch(setField({ key: "name", value: e.target.value }))
@@ -92,22 +88,21 @@ export default function TutorPersonalInfoSection({
             <Err msg={errors?.name} />
           </div>
 
-          {/* Email */}
           <div>
             <Input
+              disabled={disabled}
               value={profile.email || ""}
               onChange={(e) =>
                 dispatch(setField({ key: "email", value: e.target.value }))
               }
               placeholder="Email"
-              className="h-10"
               type="email"
+              className="h-10"
             />
             <Err msg={errors?.email} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            {/* Gender */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Gender</label>
               <div className="flex flex-wrap gap-2">
@@ -117,14 +112,16 @@ export default function TutorPersonalInfoSection({
                     <button
                       key={g}
                       type="button"
+                      disabled={disabled}
                       onClick={() =>
+                        !disabled &&
                         dispatch(setField({ key: "gender", value: g }))
                       }
                       className={`px-3 py-1.5 rounded-full text-sm border transition ${
                         selected
                           ? "bg-primary text-white border-primary"
                           : "bg-white border-gray-300 hover:bg-gray-100"
-                      }`}
+                      } ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
                     >
                       {g}
                     </button>
@@ -133,78 +130,69 @@ export default function TutorPersonalInfoSection({
               </div>
             </div>
 
-            {/* Teaching Mode */}
             <OtherInline
               label="Teaching Mode"
               value={profile.teachingMode}
               options={toOptions(TEACHING_MODES)}
               onChange={(v: string) =>
+                !disabled &&
                 dispatch(setField({ key: "teachingMode", value: v }))
               }
+              disabled={disabled}
             />
           </div>
 
-          {/* Address */}
-          <div>
-            <Input
-              value={profile.addressLine1 || ""}
-              onChange={(e) =>
-                dispatch(setField({ key: "addressLine1", value: e.target.value }))
-              }
-              placeholder="Address Line 1"
-              className="h-10"
-            />
-            <Err msg={errors?.addressLine1} />
-          </div>
+          <Input
+            disabled={disabled}
+            value={profile.addressLine1 || ""}
+            onChange={(e) =>
+              dispatch(setField({ key: "addressLine1", value: e.target.value }))
+            }
+            placeholder="Address Line 1"
+            className="h-10"
+          />
+          <Err msg={errors?.addressLine1} />
 
-          <div>
-            <Input
-              value={profile.addressLine2 || ""}
-              onChange={(e) =>
-                dispatch(setField({ key: "addressLine2", value: e.target.value }))
-              }
-              placeholder="Address Line 2 (optional)"
-              className="h-10"
-            />
-            <Err msg={errors?.addressLine2} />
-          </div>
+          <Input
+            disabled={disabled}
+            value={profile.addressLine2 || ""}
+            onChange={(e) =>
+              dispatch(setField({ key: "addressLine2", value: e.target.value }))
+            }
+            placeholder="Address Line 2 (optional)"
+            className="h-10"
+          />
+          <Err msg={errors?.addressLine2} />
 
-          {/* City/State/Pincode */}
           <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <Input
-                value={profile.city || ""}
-                onChange={(e) =>
-                  dispatch(setField({ key: "city", value: e.target.value }))
-                }
-                placeholder="City"
-                className="h-10"
-              />
-              <Err msg={errors?.city} />
-            </div>
-            <div>
-              <Input
-                value={profile.state || ""}
-                onChange={(e) =>
-                  dispatch(setField({ key: "state", value: e.target.value }))
-                }
-                placeholder="State"
-                className="h-10"
-              />
-              <Err msg={errors?.state} />
-            </div>
-            <div>
-              <Input
-                value={profile.pincode || ""}
-                onChange={(e) =>
-                  dispatch(setField({ key: "pincode", value: e.target.value }))
-                }
-                placeholder="Pincode"
-                className="h-10"
-                inputMode="numeric"
-              />
-              <Err msg={errors?.pincode} />
-            </div>
+            <Input
+              disabled={disabled}
+              value={profile.city || ""}
+              onChange={(e) =>
+                dispatch(setField({ key: "city", value: e.target.value }))
+              }
+              placeholder="City"
+              className="h-10"
+            />
+            <Input
+              disabled={disabled}
+              value={profile.state || ""}
+              onChange={(e) =>
+                dispatch(setField({ key: "state", value: e.target.value }))
+              }
+              placeholder="State"
+              className="h-10"
+            />
+            <Input
+              disabled={disabled}
+              value={profile.pincode || ""}
+              onChange={(e) =>
+                dispatch(setField({ key: "pincode", value: e.target.value }))
+              }
+              placeholder="Pincode"
+              className="h-10"
+              inputMode="numeric"
+            />
           </div>
         </div>
       </div>

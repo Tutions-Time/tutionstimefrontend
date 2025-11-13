@@ -9,12 +9,14 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/studentProfileSlice";
 import { getUserProfile, updateStudentProfile } from "@/services/profileService";
 
-// Reuse CompleteProfile design components
+// Sections
 import HeaderSection from "@/components/CompleteProfile/HeaderSection";
 import PersonalInfoSection from "@/components/CompleteProfile/PersonalInfoSection";
 import AcademicDetailsSection from "@/components/CompleteProfile/AcademicDetailsSection";
 import PreferredSubjectsSection from "@/components/CompleteProfile/PreferredSubjectsSection";
 import TutorPreferencesSection from "@/components/CompleteProfile/TutorPreferencesSection";
+import PaymentPreferenceSection from "@/components/CompleteProfile/PaymentPreferenceSection";
+
 
 export default function StudentProfilePage() {
   const dispatch = useAppDispatch();
@@ -23,17 +25,16 @@ export default function StudentProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  // -------- Fetch Profile & Populate Redux --------
+  // -------- Fetch Profile --------
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await getUserProfile();
         if (res.success && res.data.profile) {
-          dispatch(setBulk(res.data.profile)); // ✅ hydrate Redux store
-        } else {
-          toast.error("Profile not found");
-        }
+          dispatch(setBulk(res.data.profile));
+        } else toast.error("Profile not found");
       } catch {
         toast.error("Error loading profile");
       } finally {
@@ -43,41 +44,24 @@ export default function StudentProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
-  // -------- Auto Disable / Enable Inputs --------
-  useEffect(() => {
-    if (loading) return;
-    const toggleFormInputs = () => {
-      const form = document.getElementById("student-profile-form");
-      if (!form) return;
-      const inputs = form.querySelectorAll("input, textarea, select, button[type='radio']");
-      inputs.forEach((input) => {
-        (input as HTMLInputElement).disabled = !editMode;
-      });
-    };
-    const timer = setTimeout(() => toggleFormInputs(), 100);
-    toggleFormInputs();
-    return () => clearTimeout(timer);
-  }, [editMode, loading]);
-
   // -------- Save Handler --------
   const handleSave = async () => {
     try {
       setSaving(true);
       const fd = new FormData();
 
-      Object.keys(profile || {}).forEach((key) => {
-        const value = (profile as any)[key];
-        if (Array.isArray(value)) fd.append(key, JSON.stringify(value));
-        else if (value !== undefined && value !== null) fd.append(key, value);
+      Object.entries(profile || {}).forEach(([k, v]) => {
+        if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
+        else if (v !== undefined && v !== null) fd.append(k, v);
       });
+
+      if (photoFile) fd.append("photo", photoFile);
 
       const res = await updateStudentProfile(fd);
       if (res.success) {
         toast.success("Profile updated successfully!");
         setEditMode(false);
-      } else {
-        toast.error(res.message || "Update failed");
-      }
+      } else toast.error(res.message || "Update failed");
     } catch (err: any) {
       toast.error(err.message || "Error saving profile");
     } finally {
@@ -85,49 +69,61 @@ export default function StudentProfilePage() {
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex justify-center items-center h-[80vh]">
         <Loader2 className="animate-spin w-8 h-8 text-primary" />
       </div>
     );
-  }
 
   // -------- UI --------
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(35,165,213,0.12),transparent),radial-gradient(900px_500px_at_-10%_20%,rgba(0,0,0,0.06),transparent)]">
+       <HeaderSection/>
       {/* —— Header —— */}
-      <HeaderSection />
-
-      {/* —— Hero —— */}
-      <section className="py-12 border-b bg-gradient-to-br from-white to-primaryWeak/40">
-        <div className="max-w-5xl mx-auto px-6 flex justify-between items-center">
+      <header className="border-b bg-white/90 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto flex justify-between items-center h-16 px-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
               Student Profile
             </h1>
-            <p className="text-gray-600">
-              Review or update your academic and tutor details.
-            </p>
           </div>
 
-          <div>
+          <div className="flex items-center gap-3">
             {!editMode ? (
               <Button variant="outline" onClick={() => setEditMode(true)}>
                 <Pencil className="w-4 h-4 mr-2" /> Edit
               </Button>
             ) : (
-              <Button
-                variant="secondary"
-                onClick={() => setEditMode(false)}
-                disabled={saving}
-              >
-                Cancel
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditMode(false)}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-primary text-white hover:bg-primary/90"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" /> Save Changes
+                    </>
+                  )}
+                </Button>
+              </>
             )}
           </div>
         </div>
-      </section>
+      </header>
+     
 
       {/* —— Main —— */}
       <main className="flex-grow">
@@ -137,39 +133,25 @@ export default function StudentProfilePage() {
         >
           {/* 👤 Personal Info */}
           <PersonalInfoSection
-            photoFile={null}
-            setPhotoFile={() => {}}
+            photoFile={photoFile}
+            setPhotoFile={setPhotoFile}
             errors={{}}
+            disabled={!editMode}
           />
 
           {/* 🎓 Academic */}
-          <AcademicDetailsSection errors={{}} />
+          <AcademicDetailsSection errors={{}} disabled={!editMode} />
 
           {/* 📚 Preferred Subjects */}
-          <PreferredSubjectsSection errors={{}} />
+          <PreferredSubjectsSection errors={{}} disabled={!editMode} />
+
+
+          <PaymentPreferenceSection disabled={!editMode} />
 
           {/* 👨‍🏫 Tutor Preferences */}
           <TutorPreferencesSection disabled={!editMode} />
-
-          {/* 💾 Save Button */}
-          {editMode && (
-            <div className="flex justify-end pt-6 border-t">
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="animate-spin mr-2 w-4 h-4" /> Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 w-4 h-4" /> Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
         </form>
       </main>
     </div>
   );
 }
-  

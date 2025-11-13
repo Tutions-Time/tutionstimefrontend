@@ -4,8 +4,10 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/studentProfileSlice";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { User, Camera } from "lucide-react";
+import { User } from "lucide-react";
 import OtherInline from "@/components/forms/OtherInline";
+import { getImageUrl } from "@/utils/getImageUrl";
+import { cn } from "@/lib/utils";
 
 const GENDER = ["Male", "Female", "Other"] as const;
 const toOptions = (arr: readonly string[]) =>
@@ -15,21 +17,29 @@ export default function PersonalInfoSection({
   photoFile,
   setPhotoFile,
   errors,
+  disabled = false,
 }: {
   photoFile: File | null;
   setPhotoFile: (f: File | null) => void;
   errors: Record<string, string>;
+  disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
   const onGenderChange = (val: string) => {
+    if (disabled) return;
     dispatch(setField({ key: "gender", value: val }));
     dispatch(setField({ key: "genderOther", value: "" }));
   };
 
   return (
-    <div className="bg-white rounded-2xl border shadow-[0_8px_24px_rgba(12,74,110,0.06)] backdrop-blur-md p-10 transition-all">
+    <section
+      className={cn(
+        "bg-white rounded-2xl border shadow-[0_8px_24px_rgba(12,74,110,0.06)] backdrop-blur-md p-10 transition-all",
+        disabled && "opacity-80 pointer-events-none"
+      )}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -42,24 +52,48 @@ export default function PersonalInfoSection({
 
       {/* Avatar + Form */}
       <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-10">
-        {/* -------- Profile Photo (Top Left) -------- */}
-    {/* -------- Profile Photo (Top Left) -------- */}
-<div className="flex justify-center md:justify-start">
-  <div className="relative h-36 w-36 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-[3px]">
-    <div className="h-full w-full rounded-full bg-white overflow-hidden flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
-      <img
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s"
-        alt="Profile"
-        className="h-full w-full object-cover"
-        onError={(e) => {
-          e.currentTarget.src =
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s";
-        }}
-      />
-    </div>
-  </div>
-</div>
-
+        {/* -------- Profile Photo -------- */}
+        <div className="flex justify-center md:justify-start">
+          <label
+            htmlFor="photo-upload"
+            className={cn(
+              "relative h-36 w-36 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-[3px] group",
+              disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+            )}
+          >
+            <div className="h-full w-full rounded-full bg-white overflow-hidden flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.05)] relative">
+              <img
+                src={
+                  photoFile
+                    ? URL.createObjectURL(photoFile)
+                    : getImageUrl(profile.photoUrl) ||
+                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s"
+                }
+                alt="Profile"
+                className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s";
+                }}
+              />
+              {!disabled && (
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-40 transition-opacity rounded-full" />
+              )}
+            </div>
+            {!disabled && (
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setPhotoFile(file);
+                }}
+              />
+            )}
+          </label>
+        </div>
 
         {/* -------- Form Fields -------- */}
         <div className="space-y-6">
@@ -74,6 +108,7 @@ export default function PersonalInfoSection({
               }
               placeholder="e.g., Aditi Sharma"
               className="h-10"
+              disabled={disabled}
             />
             {errors.name && (
               <p className="text-rose-600 text-xs mt-1">{errors.name}</p>
@@ -92,6 +127,7 @@ export default function PersonalInfoSection({
                 }
                 placeholder="you@example.com"
                 className="h-10"
+                disabled={disabled}
               />
               {errors.email && (
                 <p className="text-rose-600 text-xs mt-1">{errors.email}</p>
@@ -107,6 +143,7 @@ export default function PersonalInfoSection({
                 }
                 placeholder="Alternate contact number"
                 className="h-10"
+                disabled={disabled}
               />
             </div>
           </div>
@@ -125,6 +162,7 @@ export default function PersonalInfoSection({
                 }
                 placeholder="House / Street"
                 className="h-10"
+                disabled={disabled}
               />
               {errors.addressLine1 && (
                 <p className="text-rose-600 text-xs mt-1">
@@ -144,6 +182,7 @@ export default function PersonalInfoSection({
                 }
                 placeholder="Area / Landmark"
                 className="h-10"
+                disabled={disabled}
               />
             </div>
           </div>
@@ -159,6 +198,7 @@ export default function PersonalInfoSection({
                   dispatch(setField({ key: "city", value: e.target.value }))
                 }
                 className="h-10"
+                disabled={disabled}
               />
               {errors.city && (
                 <p className="text-rose-600 text-xs mt-1">{errors.city}</p>
@@ -173,6 +213,7 @@ export default function PersonalInfoSection({
                   dispatch(setField({ key: "state", value: e.target.value }))
                 }
                 className="h-10"
+                disabled={disabled}
               />
               {errors.state && (
                 <p className="text-rose-600 text-xs mt-1">{errors.state}</p>
@@ -188,6 +229,7 @@ export default function PersonalInfoSection({
                 }
                 placeholder="e.g., 110001"
                 className="h-10"
+                disabled={disabled}
               />
               {errors.pincode && (
                 <p className="text-rose-600 text-xs mt-1">{errors.pincode}</p>
@@ -204,10 +246,11 @@ export default function PersonalInfoSection({
               placeholder="Select"
               onChange={onGenderChange}
               hideOtherInput
+              disabled={disabled}
             />
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
