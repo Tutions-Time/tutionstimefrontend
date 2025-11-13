@@ -39,9 +39,9 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
   // { href: '/dashboard/student/sessions', label: 'My Sessions', icon: Calendar },
-  { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
-  { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
+  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
+  // { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
+  // { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
   // { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
