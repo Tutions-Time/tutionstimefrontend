@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { fetchUserProfile } from '@/store/slices/profileSlice';
+import UpcomingSessions from '@/components/student/UpcomingSessions';
+
 
 const mockSessions = [
   {
@@ -67,7 +69,7 @@ export default function StudentDashboard() {
           title={displayName}
           greeting
           action={
-            <Link href="/search">
+            <Link href="/dashboard/student/search">
               <Button className="bg-primary hover:bg-primary/90 text-text font-semibold">
                 <Plus className="w-4 h-4 mr-2" />
                 Book a Class
@@ -116,65 +118,10 @@ export default function StudentDashboard() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-text">Upcoming Sessions</h2>
-                <Link href="/dashboard/student#sessions">
-                  <Button variant="ghost" size="sm">View All</Button>
-                </Link>
-              </div>
-
-              {mockSessions.map((session) => (
-                <Card key={session.id} className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
-                        <span className="font-semibold text-text">
-                          {session.tutorName.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <h3 className="font-semibold text-text">{session.tutorName}</h3>
-                            <p className="text-sm text-muted">{session.subject}</p>
-                          </div>
-                          {session.status === 'scheduled' ? (
-                            <Badge className="bg-primary/10 text-primary border-primary/20">
-                              Upcoming
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-success/10 text-success border-success/20">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Completed
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(session.date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {session.time}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {session.status === 'scheduled' && (
-                      <Button className="bg-primary hover:bg-primary/90 text-text">
-                        <Video className="w-4 h-4 mr-2" />
-                        Join
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              ))}
+            <div className="lg:col-span-2">
+              <UpcomingSessions />
             </div>
+
 
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-text">Quick Actions</h2>
@@ -185,7 +132,7 @@ export default function StudentDashboard() {
                 <p className="text-sm text-muted mb-4">
                   Browse our verified tutors and book your first class
                 </p>
-                <Link href="/search">
+                <Link href="/dashboard/student/search">
                   <Button className="w-full bg-primary hover:bg-primary/90 text-text">
                     Browse Tutors
                   </Button>

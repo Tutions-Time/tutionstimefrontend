@@ -13,7 +13,6 @@ import {
   Phone,
   Mail,
   ShieldCheck,
-  IdCard,
   User2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,22 +52,29 @@ export default function TutorDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const searchParams = useSearchParams();
-  const userId = searchParams.get("userId");
+
+  // ✅ this is coming from URL query: ?userId=xxxxx
+  const userIdFromQuery = searchParams.get("userId");
 
   const [tutor, setTutor] = useState<any>(null);
   const [tab, setTab] = useState<"about" | "reviews">("about");
   const [showModal, setShowModal] = useState(false);
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
 
-  const tutorId = Array.isArray(id) ? id[0] : id;
+  // This is the tutor profile id from the route
+  const routeTutorId = Array.isArray(id) ? id[0] : (id as string);
+
+  // ✅ This is what we will actually send in payload as tutorId
+  // Priority: userId from query → fallback to route id
+  const tutorIdForPayload = (userIdFromQuery as string) || routeTutorId;
 
   useEffect(() => {
-    if (tutorId) {
-      fetchTutorById(tutorId)
+    if (routeTutorId) {
+      fetchTutorById(routeTutorId)
         .then(setTutor)
         .catch((err) => console.error("Error loading tutor:", err));
     }
-  }, [tutorId]);
+  }, [routeTutorId]);
 
   const imgUrl = useMemo(() => {
     if (!tutor?.photoUrl) return "/default-avatar.png";
@@ -148,7 +154,6 @@ export default function TutorDetailPage() {
             <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">
               <button
                 className={`${buttonBase} ${solidPrimary}`}
-                // onClick={() => router.push(`book-demo?tutor=${tutorId}`)}
                 onClick={() => setShowModal(true)}
               >
                 Book Free Demo
@@ -359,10 +364,12 @@ export default function TutorDetailPage() {
           </section>
         </div>
       </div>
+
+      {/* ✅ Pass tutorIdForPayload (userId) into both modals */}
       <BookDemoModal
         open={showModal}
         onClose={() => setShowModal(false)}
-        tutorId={tutorId}
+        tutorId={tutorIdForPayload}
         tutorName={tutor.name}
         subjects={tutor.subjects || []}
         availability={tutor.availability || []}
@@ -370,7 +377,7 @@ export default function TutorDetailPage() {
       <EnquiryModal
         open={showEnquiryModal}
         onClose={() => setShowEnquiryModal(false)}
-        tutorId={tutorId}
+        tutorId={tutorIdForPayload}
         tutorName={tutor.name}
       />
     </div>

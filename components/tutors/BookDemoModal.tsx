@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createDemoBooking } from "@/services/studentService";
 import { Button } from "@/components/ui/button";
 import { X, CalendarDays } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"; // ✅ use custom toast hook
+import { useToast } from "@/hooks/use-toast";
 
 interface BookDemoModalProps {
   open: boolean;
@@ -13,6 +13,21 @@ interface BookDemoModalProps {
   tutorName: string;
   subjects: string[];
   availability: string[];
+}
+
+// Convert "06:30 PM" → "18:30"
+function convertTo24Hour(timeStr: string) {
+  const [time, modifier] = timeStr.split(" ");
+  let [hours, minutes] = time.split(":");
+
+  if (modifier === "PM" && hours !== "12") {
+    hours = String(Number(hours) + 12);
+  }
+  if (modifier === "AM" && hours === "12") {
+    hours = "00";
+  }
+
+  return `${hours}:${minutes}`;
 }
 
 export default function BookDemoModal({
@@ -25,25 +40,35 @@ export default function BookDemoModal({
 }: BookDemoModalProps) {
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { toast } = useToast(); // ✅ use custom toast
+  const { toast } = useToast();
 
   if (!open) return null;
 
   const handleSubmit = async () => {
-    if (!subject || !date) {
+    if (!subject || !date || !time) {
       toast({
         title: "Missing Fields",
-        description: "Please select both subject and date before booking.",
+        description: "Please select subject, date & time before booking.",
       });
       return;
     }
 
+    const time24 = convertTo24Hour(time); // convert before sending
+
     try {
       setLoading(true);
-      const res = await createDemoBooking({ tutorId, subject, date, note });
+
+      const res = await createDemoBooking({
+        tutorId,
+        subject,
+        date,
+        time: time24, // backend gets "18:30"
+        note,
+      });
 
       if (res.success) {
         toast({
@@ -51,26 +76,16 @@ export default function BookDemoModal({
           description: "Your demo has been booked successfully!",
         });
         onClose();
-      } else if (res.message?.includes("not available")) {
-        toast({
-          title: "Tutor Not Available",
-          description: "Tutor isn’t available on that date. Please choose another day.",
-        });
-      } else if (res.message?.includes("already booked")) {
-        toast({
-          title: "Duplicate Booking",
-          description: "You already booked this tutor for that date.",
-        });
       } else {
         toast({
           title: "Booking Failed",
-          description: res.message || "Something went wrong while booking.",
+          description: res.message || "Something went wrong.",
         });
       }
     } catch (err: any) {
       toast({
         title: "Server Error",
-        description: err.message || "Unable to create booking. Try again later.",
+        description: err.message || "Unable to create booking.",
       });
     } finally {
       setLoading(false);
@@ -80,6 +95,7 @@ export default function BookDemoModal({
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
+        
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -96,7 +112,6 @@ export default function BookDemoModal({
           </h2>
         </div>
 
-        {/* Fields */}
         <div className="space-y-4">
           {/* Subject */}
           <div>
@@ -106,7 +121,7 @@ export default function BookDemoModal({
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
             >
               <option value="">-- Select --</option>
               {subjects?.map((s) => (
@@ -125,7 +140,7 @@ export default function BookDemoModal({
               <select
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
               >
                 <option value="">-- Select available date --</option>
                 {availability.map((d) => (
@@ -143,6 +158,43 @@ export default function BookDemoModal({
             )}
           </div>
 
+          {/* TIME — AM / PM DROPDOWN */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Time <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
+            >
+              <option value="">-- Select Time Slot --</option>
+
+              {[
+                "09:00 AM",
+                "09:30 AM",
+                "10:00 AM",
+                "10:30 AM",
+                "11:00 AM",
+                "11:30 AM",
+                "12:00 PM",
+                "02:00 PM",
+                "02:30 PM",
+                "03:00 PM",
+                "03:30 PM",
+                "04:00 PM",
+                "04:30 PM",
+                "05:00 PM",
+                "05:30 PM",
+                "06:00 PM"
+              ].map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Note */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -151,18 +203,18 @@ export default function BookDemoModal({
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
               placeholder="Any specific requests or details..."
               rows={3}
             />
           </div>
         </div>
 
-        {/* Button */}
+        {/* Submit Button */}
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full mt-5 bg-[#FFD54F] text-black font-semibold rounded-full hover:bg-[#f0c945] transition"
+          className="w-full mt-5 bg-[#FFD54F] text-black font-semibold rounded-full hover:bg-[#f0c945]"
         >
           {loading ? "Booking..." : "Confirm Free Demo"}
         </Button>

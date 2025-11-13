@@ -217,6 +217,7 @@ export const createDemoBooking = async (data: {
   tutorId: string;
   subject: string;
   date: string;
+  time: string;
   note?: string;
 }) => {
   try {
