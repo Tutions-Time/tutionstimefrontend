@@ -78,8 +78,9 @@ export default function HeroSection() {
             variants={fadeInUp}
             className="text-lg text-gray-800 mb-10 leading-relaxed max-w-lg"
           >
-            Connect with expert tutors for personalized learning — or share your
-            knowledge and earn by teaching students worldwide.
+           Find the Right Tutor for Every Subject, Anytime! Learn smarter and faster with qualified
+tutors from Nursery to Graduation level.
+
           </motion.p>
 
           {/* CTA Buttons */}
@@ -93,7 +94,7 @@ export default function HeroSection() {
                   size="lg"
                   className="bg-black hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
                 >
-                  Start Learning <ArrowRight className="ml-2 h-5 w-5" />
+                  Find a Tutor <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
             </Link>

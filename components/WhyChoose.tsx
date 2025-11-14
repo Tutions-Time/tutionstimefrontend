@@ -19,16 +19,17 @@ export default function WhyChoose() {
     },
     {
       title: 'Are You a Tutor?',
-      subtitle: 'Teach. Inspire. Earn.',
-      steps: ['Create Your Profile', 'Get Verified Students', 'Start Earning Instantly'],
-      buttonText: 'JOIN AS TUTOR – FREE',
+      subtitle: 'Join as a Tutor and Inspire Learners',
+      subtitle2: 'Share your knowledge and earn by teaching students who truly need your guidance',
+      steps: ['Flexible schedule', 'Online teaching', 'Direct student connect'],
+      buttonText: 'Register as Tutor',
       image: '/images/students.jpg',
       reverse: true,
     },
   ];
 
   return (
-    <section ref={ref} className="py-16 md:py-20 bg-gray-50">
+    <section ref={ref} className="py-16 md:py-20 bg-[#FFD54F]">
       <motion.div
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={fadeInUp}
@@ -73,8 +74,11 @@ export default function WhyChoose() {
                   <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2">
                     {section.title}
                   </h2>
-                  <p className="text-base md:text-lg font-semibold text-[#FFC107] mb-6 md:mb-7">
+                  <p className="text-base md:text-lg font-semibold text-[#FFC107]">
                     {section.subtitle}
+                  </p>
+                   <p className="text-base md:text-lg font-semibold text-[#FFC107] mb-6 md:mb-7">
+                    {section.subtitle2}
                   </p>
 
                   {/* Steps */}
