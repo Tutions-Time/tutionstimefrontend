@@ -5,6 +5,10 @@ import ReduxProvider from "@/providers/ReduxProvider";
 import { Toaster } from '@/components/ui/toaster';
 import Script from "next/script";
 
+// ⭐ Add these
+import ReviewChecker from "@/components/ReviewChecker";
+import ReviewModal from "@/components/ReviewModal";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -21,12 +25,22 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReduxProvider>
+
+          {/* 🔥 GLOBAL REVIEW SYSTEM  */}
+          <ReviewChecker />
+          <ReviewModal />
+
+          {/* MAIN PAGE CONTENT */}
           {children}
-           <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="afterInteractive"
-        />
-            <Toaster />
+
+          {/* Razorpay */}
+          <Script
+            src="https://checkout.razorpay.com/v1/checkout.js"
+            strategy="afterInteractive"
+          />
+
+          <Toaster />
+
         </ReduxProvider>
       </body>
     </html>

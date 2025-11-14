@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { X, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// MUI X Date Pickers + Dayjs
+import dayjs, { Dayjs } from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
+
 interface BookDemoModalProps {
   open: boolean;
   onClose: () => void;
@@ -13,21 +20,6 @@ interface BookDemoModalProps {
   tutorName: string;
   subjects: string[];
   availability: string[];
-}
-
-// Convert "06:30 PM" → "18:30"
-function convertTo24Hour(timeStr: string) {
-  const [time, modifier] = timeStr.split(" ");
-  let [hours, minutes] = time.split(":");
-
-  if (modifier === "PM" && hours !== "12") {
-    hours = String(Number(hours) + 12);
-  }
-  if (modifier === "AM" && hours === "12") {
-    hours = "00";
-  }
-
-  return `${hours}:${minutes}`;
 }
 
 export default function BookDemoModal({
@@ -40,7 +32,7 @@ export default function BookDemoModal({
 }: BookDemoModalProps) {
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [time, setTime] = useState<Dayjs | null>(null); // MUI time value
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +49,8 @@ export default function BookDemoModal({
       return;
     }
 
-    const time24 = convertTo24Hour(time); // convert before sending
+    // Convert Dayjs -> "HH:mm" (24-hour format) for backend
+    const time24 = time.format("HH:mm"); // e.g. "18:30"
 
     try {
       setLoading(true);
@@ -66,7 +59,7 @@ export default function BookDemoModal({
         tutorId,
         subject,
         date,
-        time: time24, // backend gets "18:30"
+        time: time24,
         note,
       });
 
@@ -95,7 +88,6 @@ export default function BookDemoModal({
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
-        
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -125,7 +117,9 @@ export default function BookDemoModal({
             >
               <option value="">-- Select --</option>
               {subjects?.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>
@@ -158,41 +152,36 @@ export default function BookDemoModal({
             )}
           </div>
 
-          {/* TIME — AM / PM DROPDOWN */}
+          {/* Time – MUI Clock Picker with every minute */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Time <span className="text-red-500">*</span>
             </label>
-            <select
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
-            >
-              <option value="">-- Select Time Slot --</option>
 
-              {[
-                "09:00 AM",
-                "09:30 AM",
-                "10:00 AM",
-                "10:30 AM",
-                "11:00 AM",
-                "11:30 AM",
-                "12:00 PM",
-                "02:00 PM",
-                "02:30 PM",
-                "03:00 PM",
-                "03:30 PM",
-                "04:00 PM",
-                "04:30 PM",
-                "05:00 PM",
-                "05:30 PM",
-                "06:00 PM"
-              ].map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <TimePicker
+                value={time}
+                onChange={(newValue) => setTime(newValue)}
+                ampm
+                minutesStep={1} // ✅ every single minute available
+                viewRenderers={{
+                  hours: renderTimeViewClock,
+                  minutes: renderTimeViewClock,
+                  seconds: renderTimeViewClock,
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    required: true,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            <p className="text-xs text-gray-400 mt-1">
+              Demo duration is 15 minutes.
+            </p>
           </div>
 
           {/* Note */}

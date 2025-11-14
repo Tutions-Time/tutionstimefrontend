@@ -5,30 +5,88 @@ import {
   Clock,
   BookOpen,
   StickyNote,
-  LinkIcon,
   User,
   Video,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useAppDispatch } from "@/store/store";
+import { markJoiningDemo } from "@/store/slices/reviewSlice";
 import BookingStatusTag from "./BookingStatusTag";
+
+type BookingType = {
+  _id: string;
+  preferredDate: string;      
+  preferredTime?: string;    
+  tutorId: string;
+  tutorName: string;
+  subject: string;
+  status: string;
+  type: "demo" | "regular";
+  meetingLink?: string;
+  note?: string;
+};
 
 export default function BookingCard({
   booking,
   compact = false,
 }: {
-  booking: any;
+  booking: BookingType;
   compact?: boolean;
 }) {
-  const dateFormatted = new Date(booking.preferredDate).toLocaleDateString(
-    "en-IN",
-    { day: "numeric", month: "short", year: "numeric" }
-  );
+  const dispatch = useAppDispatch();
 
-  const timeFormatted = new Date(booking.preferredDate).toLocaleTimeString(
-    "en-IN",
-    { hour: "2-digit", minute: "2-digit" }
-  );
+  // Combine preferredDate + preferredTime → correct session date/time
+  const sessionStart = useMemo(() => {
+    const base = new Date(booking.preferredDate);
+    if (!booking.preferredTime) return base;
 
-  const tutorMasked = booking.tutorName;
+    const [hStr, mStr] = booking.preferredTime.split(":");
+    const hours = Number(hStr) || 0;
+    const minutes = Number(mStr) || 0;
+
+    return new Date(
+      base.getFullYear(),
+      base.getMonth(),
+      base.getDate(),
+      hours,
+      minutes,
+      0,
+      0
+    );
+  }, [booking.preferredDate, booking.preferredTime]);
+
+  const [canJoin, setCanJoin] = useState(false);
+
+  useEffect(() => {
+    const EARLY_JOIN_MINUTES = 10; 
+    const LATE_JOIN_MINUTES = 30; 
+    const SESSION_DURATION_MIN = booking.type === "demo" ? 15 : 60;
+
+    const checkWindow = () => {
+      const now = new Date();
+
+      const joinOpenAt = new Date(
+        sessionStart.getTime() - EARLY_JOIN_MINUTES * 60 * 1000
+      );
+      const joinCloseAt = new Date(
+        sessionStart.getTime() +
+          (SESSION_DURATION_MIN + LATE_JOIN_MINUTES) * 60 * 1000
+      );
+
+      setCanJoin(now >= joinOpenAt && now <= joinCloseAt);
+    };
+
+    checkWindow();
+
+    const id = setInterval(checkWindow, 30 * 1000);
+    return () => clearInterval(id);
+  }, [sessionStart, booking.type]);
+
+  const dateFormatted = sessionStart.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 
   return (
     <div
@@ -44,26 +102,26 @@ export default function BookingCard({
         w-full
       `}
     >
-      {/* ========= HEADER ========= */}
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h2
           className={`font-semibold text-gray-900 ${
             compact ? "text-base" : "text-lg"
           }`}
         >
-          Demo booking with {tutorMasked}
+          Demo booking with {booking.tutorName}
         </h2>
 
         <BookingStatusTag status={booking.status} />
       </div>
 
-      {/* ========= SUBJECT ========= */}
+      {/* SUBJECT */}
       <div className="flex items-center gap-2 text-gray-800 text-sm">
         <BookOpen className="w-4 h-4 text-[--primary]" />
         <span className="font-medium">{booking.subject}</span>
       </div>
 
-      {/* ========= DATE + TIME ========= */}
+      {/* DATE + TIME */}
       <div className="flex items-center gap-4 text-sm text-gray-700">
         <span className="flex items-center gap-1">
           <CalendarDays className="w-4 h-4 text-[--primary]" />
@@ -76,24 +134,35 @@ export default function BookingCard({
         </span>
       </div>
 
-      {/* ========= SESSION TYPE ========= */}
+      {/* SESSION TYPE */}
       <div className="flex items-center gap-2 text-sm text-gray-700">
         <User className="w-4 h-4 text-[--primary]" />
         {booking.type === "demo" ? "Demo Session" : "Regular Class"}
       </div>
 
-      {/* ========= MEETING LINK ========= */}
+      {/* JOIN BUTTON */}
       {booking.meetingLink ? (
-        <a
-          href={booking.meetingLink}
-          target="_blank"
-          className="
+        <button
+          type="button"
+          disabled={!canJoin}
+          onClick={() => {
+            if (!canJoin) return;
+
+            // ⭐ Save booking info for review modal trigger
+            dispatch(
+              markJoiningDemo({
+                bookingId: booking._id,
+                tutorId: booking.tutorId,
+                tutorName: booking.tutorName,
+              })
+            );
+
+            window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
+          }}
+          className={`
             inline-flex 
             items-center 
             gap-2 
-            bg-[#FFD54F] 
-            hover:bg-[#f3c942] 
-            text-black 
             font-semibold 
             text-sm 
             px-4 
@@ -101,18 +170,28 @@ export default function BookingCard({
             rounded-full
             w-fit
             transition
-          "
+            ${
+              canJoin
+                ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
+                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+            }
+          `}
+          title={
+            canJoin
+              ? "Click to join the session"
+              : "You can join 10 minutes before the session starts"
+          }
         >
           <Video className="w-4 h-4" />
-          Join Demo
-        </a>
+          {canJoin ? "Join Demo" : "Join (available before the meeting)"}
+        </button>
       ) : (
         <p className="text-xs text-gray-400 italic">
           Meeting link will appear after tutor confirmation.
         </p>
       )}
 
-      {/* ========= NOTES ========= */}
+      {/* NOTES */}
       {booking.note && booking.note.trim() !== "" && (
         <div className="flex items-center gap-2 text-sm text-gray-700 border-t pt-3">
           <StickyNote className="w-4 h-4 text-[--primary]" />
