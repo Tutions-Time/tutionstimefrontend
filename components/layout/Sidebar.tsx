@@ -48,9 +48,10 @@ const studentLinks: NavLink[] = [
 
 const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/tutor/search', label: 'Find Students', icon: User },
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
-  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
+  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
   // { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
