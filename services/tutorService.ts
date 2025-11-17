@@ -10,6 +10,15 @@ export const getTutorProfile = async () => {
   }
 };
 
+export const fetchStudents = async (params?: Record<string, any>) => {
+  try {
+    const response = await api.get("/users/search", { params });
+    return response.data; // { success, total, count, data }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Update tutor profile
 export const updateTutorProfile = async (profileData: any) => {
   try {
