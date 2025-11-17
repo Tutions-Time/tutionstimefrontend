@@ -19,12 +19,15 @@ export default function ReviewModal() {
   const [comment, setComment] = useState("");
   const [likedTutor, setLikedTutor] = useState<boolean | null>(null);
 
+  const [step, setStep] = useState(1); // <-- NEW
+  const [tutorRates, setTutorRates] = useState<any>(null); // <-- NEW
+
   if (!shouldShowReview) return null;
 
   const sendReview = async () => {
     if (!bookingId) return;
 
-    await submitReview(bookingId, {
+    const res = await submitReview(bookingId, {
       teaching,
       communication,
       understanding,
@@ -32,17 +35,19 @@ export default function ReviewModal() {
       likedTutor: likedTutor ?? false,
     });
 
+    // If user liked tutor → Go to step 2
+    if (res?.data?.tutorRates && likedTutor === true) {
+      setTutorRates(res.data.tutorRates);
+      setStep(2);
+      return;
+    }
+
+    // Otherwise simply close modal
     dispatch(closeReviewModal());
   };
 
   // ⭐ reusable star component
-  const Stars = ({
-    value,
-    setter,
-  }: {
-    value: number;
-    setter: (n: number) => void;
-  }) => (
+  const Stars = ({ value, setter }: { value: number; setter: (n: number) => void }) => (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((n) => (
         <Star
@@ -56,11 +61,41 @@ export default function ReviewModal() {
     </div>
   );
 
+  // 🚀 Step 3 → payment selection
+  const PaymentStep = () => (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-gray-900">
+        How would you like to pay?
+      </h2>
+
+      <button
+        className="w-full border p-3 rounded-lg text-left"
+        onClick={() => handlePaymentType("hourly")}
+      >
+        <span className="font-semibold">Hourly</span> – ₹{tutorRates?.hourlyRate}
+      </button>
+
+      <button
+        className="w-full border p-3 rounded-lg text-left"
+        onClick={() => handlePaymentType("monthly")}
+      >
+        <span className="font-semibold">Monthly</span> – ₹{tutorRates?.monthlyRate}
+      </button>
+    </div>
+  );
+
+  const handlePaymentType = (type: "hourly" | "monthly") => {
+    console.log("User selected payment type:", type);
+
+    // TODO: trigger API to create order
+    dispatch(closeReviewModal());
+  };
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="relative bg-white w-[90%] max-w-md rounded-2xl p-6 space-y-5 shadow-xl">
 
-        {/* ❌ Close button */}
+        {/* Close button */}
         <button
           onClick={() => dispatch(closeReviewModal())}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -68,64 +103,91 @@ export default function ReviewModal() {
           <X className="w-6 h-6" />
         </button>
 
-        <h2 className="text-xl font-semibold text-gray-900">
-          How was your demo with {tutorName}?
-        </h2>
+        {/* ---------------- STEP 1 ---------------- */}
+        {step === 1 && (
+          <>
+            <h2 className="text-xl font-semibold text-gray-900">
+              How was your demo with {tutorName}?
+            </h2>
 
-        {/* ⭐ Stars */}
-        <div className="space-y-3">
-          <div>
-            <label className="font-medium">Teaching</label>
-            <Stars value={teaching} setter={setTeaching} />
+            <div className="space-y-3">
+              <div>
+                <label className="font-medium">Teaching</label>
+                <Stars value={teaching} setter={setTeaching} />
+              </div>
+
+              <div>
+                <label className="font-medium">Communication</label>
+                <Stars value={communication} setter={setCommunication} />
+              </div>
+
+              <div>
+                <label className="font-medium">Understanding</label>
+                <Stars value={understanding} setter={setUnderstanding} />
+              </div>
+            </div>
+
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="w-full border rounded-lg p-3 text-sm"
+              placeholder="Write your feedback..."
+            />
+
+            <div className="flex gap-4 mt-2">
+              <button
+                onClick={() => setLikedTutor(true)}
+                className={`px-4 py-2 rounded-lg border ${
+                  likedTutor === true ? "bg-green-500 text-white" : ""
+                }`}
+              >
+                Yes 👍
+              </button>
+
+              <button
+                onClick={() => setLikedTutor(false)}
+                className={`px-4 py-2 rounded-lg border ${
+                  likedTutor === false ? "bg-red-500 text-white" : ""
+                }`}
+              >
+                No 👎
+              </button>
+            </div>
+
+            <button
+              onClick={sendReview}
+              className="w-full bg-[#FFD54F] text-black font-semibold py-3 rounded-full hover:bg-[#eac747]"
+            >
+              Submit Review
+            </button>
+          </>
+        )}
+
+        {/* ---------------- STEP 2 ---------------- */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Do you want to continue regular classes with {tutorName}?
+            </h2>
+
+            <button
+              className="w-full bg-green-500 text-white py-3 rounded-lg"
+              onClick={() => setStep(3)}
+            >
+              Continue Regular Classes
+            </button>
+
+            <button
+              className="w-full border py-3 rounded-lg"
+              onClick={() => dispatch(closeReviewModal())}
+            >
+              Find Another Tutor
+            </button>
           </div>
+        )}
 
-          <div>
-            <label className="font-medium">Communication</label>
-            <Stars value={communication} setter={setCommunication} />
-          </div>
-
-          <div>
-            <label className="font-medium">Understanding</label>
-            <Stars value={understanding} setter={setUnderstanding} />
-          </div>
-        </div>
-
-        {/* ✏ Comment */}
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="w-full border rounded-lg p-3 text-sm"
-          placeholder="Write your feedback..."
-        />
-
-        {/* 👍 👎 Liked Tutor */}
-        <div className="flex gap-4 mt-2">
-          <button
-            onClick={() => setLikedTutor(true)}
-            className={`px-4 py-2 rounded-lg border ${
-              likedTutor === true ? "bg-green-500 text-white" : ""
-            }`}
-          >
-            Yes 👍
-          </button>
-
-          <button
-            onClick={() => setLikedTutor(false)}
-            className={`px-4 py-2 rounded-lg border ${
-              likedTutor === false ? "bg-red-500 text-white" : ""
-            }`}
-          >
-            No 👎
-          </button>
-        </div>
-
-        {/* 🚀 Submit Button */}
-        <button
-          onClick={sendReview}
-          className="w-full bg-[#FFD54F] text-black font-semibold py-3 rounded-full hover:bg-[#eac747]"
-        >
-          Submit Review
-        </button>
+        {/* ---------------- STEP 3 ---------------- */}
+        {step === 3 && <PaymentStep />}
       </div>
     </div>
   );
