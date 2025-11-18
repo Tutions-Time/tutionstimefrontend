@@ -1,61 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
-import { getUserProfile, bookStudentDemo } from "@/services/bookingService";
+import { toast } from "@/hooks/use-toast";   // ✅ Correct toast import
+import { bookStudentDemo } from "@/services/bookingService";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  studentId: string;
+  student: any;
 }
 
-export default function BookStudentDemoModal({ open, onClose, studentId }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [availability, setAvailability] = useState<string[]>([]);
+export default function BookStudentDemoModal({ open, onClose, student }: Props) {
+  if (!open || !student) return null;
+
+  const {
+    userId,
+    subjects = [],
+    availability = [],
+  } = student;
+
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (open) fetchStudentProfile();
-  }, [open]);
+  const showSuccess = (msg: string) =>
+    toast({
+      title: "Success",
+      description: msg,
+    });
 
-  const fetchStudentProfile = async () => {
-    try {
-      const data = await getUserProfile();
-
-      setSubjects(data.profile?.subjects || []);
-      setAvailability(data.profile?.availability || []);
-    } catch (err) {
-      console.error("Profile Fetch Error:", err);
-    }
-  };
+  const showError = (msg: string) =>
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: msg,
+    });
 
   const handleSubmit = async () => {
-    if (!selectedSubject || !selectedDate || !selectedTime) return;
+    if (!selectedSubject || !selectedDate || !selectedTime) {
+      showError("Please fill all fields");
+      return;
+    }
 
     setLoading(true);
+
     try {
-      await bookStudentDemo({
-        studentId,
+      const res = await bookStudentDemo({
+        studentId: userId,
         subject: selectedSubject,
         date: selectedDate,
         time: selectedTime,
         note,
       });
 
-      onClose();
-    } catch (err) {
-      console.error("Demo Booking Error:", err);
+      if (res?.success) {
+        showSuccess(res?.message || "Demo booked successfully");
+        onClose();
+      } else {
+        showError(res?.message || "Something went wrong");
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to book demo.";
+
+      showError(msg);
     } finally {
       setLoading(false);
     }
   };
-
-  if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
@@ -80,14 +97,14 @@ export default function BookStudentDemoModal({ open, onClose, studentId }: Props
           onChange={(e) => setSelectedSubject(e.target.value)}
         >
           <option value="">Select Subject</option>
-          {subjects.map((s, idx) => (
+          {subjects.map((s: string, idx: number) => (
             <option key={idx} value={s}>
               {s}
             </option>
           ))}
         </select>
 
-        {/* Date */}
+        {/* Dates */}
         <label className="text-xs font-medium text-gray-600">Available Dates</label>
         <select
           className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"
@@ -95,7 +112,7 @@ export default function BookStudentDemoModal({ open, onClose, studentId }: Props
           onChange={(e) => setSelectedDate(e.target.value)}
         >
           <option value="">Select Date</option>
-          {availability.map((d, idx) => (
+          {availability.map((d: string, idx: number) => (
             <option key={idx} value={d}>
               {d}
             </option>
@@ -128,6 +145,7 @@ export default function BookStudentDemoModal({ open, onClose, studentId }: Props
         >
           {loading ? "Booking..." : "Book Demo"}
         </button>
+
       </div>
     </div>
   );

@@ -39,6 +39,7 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
 
+
           <Toaster />
 
         </ReduxProvider>

@@ -165,7 +165,7 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
       <BookStudentDemoModal
         open={showModal}
         onClose={() => setShowModal(false)}
-        studentId={userId}  // ✔ Send correct userId from profile
+        student={student}
       />
     </article>
   );

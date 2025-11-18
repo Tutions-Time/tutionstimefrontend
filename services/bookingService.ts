@@ -42,3 +42,23 @@ export const getUserProfile = async () => {
     throw new Error(handleApiError(error));
   }
 };
+
+
+export const startRegularFromDemo = async (
+  bookingId: string,
+  payload: {
+    planType: string;
+    billingType: "hourly" | "monthly";
+    numberOfClasses?: number;
+  }
+) => {
+  try {
+    const response = await api.post(
+      `/bookings/${bookingId}/start-regular`,
+      payload
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
