@@ -4,7 +4,14 @@ import { useState } from "react";
 import { createDemoBooking } from "@/services/studentService";
 import { Button } from "@/components/ui/button";
 import { X, CalendarDays } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"; // ✅ use custom toast hook
+import { useToast } from "@/hooks/use-toast";
+
+// MUI X Date Pickers + Dayjs
+import dayjs, { Dayjs } from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 
 interface BookDemoModalProps {
   open: boolean;
@@ -25,25 +32,36 @@ export default function BookDemoModal({
 }: BookDemoModalProps) {
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
+  const [time, setTime] = useState<Dayjs | null>(null); // MUI time value
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { toast } = useToast(); // ✅ use custom toast
+  const { toast } = useToast();
 
   if (!open) return null;
 
   const handleSubmit = async () => {
-    if (!subject || !date) {
+    if (!subject || !date || !time) {
       toast({
         title: "Missing Fields",
-        description: "Please select both subject and date before booking.",
+        description: "Please select subject, date & time before booking.",
       });
       return;
     }
 
+    // Convert Dayjs -> "HH:mm" (24-hour format) for backend
+    const time24 = time.format("HH:mm"); // e.g. "18:30"
+
     try {
       setLoading(true);
-      const res = await createDemoBooking({ tutorId, subject, date, note });
+
+      const res = await createDemoBooking({
+        tutorId,
+        subject,
+        date,
+        time: time24,
+        note,
+      });
 
       if (res.success) {
         toast({
@@ -51,26 +69,16 @@ export default function BookDemoModal({
           description: "Your demo has been booked successfully!",
         });
         onClose();
-      } else if (res.message?.includes("not available")) {
-        toast({
-          title: "Tutor Not Available",
-          description: "Tutor isn’t available on that date. Please choose another day.",
-        });
-      } else if (res.message?.includes("already booked")) {
-        toast({
-          title: "Duplicate Booking",
-          description: "You already booked this tutor for that date.",
-        });
       } else {
         toast({
           title: "Booking Failed",
-          description: res.message || "Something went wrong while booking.",
+          description: res.message || "Something went wrong.",
         });
       }
     } catch (err: any) {
       toast({
         title: "Server Error",
-        description: err.message || "Unable to create booking. Try again later.",
+        description: err.message || "Unable to create booking.",
       });
     } finally {
       setLoading(false);
@@ -96,7 +104,6 @@ export default function BookDemoModal({
           </h2>
         </div>
 
-        {/* Fields */}
         <div className="space-y-4">
           {/* Subject */}
           <div>
@@ -106,11 +113,13 @@ export default function BookDemoModal({
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
             >
               <option value="">-- Select --</option>
               {subjects?.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </div>
@@ -125,7 +134,7 @@ export default function BookDemoModal({
               <select
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
               >
                 <option value="">-- Select available date --</option>
                 {availability.map((d) => (
@@ -143,6 +152,38 @@ export default function BookDemoModal({
             )}
           </div>
 
+          {/* Time – MUI Clock Picker with every minute */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Time <span className="text-red-500">*</span>
+            </label>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <TimePicker
+                value={time}
+                onChange={(newValue) => setTime(newValue)}
+                ampm
+                minutesStep={1} // ✅ every single minute available
+                viewRenderers={{
+                  hours: renderTimeViewClock,
+                  minutes: renderTimeViewClock,
+                  seconds: renderTimeViewClock,
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    required: true,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
+            <p className="text-xs text-gray-400 mt-1">
+              Demo duration is 15 minutes.
+            </p>
+          </div>
+
           {/* Note */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -151,18 +192,18 @@ export default function BookDemoModal({
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F] outline-none"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
               placeholder="Any specific requests or details..."
               rows={3}
             />
           </div>
         </div>
 
-        {/* Button */}
+        {/* Submit Button */}
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full mt-5 bg-[#FFD54F] text-black font-semibold rounded-full hover:bg-[#f0c945] transition"
+          className="w-full mt-5 bg-[#FFD54F] text-black font-semibold rounded-full hover:bg-[#f0c945]"
         >
           {loading ? "Booking..." : "Confirm Free Demo"}
         </Button>

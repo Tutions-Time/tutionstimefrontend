@@ -22,7 +22,7 @@ export default function Footer() {
               </div>
               <span className="font-bold text-xl text-text">Tuitions time</span>
             </div>
-            <p className="text-sm text-muted">Empowering education through technology</p>
+            <p className="text-sm text-muted">Your Learning Journey Begins Here — With TuitionsTime</p>
           </div>
 
           <div>

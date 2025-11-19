@@ -21,7 +21,10 @@ export default function TutorDemoRequests() {
     try {
       setLoading(true);
       const res = await getTutorDemoRequests();
-      if (res.success) setBookings(res.data || []);
+      if (res.success) {
+  const filtered = (res.data || []).filter((b: any) => b.status !== "cancelled");
+  setBookings(filtered);
+}
       else toast({ title: 'Error', description: res.message || 'Failed to load demo requests' });
     } catch (err: any) {
       toast({ title: 'Server Error', description: err.message });
@@ -85,7 +88,7 @@ export default function TutorDemoRequests() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="font-semibold">
-                      {b.studentId?.name || 'Unknown Student'}
+                      {b.studentName || 'Unknown Student'}
                     </div>
                     <div className="text-sm text-gray-500">{b.subject}</div>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">

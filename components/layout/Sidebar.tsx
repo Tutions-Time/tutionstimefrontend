@@ -38,6 +38,8 @@ type NavLink = {
 const studentLinks: NavLink[] = [
   { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
+  { href: '/dashboard/student/demoBookings', label: 'My Demo Bookings', icon: ClipboardList },
+  { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
   // { href: '/dashboard/student/sessions', label: 'My Sessions', icon: Calendar },
   // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
@@ -47,9 +49,10 @@ const studentLinks: NavLink[] = [
 
 const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/tutor/search', label: 'Find Students', icon: User },
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
-  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
+  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
   // { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];

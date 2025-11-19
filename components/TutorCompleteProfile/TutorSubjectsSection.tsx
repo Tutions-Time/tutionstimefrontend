@@ -63,23 +63,25 @@ const BOARDS: Record<string, string[]> = {
 const STUDENT_TYPES = ["School", "College", "Working Professional"];
 const GROUP_SIZES = ["One-to-One", "Small Batch (2–5)", "Large Batch (6+)"];
 
-/* ---------------------- Component ---------------------- */
-export default function TutorSubjectsSection() {
+export default function TutorSubjectsSection({
+  disabled = false, // ✅ new prop
+}: {
+  disabled?: boolean;
+}) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
   const [otherSubject, setOtherSubject] = useState("");
   const [otherBoard, setOtherBoard] = useState("");
 
-  /* ---------------------- Derived Options ---------------------- */
   const selectedTypes = profile.studentTypes || [];
 
+  /* ---------------------- Derived Options ---------------------- */
   const subjectOptions = useMemo(() => {
     if (!selectedTypes.length) return [];
     const merged = Array.from(
       new Set(selectedTypes.flatMap((t) => SUBJECTS[t] || []))
     );
-    // Always put "Other" at the end if exists
     return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
   }, [selectedTypes]);
 
@@ -95,25 +97,21 @@ export default function TutorSubjectsSection() {
     const merged = Array.from(
       new Set(selectedTypes.flatMap((t) => BOARDS[t] || []))
     );
-    // ✅ Ensure "Other" is always last
     return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
   }, [selectedTypes]);
 
   /* ---------------------- Common Handlers ---------------------- */
-const toggleArrayField = (key: keyof typeof profile, value: string) => {
-  const currentValue = profile[key];
-  const arr: string[] = Array.isArray(currentValue) ? [...currentValue] : [];
+  const toggleArrayField = (key: keyof typeof profile, value: string) => {
+    if (disabled) return; // 🚫 Prevent edits in view mode
 
-  const exists = arr.includes(value);
-  const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
+    const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
+    const exists = arr.includes(value);
+    const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
-  if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
-    const computedKey = `${key}Other` as keyof typeof profile;
-    dispatch(setField({ key: computedKey, value: "" }));
-  }
-
-  dispatch(setField({ key, value: next }));
-};
+    if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
+      const computedKey = `${key}Other` as keyof typeof profile;
+      dispatch(setField({ key: computedKey, value: "" }));
+    }
 
 
   const addCustomValue = (
@@ -121,6 +119,8 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
     input: string,
     setInput: (v: string) => void
   ) => {
+    if (disabled) return;
+
     const trimmed = input.trim();
     if (!trimmed) return;
     const formatted =
@@ -148,6 +148,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
     input: string,
     setInput: (v: string) => void
   ) => {
+    if (disabled) return;
     if (e.key === "Enter") {
       e.preventDefault();
       addCustomValue(field, input, setInput);
@@ -159,21 +160,26 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
     input: string,
     setInput: (v: string) => void
   ) => {
+    if (disabled) return;
     addCustomValue(field, input, setInput);
   };
 
-  /* ---------------------- Style ---------------------- */
   const chipClasses = (active: boolean) =>
     cn(
       "flex items-center justify-center text-sm rounded-xl border px-3 py-2 cursor-pointer select-none transition-all",
       active
         ? "bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium"
-        : "hover:bg-gray-50 border-gray-200 text-gray-700"
+        : "hover:bg-gray-50 border-gray-200 text-gray-700",
+      disabled && "opacity-60 pointer-events-none cursor-not-allowed"
     );
 
   /* ---------------------- Render ---------------------- */
   return (
-    <section className="bg-white rounded-2xl shadow p-8">
+    <section
+      className={`bg-white rounded-2xl shadow p-8 transition ${
+        disabled ? "opacity-80" : ""
+      }`}
+    >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-primary/10 text-primary">
           <BookOpen className="w-5 h-5" />
@@ -195,6 +201,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                 type="button"
                 onClick={() => toggleArrayField("studentTypes", type)}
                 className={chipClasses(active)}
+                disabled={disabled}
               >
                 {type}
               </button>
@@ -218,22 +225,12 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                       className="hidden"
                       checked={active}
                       onChange={() => toggleArrayField("subjects", s)}
+                      disabled={disabled}
                     />
                     {s}
                   </label>
                 );
               })}
-
-              {/* Custom Added Subjects */}
-              {profile.subjects
-                .filter(
-                  (s) => !subjectOptions.includes(s) && s !== "Other"
-                )
-                .map((custom) => (
-                  <span key={custom} className={chipClasses(true)}>
-                    {custom}
-                  </span>
-                ))}
             </div>
 
             {profile.subjects.includes("Other") && (
@@ -241,6 +238,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                 <Label className="mb-1 block">Other Subject</Label>
                 <div className="relative">
                   <Input
+                    disabled={disabled}
                     value={otherSubject}
                     onChange={(e) => setOtherSubject(e.target.value)}
                     onKeyDown={(e) =>
@@ -252,7 +250,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                     placeholder="Type subject and press Enter"
                     className="h-10 pr-10"
                   />
-                  {otherSubject.trim() && (
+                  {!disabled && otherSubject.trim() && (
                     <button
                       type="button"
                       onClick={() =>
@@ -280,6 +278,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                     type="button"
                     onClick={() => toggleArrayField("classLevels", opt)}
                     className={chipClasses(selected)}
+                    disabled={disabled}
                   >
                     {opt}
                   </button>
@@ -301,20 +300,12 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                       className="hidden"
                       checked={active}
                       onChange={() => toggleArrayField("boards", b)}
+                      disabled={disabled}
                     />
                     {b}
                   </label>
                 );
               })}
-
-              {/* Custom Added Boards */}
-              {profile.boards
-                .filter((b) => !boardOptions.includes(b) && b !== "Other")
-                .map((custom) => (
-                  <span key={custom} className={chipClasses(true)}>
-                    {custom}
-                  </span>
-                ))}
             </div>
 
             {profile.boards.includes("Other") && (
@@ -322,6 +313,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                 <Label className="mb-1 block">Other Board / Curriculum</Label>
                 <div className="relative">
                   <Input
+                    disabled={disabled}
                     value={otherBoard}
                     onChange={(e) => setOtherBoard(e.target.value)}
                     onKeyDown={(e) =>
@@ -333,7 +325,7 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                     placeholder="Type board and press Enter"
                     className="h-10 pr-10"
                   />
-                  {otherBoard.trim() && (
+                  {!disabled && otherBoard.trim() && (
                     <button
                       type="button"
                       onClick={() =>
@@ -362,9 +354,11 @@ const toggleArrayField = (key: keyof typeof profile, value: string) => {
                     key={size}
                     type="button"
                     onClick={() =>
+                      !disabled &&
                       dispatch(setField({ key: "groupSize", value: size }))
                     }
                     className={chipClasses(active)}
+                    disabled={disabled}
                   >
                     {size}
                   </button>

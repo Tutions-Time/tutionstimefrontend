@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+/* ---------------------- Constants ---------------------- */
 const SUBJECTS_SCHOOL_GENERIC = [
   "Mathematics",
   "Physics",
@@ -48,15 +49,19 @@ const SUBJECTS_COMP_BY_EXAM: Record<string, string[]> = {
   Other: ["Other"],
 };
 
+/* ---------------------- Component ---------------------- */
 export default function PreferredSubjectsSection({
   errors,
+  disabled = false,
 }: {
   errors: Record<string, string>;
+  disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
   const [otherInput, setOtherInput] = useState("");
 
+  /* ---------------------- Subject Options ---------------------- */
   const subjectOptions = useMemo(() => {
     if (profile.track === "school") return [...SUBJECTS_SCHOOL_GENERIC];
     if (profile.track === "college") {
@@ -68,7 +73,9 @@ export default function PreferredSubjectsSection({
     return [];
   }, [profile.track, profile.discipline, profile.exam]);
 
+  /* ---------------------- Handlers ---------------------- */
   const toggleSubject = (subj: string) => {
+    if (disabled) return;
     const exists = profile.subjects.includes(subj);
     const next = exists
       ? profile.subjects.filter((s) => s !== subj)
@@ -80,6 +87,7 @@ export default function PreferredSubjectsSection({
   };
 
   const addCustomSubject = () => {
+    if (disabled) return;
     const trimmed = otherInput.trim();
     if (!trimmed) return;
     const formatted = trimmed
@@ -106,8 +114,14 @@ export default function PreferredSubjectsSection({
     addCustomSubject();
   };
 
+  /* ---------------------- Render ---------------------- */
   return (
-    <div className="bg-white/90 rounded-2xl border shadow-[0_8px_24px_rgba(12,74,110,0.08)] backdrop-blur p-8">
+    <section
+      className={cn(
+        "bg-white/90 rounded-2xl border shadow-[0_8px_24px_rgba(12,74,110,0.08)] backdrop-blur p-8 transition",
+        disabled && "opacity-80 pointer-events-none"
+      )}
+    >
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-xl bg-primary/10 text-primary">
           <BookOpen className="w-5 h-5" />
@@ -125,10 +139,11 @@ export default function PreferredSubjectsSection({
                 <label
                   key={s}
                   className={cn(
-                    "flex items-center justify-center text-sm rounded-xl border px-3 py-2 cursor-pointer transition-all select-none",
+                    "flex items-center justify-center text-sm rounded-xl border px-3 py-2 cursor-pointer select-none transition-all",
                     active
                       ? "bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium"
-                      : "hover:bg-gray-50 border-gray-200"
+                      : "hover:bg-gray-50 border-gray-200 text-gray-700",
+                    disabled && "cursor-not-allowed opacity-70"
                   )}
                 >
                   <input
@@ -136,6 +151,7 @@ export default function PreferredSubjectsSection({
                     className="hidden"
                     checked={active}
                     onChange={() => toggleSubject(s)}
+                    disabled={disabled}
                   />
                   {s}
                 </label>
@@ -146,12 +162,12 @@ export default function PreferredSubjectsSection({
             {profile.subjects
               .filter((s) => !subjectOptions.includes(s) && s !== "Other")
               .map((custom) => (
-                <label
+                <span
                   key={custom}
-                  className="flex items-center justify-center text-sm rounded-xl border px-3 py-2 cursor-pointer transition-all select-none bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium"
+                  className="flex items-center justify-center text-sm rounded-xl border px-3 py-2 bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium select-none"
                 >
                   {custom}
-                </label>
+                </span>
               ))}
           </div>
 
@@ -167,8 +183,9 @@ export default function PreferredSubjectsSection({
                   onBlur={handleOtherBlur}
                   placeholder="Type subject and press Enter"
                   className="h-10 pr-10"
+                  disabled={disabled}
                 />
-                {otherInput.trim() && (
+                {otherInput.trim() && !disabled && (
                   <button
                     type="button"
                     onClick={addCustomSubject}
@@ -190,6 +207,6 @@ export default function PreferredSubjectsSection({
           Select your learning track above to see relevant subjects.
         </p>
       )}
-    </div>
+    </section>
   );
 }
