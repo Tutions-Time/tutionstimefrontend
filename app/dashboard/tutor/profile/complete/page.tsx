@@ -18,6 +18,7 @@ export default function TutorProfileCompletePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
@@ -48,63 +49,69 @@ export default function TutorProfileCompletePage() {
     return Object.keys(e).length === 0;
   };
 
-const handleSubmit = async () => {
-  try {
-    dispatch(startSubmitting());
+  const handleSubmit = async () => {
+    try {
+      dispatch(startSubmitting());
 
-    const fd = new FormData();
+      const fd = new FormData();
 
-    // ---------- Clean payload ----------
-    const cleanProfile = {
-      name: profile.name,
-      email: profile.email,
-      gender: profile.gender,
-      addressLine1: profile.addressLine1,
-      addressLine2: profile.addressLine2,
-      city: profile.city,
-      state: profile.state,
-      pincode: profile.pincode,
-      qualification: profile.qualification,
-      specialization: profile.specialization,
-      experience: profile.experience,
-      teachingMode: profile.teachingMode,
-      subjects: profile.subjects,
-      classLevels: profile.classLevels,
-      boards: profile.boards,
-      exams: profile.exams,
-      studentTypes: profile.studentTypes,
-      groupSize: profile.groupSize,
-      hourlyRate: profile.hourlyRate,
-      monthlyRate: profile.monthlyRate,
-      availability: profile.availability,
-      availableDays: profile.availableDays || [],
-      bio: profile.bio,
-      achievements: profile.achievements,
-      phone: profile.phone || "",
-    };
+      // ---------- Clean payload ----------
+      const cleanProfile = {
+        name: profile.name,
+        email: profile.email,
+        gender: profile.gender,
+        addressLine1: profile.addressLine1,
+        addressLine2: profile.addressLine2,
+        city: profile.city,
+        state: profile.state,
+        pincode: profile.pincode,
+        qualification: profile.qualification,
+        specialization: profile.specialization,
+        experience: profile.experience,
+        teachingMode: profile.teachingMode,
+        subjects: profile.subjects,
+        classLevels: profile.classLevels,
+        boards: profile.boards,
+        exams: profile.exams,
+        studentTypes: profile.studentTypes,
+        groupSize: profile.groupSize,
+        hourlyRate: profile.hourlyRate,
+        monthlyRate: profile.monthlyRate,
+        availability: profile.availability,
+        availableDays: profile.availableDays || [],
+        bio: profile.bio,
+        achievements: profile.achievements,
+        phone: profile.phone || "",
+      };
 
-    // ---------- Append text/arrays ----------
-    Object.entries(cleanProfile).forEach(([k, v]) => {
-      if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
-      else fd.append(k, v ?? "");
-    });
+      // ---------- Append text/arrays ----------
+      Object.entries(cleanProfile).forEach(([k, v]) => {
+        if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
+        else fd.append(k, v ?? "");
+      });
 
-    // ---------- Append files ----------
-    if (photoFile) fd.append("photo", photoFile);
-    if (resumeFile) fd.append("resume", resumeFile);
-    if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      // ---------- Append files ----------
+      if (photoFile) fd.append("photo", photoFile);
+      if (resumeFile) fd.append("resume", resumeFile);
+      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
 
-    // ---------- Submit ----------
-    await updateTutorProfile(fd);
+      useEffect(() => {
+        if (photoFile) {
+          setPhotoPreview(URL.createObjectURL(photoFile));
+        }
+      }, [photoFile]);
 
-    dispatch(stopSubmitting());
-    router.push("/dashboard/tutor");
-  } catch (err) {
-    console.error("❌ Submit failed:", err);
-    dispatch(stopSubmitting());
-    alert("Something went wrong. Try again later.");
-  }
-};
+      // ---------- Submit ----------
+      await updateTutorProfile(fd);
+
+      dispatch(stopSubmitting());
+      router.push("/dashboard/tutor");
+    } catch (err) {
+      console.error("❌ Submit failed:", err);
+      dispatch(stopSubmitting());
+      alert("Something went wrong. Try again later.");
+    }
+  };
 
 
   return (
@@ -131,8 +138,10 @@ const handleSubmit = async () => {
           <TutorPersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
+            photoPreview={photoPreview}
             errors={errors}
           />
+
           <TutorAcademicSection />
           <TutorSubjectsSection />
           <TutorRatesAvailabilitySection errors={errors} />

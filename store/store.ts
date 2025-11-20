@@ -1,6 +1,4 @@
-'use client';
-
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { configureStore, combineReducers, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import { useDispatch, TypedUseSelectorHook, useSelector } from 'react-redux';
 import {
   persistStore,
@@ -22,46 +20,36 @@ import availabilityReducer from './slices/availabilitySlice';
 import bookingReducer from './slices/bookingSlice';
 import tutorKycReducer from './slices/tutorKycSlice';
 import regularClassReducer from "./slices/regularClassSlice";
-
-// ⭐ NEW — Review Slice
 import reviewReducer from './slices/reviewSlice';
 
-// ─────────────────────────────────────────────
-//    PERSIST CONFIGS
-// ─────────────────────────────────────────────
 
-// Auth persist (tokens + user session)
+// ---------- PERSIST CONFIGS ----------
 const authPersistConfig = {
   key: 'auth',
   storage,
   whitelist: ['user', 'tokens', 'isAuthenticated'],
 };
 
-// Profile persist
 const profilePersistConfig = {
   key: 'profile',
   storage,
   whitelist: ['studentProfile', 'tutorProfile'],
 };
 
-// Tutor KYC persist
 const kycPersistConfig = {
   key: 'tutorKyc',
   storage,
   whitelist: ['kycStatus', 'aadhaarUrls', 'panUrl', 'bankProofUrl'],
 };
 
-// Review persist (so modal still shows after refresh)
 const reviewPersistConfig = {
   key: 'review',
   storage,
   whitelist: ['shouldShowReview', 'bookingId', 'tutorId', 'tutorName'],
 };
 
-// ─────────────────────────────────────────────
-//    ROOT REDUCER
-// ─────────────────────────────────────────────
 
+// ---------- ROOT REDUCER ----------
 const rootReducer = combineReducers({
   studentProfile: studentProfileReducer,
   tutorProfile: tutorProfileReducer,
@@ -70,43 +58,33 @@ const rootReducer = combineReducers({
   availability: availabilityReducer,
   booking: bookingReducer,
   tutorKyc: persistReducer(kycPersistConfig, tutorKycReducer),
-   regularClass: regularClassReducer,
-
-  // ⭐ Added the persisted Review reducer
+  regularClass: regularClassReducer,
   review: persistReducer(reviewPersistConfig, reviewReducer),
 });
 
-// ─────────────────────────────────────────────
-//    STORE CONFIG
-// ─────────────────────────────────────────────
 
+// ---------- STORE ----------
 export const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware: any) =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [
-          FLUSH,
-          REHYDRATE,
-          PAUSE,
-          PERSIST,
-          PURGE,
-          REGISTER,
-        ],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }),
   devTools: process.env.NODE_ENV !== 'production',
 });
 
-// Persistor instance
 export const persistor = persistStore(store);
 
-// ─────────────────────────────────────────────
-//    TYPES + CUSTOM HOOKS
-// ─────────────────────────────────────────────
 
+// ---------- TYPES + CORRECT HOOKS ----------
 export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
 
+// 🔥 Correct dispatch type (supports thunks)
+export type AppDispatch = ThunkDispatch<RootState, any, AnyAction>;
+
+// 🔥 Correct hook
 export const useAppDispatch = () => useDispatch<AppDispatch>();
+
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

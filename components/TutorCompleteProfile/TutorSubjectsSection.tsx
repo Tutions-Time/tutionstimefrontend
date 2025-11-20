@@ -100,21 +100,27 @@ export default function TutorSubjectsSection({
     return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
   }, [selectedTypes]);
 
-  /* ---------------------- Common Handlers ---------------------- */
-  const toggleArrayField = (key: keyof typeof profile, value: string) => {
-    if (disabled) return; // 🚫 Prevent edits in view mode
+type ArrayKeys =
+  | "subjects"
+  | "classLevels"
+  | "boards"
+  | "exams"
+  | "studentTypes";
 
-    const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
-    const exists = arr.includes(value);
-    const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
+const toggleArrayField = (key: ArrayKeys, value: string) => {
+  if (disabled) return;
 
-    if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
-      const computedKey = `${key}Other` as keyof typeof profile;
-      dispatch(setField({ key: computedKey, value: "" }));
-    }
+  const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
+  const exists = arr.includes(value);
+  const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
-    dispatch(setField({ key, value: next }));
-  };
+  if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
+    const computedKey = `${key}Other` as keyof typeof profile;
+    dispatch(setField({ key: computedKey, value: "" }));
+  }
+
+  dispatch(setField({ key, value: next }));
+};
 
   const addCustomValue = (
     field: "subjects" | "boards",
