@@ -13,11 +13,25 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchUserProfile } from "@/store/slices/profileSlice";
 
 import KpiSection from "@/components/tutors/dashboard/KpiSection";
-import MyClassesSection, {
-  TutorClass,
-} from "@/components/tutors/dashboard/MyClassesSection";
+import MyClassesSection from "@/components/tutors/dashboard/MyClassesSection";
 import QuickActionsSection from "@/components/tutors/dashboard/QuickActionsSection";
 
+/* ---------------------------------------------
+   Tutor Class Type
+---------------------------------------------- */
+export type TutorClass = {
+  id: string;
+  studentName: string;
+  subject: string;
+  date: string;     // YYYY-MM-DD
+  time: string;     // e.g. "6:00 PM"
+  status: "scheduled" | "completed" | "cancelled" | "confirmed";
+  type: "demo" | "regular";
+};
+
+/* ---------------------------------------------
+   Mock Data (until API connected)
+---------------------------------------------- */
 const mockClasses: TutorClass[] = [
   {
     id: "c1",
@@ -39,12 +53,17 @@ const mockClasses: TutorClass[] = [
   },
 ];
 
+/* ---------------------------------------------
+   Tutor Dashboard Component
+---------------------------------------------- */
 export default function TutorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+
   const dispatch = useAppDispatch();
   const tutorProfile = useAppSelector((s) => s.profile.tutorProfile);
 
+  // Fetch tutor profile on load
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, [dispatch]);
@@ -53,6 +72,7 @@ export default function TutorDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
       <Navbar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         unreadCount={4}
@@ -61,12 +81,14 @@ export default function TutorDashboard() {
         onLogout={logout}
       />
 
+      {/* Sidebar */}
       <Sidebar
         userRole="tutor"
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
+      {/* Main Layout */}
       <div className="lg:pl-64">
         <Topbar
           title={displayName}
@@ -74,8 +96,8 @@ export default function TutorDashboard() {
           greeting
           action={
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Availability button */}
-              <Link href="/dashboard/tutor/book">
+              {/* Availability */}
+              <Link href="/dashboard/tutor/availability">
                 <Button
                   variant="outline"
                   className="border-primary text-primary hover:bg-primary/10 font-semibold"
@@ -85,7 +107,7 @@ export default function TutorDashboard() {
                 </Button>
               </Link>
 
-              {/* Create class */}
+              {/* Create Class */}
               <Link href="/dashboard/tutor/book">
                 <Button
                   className="bg-primary hover:bg-primary/90 text-text font-semibold"
@@ -100,13 +122,17 @@ export default function TutorDashboard() {
           }
         />
 
+        {/* Main Content */}
         <main className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
-          {/* KPIs */}
+          {/* KPI Metrics */}
           <KpiSection />
 
-          {/* Main grid */}
+          {/* Main Grid */}
           <div className="grid gap-6 lg:grid-cols-3">
+            {/* My Classes Section */}
             <MyClassesSection classes={mockClasses} />
+
+            {/* Quick Actions */}
             <QuickActionsSection />
           </div>
         </main>

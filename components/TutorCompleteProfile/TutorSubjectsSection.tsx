@@ -30,7 +30,7 @@ const SUBJECTS: Record<string, string[]> = {
     "Political Science",
     "Other",
   ],
-  "Working Professional": [
+  Working_Professional: [
     "Communication Skills",
     "Business English",
     "Aptitude",
@@ -51,20 +51,20 @@ const CLASS_LEVELS: Record<string, string[]> = {
     "Class 12",
   ],
   College: ["Undergraduate", "Postgraduate"],
-  "Working Professional": ["Corporate Training", "Skill Enhancement"],
+  Working_Professional: ["Corporate Training", "Skill Enhancement"],
 };
 
 const BOARDS: Record<string, string[]> = {
   School: ["CBSE", "ICSE", "State Board", "IB", "Cambridge", "Other"],
   College: ["University", "Autonomous College", "Other"],
-  "Working Professional": ["N/A", "Other"],
+  Working_Professional: ["N/A", "Other"],
 };
 
 const STUDENT_TYPES = ["School", "College", "Working Professional"];
 const GROUP_SIZES = ["One-to-One", "Small Batch (2–5)", "Large Batch (6+)"];
 
 export default function TutorSubjectsSection({
-  disabled = false, // ✅ new prop
+  disabled = false,
 }: {
   disabled?: boolean;
 }) {
@@ -100,19 +100,22 @@ export default function TutorSubjectsSection({
     return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
   }, [selectedTypes]);
 
-  /* ---------------------- Common Handlers ---------------------- */
+  /* ---------------------- Handlers ---------------------- */
   const toggleArrayField = (key: keyof typeof profile, value: string) => {
-    if (disabled) return; // 🚫 Prevent edits in view mode
+    if (disabled) return;
 
     const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
     const exists = arr.includes(value);
     const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
+    // Remove custom field if "Other" is removed
     if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
       const computedKey = `${key}Other` as keyof typeof profile;
       dispatch(setField({ key: computedKey, value: "" }));
     }
 
+    dispatch(setField({ key, value: next }));
+  };
 
   const addCustomValue = (
     field: "subjects" | "boards",
@@ -123,19 +126,15 @@ export default function TutorSubjectsSection({
 
     const trimmed = input.trim();
     if (!trimmed) return;
-    const formatted =
-      trimmed
-        .split(" ")
-        .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
+
+    const formatted = trimmed
+      .split(" ")
+      .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
 
     const current = Array.isArray(profile[field]) ? profile[field] : [];
     if (!current.includes(formatted)) {
-      const updated = [
-        ...current.filter((s) => s !== "Other"),
-        formatted,
-        "Other",
-      ];
+      const updated = [...current.filter((s) => s !== "Other"), formatted, "Other"];
       dispatch(setField({ key: field, value: updated }));
     }
 
@@ -242,7 +241,12 @@ export default function TutorSubjectsSection({
                     value={otherSubject}
                     onChange={(e) => setOtherSubject(e.target.value)}
                     onKeyDown={(e) =>
-                      handleOtherKeyDown(e, "subjects", otherSubject, setOtherSubject)
+                      handleOtherKeyDown(
+                        e,
+                        "subjects",
+                        otherSubject,
+                        setOtherSubject
+                      )
                     }
                     onBlur={() =>
                       handleOtherBlur("subjects", otherSubject, setOtherSubject)
@@ -289,7 +293,9 @@ export default function TutorSubjectsSection({
 
           {/* Boards */}
           <div className="mb-8">
-            <Label className="block mb-2 font-medium">Boards / Curriculums</Label>
+            <Label className="block mb-2 font-medium">
+              Boards / Curriculums
+            </Label>
             <div className="flex flex-wrap gap-2">
               {boardOptions.map((b) => {
                 const active = profile.boards.includes(b);
@@ -317,7 +323,12 @@ export default function TutorSubjectsSection({
                     value={otherBoard}
                     onChange={(e) => setOtherBoard(e.target.value)}
                     onKeyDown={(e) =>
-                      handleOtherKeyDown(e, "boards", otherBoard, setOtherBoard)
+                      handleOtherKeyDown(
+                        e,
+                        "boards",
+                        otherBoard,
+                        setOtherBoard
+                      )
                     }
                     onBlur={() =>
                       handleOtherBlur("boards", otherBoard, setOtherBoard)

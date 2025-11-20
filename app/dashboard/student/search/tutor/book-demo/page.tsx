@@ -14,6 +14,7 @@ export default function BookDemoPage() {
 
   const [tutor, setTutor] = useState<any>(null);
   const [date, setDate] = useState("");
+  const [time, setTime] = useState("");   // ⭐ ADDED
   const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,14 +28,22 @@ export default function BookDemoPage() {
   }, [tutorId]);
 
   const handleSubmit = async () => {
-    if (!date || !subject) {
+    if (!date || !subject || !time) {
       toast.error("Please fill all fields");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await createDemoBooking({ tutorId: tutorId!, subject, date, note });
+
+      const res = await createDemoBooking({
+        tutorId: tutorId!,
+        subject,
+        date,
+        time,     // ⭐ ADDED
+        note,
+      });
+
       if (res.success) {
         toast.success("Demo booked successfully!");
         router.push("/dashboard/student/bookings");
@@ -49,14 +58,21 @@ export default function BookDemoPage() {
   };
 
   if (!tutor)
-    return <div className="p-6 text-center text-gray-500">Loading tutor details...</div>;
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Loading tutor details...
+      </div>
+    );
 
   return (
     <div className="max-w-lg mx-auto p-6 bg-white rounded-xl shadow space-y-5">
       <h1 className="text-xl font-semibold">Book Free Demo with {tutor.name}</h1>
 
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-gray-700">Select Subject</label>
+        {/* Subject */}
+        <label className="block text-sm font-medium text-gray-700">
+          Select Subject
+        </label>
         <select
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
@@ -68,6 +84,7 @@ export default function BookDemoPage() {
           ))}
         </select>
 
+        {/* Date */}
         <label className="block text-sm font-medium text-gray-700 mt-4">
           Select Date
         </label>
@@ -78,6 +95,17 @@ export default function BookDemoPage() {
           onChange={(e) => setDate(e.target.value)}
         />
 
+        {/* Time */}
+        <label className="block text-sm font-medium text-gray-700 mt-4">
+          Select Time
+        </label>
+        <Input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+        />
+
+        {/* Note */}
         <label className="block text-sm font-medium text-gray-700 mt-4">
           Message (Optional)
         </label>
