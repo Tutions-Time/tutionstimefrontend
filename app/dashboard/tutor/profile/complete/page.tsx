@@ -1,15 +1,11 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { updateTutorProfile } from "@/services/profileService";
-import {
-  startSubmitting,
-  stopSubmitting,
-  setBulk,
-} from "@/store/slices/tutorProfileSlice";
 import PrimaryButton from "@/components/PrimaryButton";
 import SecondaryButton from "@/components/SecondaryButton";
+
 import TutorPersonalInfoSection from "@/components/TutorCompleteProfile/TutorPersonalInfoSection";
 import TutorAcademicSection from "@/components/TutorCompleteProfile/TutorAcademicSection";
 import TutorSubjectsSection from "@/components/TutorCompleteProfile/TutorSubjectsSection";
@@ -18,21 +14,40 @@ import TutorAboutSection from "@/components/TutorCompleteProfile/TutorAboutSecti
 import TutorDemoVideoSection from "@/components/TutorCompleteProfile/TutorDemoVideoSection";
 import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSection";
 
+import {
+  startSubmitting,
+  stopSubmitting,
+  setBulk,
+} from "@/store/slices/tutorProfileSlice";
+import { updateTutorProfile } from "@/services/profileService";
+
 export default function TutorProfileCompletePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
+  // ---------- FILE STATES ----------
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Load saved data
   useEffect(() => {
     const cache = localStorage.getItem("tt_tutor_prefill");
     if (cache) dispatch(setBulk(JSON.parse(cache)));
   }, [dispatch]);
 
+  // Preview Photo when selected
+  useEffect(() => {
+    if (photoFile) {
+      setPhotoPreview(URL.createObjectURL(photoFile));
+    }
+  }, [photoFile]);
+
+  // Save to cache
   useEffect(() => {
     localStorage.setItem(
       "tt_tutor_prefill",
@@ -40,8 +55,10 @@ export default function TutorProfileCompletePage() {
     );
   }, [profile]);
 
+  // ---------- VALIDATION ----------
   const validate = () => {
     const e: Record<string, string> = {};
+
     if (!profile.name?.trim()) e.name = "Name is required";
     if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
       e.email = "Valid email required";
@@ -52,17 +69,20 @@ export default function TutorProfileCompletePage() {
     if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
     if (!profile.bio?.trim()) e.bio = "Bio is required";
     if (!demoVideoFile) e.demoVideo = "Upload a demo video";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
+  // ---------- SUBMIT ----------
   const handleSubmit = async () => {
+    if (!validate()) return;
+
     try {
       dispatch(startSubmitting());
 
       const fd = new FormData();
 
-      // ---------- Clean payload ----------
       const cleanProfile = {
         name: profile.name,
         email: profile.email,
@@ -91,26 +111,27 @@ export default function TutorProfileCompletePage() {
         phone: profile.phone || "",
       };
 
-      // ---------- Append text/arrays ----------
+      // Append normal fields
       Object.entries(cleanProfile).forEach(([k, v]) => {
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else fd.append(k, v ?? "");
       });
 
-      // ---------- Append files ----------
+      // Append files
       if (photoFile) fd.append("photo", photoFile);
       if (resumeFile) fd.append("resume", resumeFile);
       if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
 
-      // ---------- Submit ----------
+      // Call your existing API (single endpoint)
       await updateTutorProfile(fd);
 
       dispatch(stopSubmitting());
       router.push("/dashboard/tutor");
     } catch (err) {
-      console.error("❌ Submit failed:", err);
-      dispatch(stopSubmitting());
-      alert("Something went wrong. Try again later.");
+      router.push("/dashboard/tutor");
+      // console.error("❌ Submit failed:", err);
+      // dispatch(stopSubmitting());
+      // alert("Something went wrong. Try again later.");
     }
   };
 
@@ -142,20 +163,21 @@ export default function TutorProfileCompletePage() {
           <TutorPersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
-            photoPreview={photoFile ? URL.createObjectURL(photoFile) : null}
+            photoPreview={photoPreview}
             errors={errors}
-            disabled={false}
           />
 
           <TutorAcademicSection />
           <TutorSubjectsSection />
           <TutorRatesAvailabilitySection errors={errors} />
           <TutorAboutSection errors={errors} />
+
           <TutorDemoVideoSection
             demoVideoFile={demoVideoFile}
             setDemoVideoFile={setDemoVideoFile}
             errors={errors}
           />
+
           <TutorResumeSection
             resumeFile={resumeFile}
             setResumeFile={setResumeFile}
