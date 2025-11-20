@@ -1,5 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+/* -------------------------------------------------------
+   Tutor Profile Type
+------------------------------------------------------- */
 export interface TutorProfileState {
   // ----- Personal -----
   name: string;
@@ -30,8 +33,8 @@ export interface TutorProfileState {
   // ----- Rates & Availability -----
   hourlyRate: string;
   monthlyRate: string;
-  availability: string[]; // calendar-based
-  availableDays: string[]; // ✅ added for optional day-based slots
+  availability: string[];
+  availableDays: string[];
 
   // ----- About -----
   bio: string;
@@ -40,7 +43,7 @@ export interface TutorProfileState {
   // ----- Uploads -----
   resumeUrl: string;
   demoVideoUrl: string;
-  certificateUrl: string; // ✅ optional upload future support
+  certificateUrl: string;
 
   // ----- Optional UI fields -----
   subjectOther?: string;
@@ -51,7 +54,10 @@ export interface TutorProfileState {
   isSubmitting: boolean;
 }
 
-const initialState: TutorProfileState = {
+/* -------------------------------------------------------
+   Initial State
+------------------------------------------------------- */
+export const initialState: TutorProfileState = {
   // Personal
   name: "",
   email: "",
@@ -102,30 +108,51 @@ const initialState: TutorProfileState = {
   isSubmitting: false,
 };
 
+/* -------------------------------------------------------
+   Strongly Typed Reducers
+------------------------------------------------------- */
 const tutorProfileSlice = createSlice({
   name: "tutorProfile",
   initialState,
   reducers: {
-    setField: (
-      state,
-      action: PayloadAction<{ key: keyof TutorProfileState; value: any }>
+    /* ------------------------------------------
+       Strongly Typed setField()
+    ------------------------------------------ */
+    setField: <K extends keyof TutorProfileState>(
+      state: TutorProfileState,
+      action: PayloadAction<{ key: K; value: TutorProfileState[K] }>
     ) => {
       const { key, value } = action.payload;
-      (state as any)[key] = value;
+      state[key] = value;
     },
+
+    /* ------------------------------------------
+       Bulk Update
+    ------------------------------------------ */
     setBulk: (state, action: PayloadAction<Partial<TutorProfileState>>) => {
       Object.assign(state, action.payload);
     },
+
+    /* ------------------------------------------
+       Submission status
+    ------------------------------------------ */
     startSubmitting: (state) => {
       state.isSubmitting = true;
     },
     stopSubmitting: (state) => {
       state.isSubmitting = false;
     },
+
+    /* ------------------------------------------
+       Reset
+    ------------------------------------------ */
     resetTutorProfile: () => initialState,
   },
 });
 
+/* -------------------------------------------------------
+   Exports
+------------------------------------------------------- */
 export const {
   setField,
   setBulk,

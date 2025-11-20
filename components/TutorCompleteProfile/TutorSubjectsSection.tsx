@@ -101,21 +101,24 @@ export default function TutorSubjectsSection({
   }, [selectedTypes]);
 
   /* ---------------------- Handlers ---------------------- */
-  const toggleArrayField = (key: keyof typeof profile, value: string) => {
-    if (disabled) return;
+ const toggleArrayField = (key: keyof typeof profile, value: string) => {
+  if (disabled) return;
 
-    const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
-    const exists = arr.includes(value);
-    const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
+  const raw = profile[key];
+  const arr = Array.isArray(raw) ? [...raw] : [];
 
-    // Remove custom field if "Other" is removed
-    if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
-      const computedKey = `${key}Other` as keyof typeof profile;
-      dispatch(setField({ key: computedKey, value: "" }));
-    }
+  const exists = arr.includes(value);
+  const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
-    dispatch(setField({ key, value: next }));
-  };
+  // Remove custom field if "Other" is removed
+  if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
+    const computedKey = `${key}Other` as keyof typeof profile;
+    dispatch(setField({ key: computedKey, value: "" }));
+  }
+
+  dispatch(setField({ key, value: next }));
+};
+
 
   const addCustomValue = (
     field: "subjects" | "boards",
