@@ -186,7 +186,7 @@ export default function BookingCard({
           booking.status === "completed" && (
             <button
               onClick={() => setShowUpgradeModal(true)}
-              className="mt-2 bg-[#207EA9] text-white px-4 py-2 rounded-full text-sm hover:bg-[#1a6b8e]"
+              className="mt-2 bg-[#FFD54F] text-black font-bold px-4 py-2 rounded-full text-sm hover:bg-[#FFD54F]"
             >
               Start Regular Classes
             </button>

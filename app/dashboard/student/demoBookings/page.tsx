@@ -13,6 +13,8 @@ export default function StudentBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [activeTab, setActiveTab] = useState<"demo" | "regular">("demo");
+
   const themePrimary = "#FFD54F";
 
   useEffect(() => {
@@ -28,6 +30,11 @@ export default function StudentBookingsPage() {
     }
     load();
   }, []);
+
+  // Filter based on active tab
+  const filtered = bookings.filter(
+    (b) => b.type?.toLowerCase() === activeTab
+  );
 
   return (
     <div
@@ -49,15 +56,42 @@ export default function StudentBookingsPage() {
 
       {/* ---------- MAIN AREA ---------- */}
       <div className="lg:pl-64">
-        {/* ---------- TOPBAR ---------- */}
-        <Topbar title="My Bookings" subtitle="Track and manage your sessions" />
+        <Topbar title="My Classes" subtitle="Track and manage your sessions" />
 
-        {/* ---------- CONTENT ---------- */}
         <main className="p-4 lg:p-6">
+
+          {/* ---------- TABS ---------- */}
+          <div className="flex gap-4 mb-6">
+            <button
+              onClick={() => setActiveTab("demo")}
+              className={`px-4 py-2 rounded-full font-semibold text-sm ${
+                activeTab === "demo"
+                  ? "bg-[#FFD54F] text-black"
+                  : "bg-gray-200 text-gray-600"
+              }`}
+            >
+              Demo Classes
+            </button>
+
+            <button
+              onClick={() => setActiveTab("regular")}
+              className={`px-4 py-2 rounded-full font-semibold text-sm ${
+                activeTab === "regular"
+                  ? "bg-[#FFD54F] text-black"
+                  : "bg-gray-200 text-gray-600"
+              }`}
+            >
+              Regular Classes
+            </button>
+          </div>
+
+          {/* ---------- BOOKINGS LIST ---------- */}
           {loading ? (
-            <p className="text-center text-gray-500 mt-10">Loading your bookings...</p>
+            <p className="text-center text-gray-500 mt-10">
+              Loading your bookings...
+            </p>
           ) : (
-            <BookingList bookings={bookings} />
+            <BookingList bookings={filtered} />
           )}
         </main>
       </div>
