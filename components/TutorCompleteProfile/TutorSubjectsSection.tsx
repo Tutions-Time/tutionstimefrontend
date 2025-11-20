@@ -100,17 +100,20 @@ export default function TutorSubjectsSection({
     return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
   }, [selectedTypes]);
 
-  /* ---------------------- Handlers ---------------------- */
- const toggleArrayField = (key: keyof typeof profile, value: string) => {
+type ArrayKeys =
+  | "subjects"
+  | "classLevels"
+  | "boards"
+  | "exams"
+  | "studentTypes";
+
+const toggleArrayField = (key: ArrayKeys, value: string) => {
   if (disabled) return;
 
-  const raw = profile[key];
-  const arr = Array.isArray(raw) ? [...raw] : [];
-
+  const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
   const exists = arr.includes(value);
   const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
-  // Remove custom field if "Other" is removed
   if ((key === "subjects" || key === "boards") && !next.includes("Other")) {
     const computedKey = `${key}Other` as keyof typeof profile;
     dispatch(setField({ key: computedKey, value: "" }));
@@ -118,7 +121,6 @@ export default function TutorSubjectsSection({
 
   dispatch(setField({ key, value: next }));
 };
-
 
   const addCustomValue = (
     field: "subjects" | "boards",

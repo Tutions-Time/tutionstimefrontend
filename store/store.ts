@@ -1,7 +1,4 @@
-'use client';
-
-import { configureStore, combineReducers, ThunkDispatch } from '@reduxjs/toolkit';
-import type { AnyAction } from "redux";
+import { configureStore, combineReducers, ThunkDispatch, AnyAction } from '@reduxjs/toolkit';
 import { useDispatch, TypedUseSelectorHook, useSelector } from 'react-redux';
 import {
   persistStore,
@@ -25,10 +22,8 @@ import tutorKycReducer from './slices/tutorKycSlice';
 import regularClassReducer from "./slices/regularClassSlice";
 import reviewReducer from './slices/reviewSlice';
 
-// -------------------------------
-// PERSIST CONFIGS
-// -------------------------------
 
+// ---------- PERSIST CONFIGS ----------
 const authPersistConfig = {
   key: 'auth',
   storage,
@@ -53,10 +48,8 @@ const reviewPersistConfig = {
   whitelist: ['shouldShowReview', 'bookingId', 'tutorId', 'tutorName'],
 };
 
-// -------------------------------
-// ROOT REDUCER
-// -------------------------------
 
+// ---------- ROOT REDUCER ----------
 const rootReducer = combineReducers({
   studentProfile: studentProfileReducer,
   tutorProfile: tutorProfileReducer,
@@ -69,10 +62,8 @@ const rootReducer = combineReducers({
   review: persistReducer(reviewPersistConfig, reviewReducer),
 });
 
-// -------------------------------
-// STORE CONFIG
-// -------------------------------
 
+// ---------- STORE ----------
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
@@ -85,21 +76,16 @@ export const store = configureStore({
   devTools: process.env.NODE_ENV !== 'production',
 });
 
-// Persistor instance
 export const persistor = persistStore(store);
 
-// -------------------------------
-// TYPES + CUSTOM HOOKS
-// -------------------------------
 
-// Root state
+// ---------- TYPES + CORRECT HOOKS ----------
 export type RootState = ReturnType<typeof store.getState>;
 
-// FIX: Dispatch must support thunks (important)
+// 🔥 Correct dispatch type (supports thunks)
 export type AppDispatch = ThunkDispatch<RootState, any, AnyAction>;
 
-// FIX: Typed dispatch hook
+// 🔥 Correct hook
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 
-// Typed selector
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
