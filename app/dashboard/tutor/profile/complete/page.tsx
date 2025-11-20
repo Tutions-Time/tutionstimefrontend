@@ -49,10 +49,7 @@ export default function TutorProfileCompletePage() {
 
   // Save to cache
   useEffect(() => {
-    localStorage.setItem(
-      "tt_tutor_prefill",
-      JSON.stringify({ ...profile, isSubmitting: false })
-    );
+    localStorage.setItem("tt_tutor_prefill", JSON.stringify({ ...profile, isSubmitting: false }));
   }, [profile]);
 
   // ---------- VALIDATION ----------
@@ -60,8 +57,7 @@ export default function TutorProfileCompletePage() {
     const e: Record<string, string> = {};
 
     if (!profile.name?.trim()) e.name = "Name is required";
-    if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
-      e.email = "Valid email required";
+    if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) e.email = "Valid email required";
     if (!profile.pincode?.trim()) e.pincode = "Pincode required";
     if (!profile.qualification) e.qualification = "Qualification required";
     if (!profile.experience) e.experience = "Experience required";
@@ -135,15 +131,14 @@ export default function TutorProfileCompletePage() {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Navbar */}
       <nav className="border-b sticky top-0 bg-white/90 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white">
-              T
-            </div>
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white">T</div>
             <span className="font-bold text-xl">Tuitions Time</span>
           </div>
         </div>
@@ -152,9 +147,7 @@ export default function TutorProfileCompletePage() {
       {/* Header */}
       <section className="bg-gradient-to-br from-primaryWeak to-white py-10 border-b text-center">
         <h1 className="text-3xl font-bold mb-2">Complete Your Tutor Profile</h1>
-        <p className="text-gray-600">
-          Add your details, rates, and demo video to get started.
-        </p>
+        <p className="text-gray-600">Add your details, rates, and demo video to get started.</p>
       </section>
 
       {/* Form Sections */}
@@ -184,13 +177,8 @@ export default function TutorProfileCompletePage() {
           />
 
           <div className="flex justify-between border-t pt-4">
-            <SecondaryButton onClick={() => router.back()}>
-              Back
-            </SecondaryButton>
-            <PrimaryButton
-              onClick={handleSubmit}
-              disabled={profile.isSubmitting}
-            >
+            <SecondaryButton onClick={() => router.back()}>Back</SecondaryButton>
+            <PrimaryButton onClick={handleSubmit} disabled={profile.isSubmitting}>
               {profile.isSubmitting ? "Saving…" : "Save & Continue"}
             </PrimaryButton>
           </div>
