@@ -183,3 +183,13 @@ export const updateDemoRequestStatus = async (
     throw new Error(handleApiError(error));
   }
 };
+
+
+export const getTutorRegularClasses = async () => {
+  try {
+    const res = await api.get("/regular/tutor/students");
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

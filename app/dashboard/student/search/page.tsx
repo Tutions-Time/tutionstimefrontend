@@ -103,19 +103,22 @@ export default function SearchTutors() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
 
-  function getImageUrl(photoUrl?: string) {
-    if (!photoUrl) return "/default-avatar.png";
+ function getImageUrl(photoUrl?: string) {
+  if (!photoUrl) return "/default-avatar.png";
 
-    const cleaned = photoUrl
-      // remove any "D:/tutionstimebackend" or "D:\\tutionstimebackend" prefix
-      .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-      // normalize backslashes to forward slashes
-      .replace(/\\/g, "/")
-      // make sure it starts at "uploads/"
-      .replace(/^.*uploads\//, "uploads/");
-
-    return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
+  // 👉 If URL is already full (S3), return as is
+  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
+    return photoUrl;
   }
+
+  const cleaned = photoUrl
+    .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+    .replace(/\\/g, "/")
+    .replace(/^.*uploads\//, "uploads/");
+
+  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
+}
+
 
   // centralize filter state for URL sync
   const [filter, setFilter] = useState<QueryMap>({
