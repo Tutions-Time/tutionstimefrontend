@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { startRegularFromDemo } from "@/services/bookingService";
+import { verifyGenericPayment } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,10 @@ export default function UpgradeToRegularModal({
     const monthlyRate = booking?.tutorMonthlyRate || 0;
 
     const openRazorpay = (order: any) => {
+        if (!(window as any).Razorpay) {
+            toast.error("Razorpay SDK not loaded");
+            return;
+        }
         const options = {
             key: order.razorpayKey,
             amount: order.amount,
@@ -31,9 +36,34 @@ export default function UpgradeToRegularModal({
             name: "TuitionTime",
             description: "Regular Class Payment",
             order_id: order.orderId,
-            handler: () => {
-                toast.success("Payment Successful!");
-                router.push(`/student/regular-classes/${order.regularClassId}`);
+            handler: async (response: any) => {
+                try {
+                    const verifyRes = await verifyGenericPayment(
+                        {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        },
+                        {
+                            planType: "regular",
+                            billingType,
+                            numberOfClasses:
+                                billingType === "hourly"
+                                    ? Number(numberOfClasses)
+                                    : undefined,
+                            regularClassId: order.regularClassId,
+                        }
+                    );
+
+                    if (verifyRes?.success) {
+                        toast.success("Payment successful and verified!");
+                        router.push(`/student/regular-classes/${order.regularClassId}`);
+                    } else {
+                        toast.error(verifyRes?.message || "Verification failed");
+                    }
+                } catch (e: any) {
+                    toast.error(e.message || "Verification failed");
+                }
             },
             theme: { color: "#207EA9" },
         };

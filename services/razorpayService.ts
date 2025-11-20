@@ -67,3 +67,33 @@ export const verifySubscriptionPayment = async (
     return { success: false, message: handleApiError(error) };
   }
 };
+
+// ----- Generic Payment Verification -----
+// Use for client-side Razorpay payment verification that updates DB payment status
+// Backend: POST /payments/verify
+export const verifyGenericPayment = async (
+  razorpayResponse: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  },
+  meta?: {
+    planType?: "regular" | "monthly" | "hourly" | string;
+    billingType?: "hourly" | "monthly";
+    numberOfClasses?: number;
+    regularClassId?: string;
+  }
+) => {
+  try {
+    const res = await api.post(`/payments/verify`, {
+      // Backend expects generic names: orderId, paymentId, signature
+      orderId: razorpayResponse.razorpay_order_id,
+      paymentId: razorpayResponse.razorpay_payment_id,
+      signature: razorpayResponse.razorpay_signature,
+      meta,
+    });
+    return res.data; // { success, ... }
+  } catch (error) {
+    return { success: false, message: handleApiError(error) };
+  }
+};
