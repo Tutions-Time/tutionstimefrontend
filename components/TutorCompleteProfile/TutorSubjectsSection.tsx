@@ -30,7 +30,7 @@ const SUBJECTS: Record<string, string[]> = {
     "Political Science",
     "Other",
   ],
-  "Working Professional": [
+  Working_Professional: [
     "Communication Skills",
     "Business English",
     "Aptitude",
@@ -51,20 +51,20 @@ const CLASS_LEVELS: Record<string, string[]> = {
     "Class 12",
   ],
   College: ["Undergraduate", "Postgraduate"],
-  "Working Professional": ["Corporate Training", "Skill Enhancement"],
+  Working_Professional: ["Corporate Training", "Skill Enhancement"],
 };
 
 const BOARDS: Record<string, string[]> = {
   School: ["CBSE", "ICSE", "State Board", "IB", "Cambridge", "Other"],
   College: ["University", "Autonomous College", "Other"],
-  "Working Professional": ["N/A", "Other"],
+  Working_Professional: ["N/A", "Other"],
 };
 
 const STUDENT_TYPES = ["School", "College", "Working Professional"];
 const GROUP_SIZES = ["One-to-One", "Small Batch (2–5)", "Large Batch (6+)"];
 
 export default function TutorSubjectsSection({
-  disabled = false, // ✅ new prop
+  disabled = false,
 }: {
   disabled?: boolean;
 }) {
@@ -131,19 +131,15 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
 
     const trimmed = input.trim();
     if (!trimmed) return;
-    const formatted =
-      trimmed
-        .split(" ")
-        .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
+
+    const formatted = trimmed
+      .split(" ")
+      .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
 
     const current = Array.isArray(profile[field]) ? profile[field] : [];
     if (!current.includes(formatted)) {
-      const updated = [
-        ...current.filter((s) => s !== "Other"),
-        formatted,
-        "Other",
-      ];
+      const updated = [...current.filter((s) => s !== "Other"), formatted, "Other"];
       dispatch(setField({ key: field, value: updated }));
     }
 
@@ -250,7 +246,12 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
                     value={otherSubject}
                     onChange={(e) => setOtherSubject(e.target.value)}
                     onKeyDown={(e) =>
-                      handleOtherKeyDown(e, "subjects", otherSubject, setOtherSubject)
+                      handleOtherKeyDown(
+                        e,
+                        "subjects",
+                        otherSubject,
+                        setOtherSubject
+                      )
                     }
                     onBlur={() =>
                       handleOtherBlur("subjects", otherSubject, setOtherSubject)
@@ -297,7 +298,9 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
 
           {/* Boards */}
           <div className="mb-8">
-            <Label className="block mb-2 font-medium">Boards / Curriculums</Label>
+            <Label className="block mb-2 font-medium">
+              Boards / Curriculums
+            </Label>
             <div className="flex flex-wrap gap-2">
               {boardOptions.map((b) => {
                 const active = profile.boards.includes(b);
@@ -325,7 +328,12 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
                     value={otherBoard}
                     onChange={(e) => setOtherBoard(e.target.value)}
                     onKeyDown={(e) =>
-                      handleOtherKeyDown(e, "boards", otherBoard, setOtherBoard)
+                      handleOtherKeyDown(
+                        e,
+                        "boards",
+                        otherBoard,
+                        setOtherBoard
+                      )
                     }
                     onBlur={() =>
                       handleOtherBlur("boards", otherBoard, setOtherBoard)

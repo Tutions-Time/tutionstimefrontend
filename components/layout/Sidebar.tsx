@@ -41,9 +41,9 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
   { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
   // { href: '/dashboard/student/sessions', label: 'My Sessions', icon: Calendar },
-  { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
-  { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
+  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
+  // { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
+  // { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
   // { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 

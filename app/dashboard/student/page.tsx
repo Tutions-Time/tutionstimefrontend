@@ -43,7 +43,7 @@ export default function StudentDashboard() {
   const studentProfile = useAppSelector((s) => s.profile.studentProfile);
 
   useEffect(() => {
-    dispatch(fetchUserProfile());
+     dispatch(fetchUserProfile() as any);
   }, [dispatch]);
 
   const displayName = studentProfile?.name || 'Student';

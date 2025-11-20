@@ -3,7 +3,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { updateStudentProfile as updateStudentProfileThunk } from "@/store/slices/profileSlice";
+import { updateStudentProfileThunk } from "@/store/slices/studentProfileSlice";
+
 
 import {
   setField,
