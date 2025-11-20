@@ -193,3 +193,18 @@ export const getTutorRegularClasses = async () => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const scheduleRegularClass = async (
+  regularClassId: string,
+  payload: { time: string }
+) => {
+  try {
+    const res = await api.post(
+      `/regular/tutor/regular-class/${regularClassId}/schedule`,
+      payload
+    );
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
