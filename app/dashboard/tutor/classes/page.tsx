@@ -106,6 +106,11 @@ export default function TutorRegularClasses() {
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Payment Status:</span> {c.paymentStatus}
                 </div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Payout Status:</span>{" "}
+                  {c.tutorPaymentStatus || (c.paymentStatus === 'paid' ? 'locked' : '—')}
+                </div>
               </Card>
             ))}
         </main>

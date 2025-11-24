@@ -90,10 +90,31 @@ export const verifyGenericPayment = async (
       orderId: razorpayResponse.razorpay_order_id,
       paymentId: razorpayResponse.razorpay_payment_id,
       signature: razorpayResponse.razorpay_signature,
-      meta,
+      regularClassId: meta?.regularClassId,
+      billingType: meta?.billingType,
+      numberOfClasses: meta?.numberOfClasses,
     });
     return res.data; // { success, ... }
   } catch (error) {
     return { success: false, message: handleApiError(error) };
+  }
+};
+
+// ----- Admin payouts -----
+export const getAdminPayouts = async (params?: { status?: 'created' | 'settled'; from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/admin/payouts`, { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const settleAdminPayout = async (payoutId: string) => {
+  try {
+    const res = await api.patch(`/payments/admin/payouts/${payoutId}/settle`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
   }
 };

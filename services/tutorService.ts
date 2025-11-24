@@ -166,6 +166,16 @@ export const getTutorDemoRequests = async (params?: {
   }
 };
 
+// Regular classes for tutor dashboard
+export const getTutorRegularClasses = async () => {
+  try {
+    const res = await api.get('/regular/tutor/students');
+    return res.data; // { success, data }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 /**
  * Update demo booking status (Accept / Reject)
  * Endpoint: PATCH /api/bookings/:id/status
@@ -185,11 +195,4 @@ export const updateDemoRequestStatus = async (
 };
 
 
-export const getTutorRegularClasses = async () => {
-  try {
-    const res = await api.get("/regular/tutor/students");
-    return res.data;
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
-};
+// (Duplicate removed)

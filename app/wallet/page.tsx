@@ -41,6 +41,7 @@ export default function WalletPage() {
   }, []);
 
   const balance = wallet?.balance ?? 0;
+  const pendingBalance = wallet?.pendingBalance ?? 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,6 +85,26 @@ export default function WalletPage() {
             </div>
           </Card>
 
+          {/* Pending Balance for Tutors */}
+          {wallet?.role === 'tutor' && (
+            <Card className="p-6 bg-white rounded-2xl shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
+                  <WalletIcon className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Pending (Locked) Balance</div>
+                  <div className="text-2xl font-bold text-yellow-700">
+                    ₹{pendingBalance.toLocaleString('en-IN')}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Auto-release occurs ~30 days after class period end
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {/* Transactions */}
           <Card className="overflow-x-auto bg-white rounded-2xl shadow-sm">
             {loading ? (
@@ -100,6 +121,7 @@ export default function WalletPage() {
                     <th className="px-4 py-3">Description</th>
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -127,6 +149,21 @@ export default function WalletPage() {
                       >
                         {t.type === 'credit' ? '+' : '-'}₹
                         {Math.abs(t.amount).toLocaleString('en-IN')}
+                      </td>
+                      <td className="px-4 py-3">
+                        {t.status === 'locked' ? (
+                          <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">
+                            Locked
+                          </span>
+                        ) : t.status === 'completed' ? (
+                          <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">
+                            {t.status || '—'}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -44,7 +44,7 @@ const studentLinks: NavLink[] = [
   // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
   // { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
-  // { href: '/wallet', label: 'Wallet', icon: Wallet },
+  { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
 const tutorLinks: NavLink[] = [
@@ -55,7 +55,7 @@ const tutorLinks: NavLink[] = [
   // { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
   // { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
-  // { href: '/wallet', label: 'Earnings', icon: Wallet },
+  { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 
 const adminLinks: NavLink[] = [
