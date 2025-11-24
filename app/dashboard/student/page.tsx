@@ -128,7 +128,7 @@ export default function StudentDashboard() {
                 <BookOpen className="w-10 h-10 text-primary mb-4" />
                 <h3 className="font-semibold text-text mb-2">Find a Tutor</h3>
                 <p className="text-sm text-muted mb-4">
-                  Browse our verified tutors and book your first class
+                  Browse our verified tutors and book your first class.
                 </p>
                 <Link href="/dashboard/student/search">
                   <Button className="w-full bg-primary hover:bg-primary/90 text-text">
