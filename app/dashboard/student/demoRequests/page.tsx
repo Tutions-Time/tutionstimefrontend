@@ -27,9 +27,9 @@ export default function StudentDemoRequests() {
       const res = await getStudentDemoRequests();
 
       if (res.success) {
-        const filtered = (res.data || []).filter(
-          (x: any) => x.status !== "cancelled"
-        );
+        const filtered = (res.data || [])
+          .filter((x: any) => x.status !== "cancelled")
+          .filter((x: any) => x.requestedBy === "tutor");
         setRequests(filtered);
       } else {
         toast({
@@ -170,8 +170,8 @@ export default function StudentDemoRequests() {
 
                 {/* ACTION BUTTONS */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {/* Accept / Reject */}
-                  {req.status === "pending" && (
+                  {/* Accept / Reject — only for tutor-initiated requests */}
+                  {req.status === "pending" && req.requestedBy === "tutor" && (
                     <>
                       <Button
                         onClick={() => handleStatus(req._id, "confirmed")}
@@ -187,6 +187,13 @@ export default function StudentDemoRequests() {
                         Reject
                       </Button>
                     </>
+                  )}
+
+                  {/* Sender view: student-initiated requests show pending tutor approval */}
+                  {req.status === "pending" && req.requestedBy === "student" && (
+                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
+                      Pending Tutor Approval
+                    </Badge>
                   )}
 
                   {/* Join Demo */}

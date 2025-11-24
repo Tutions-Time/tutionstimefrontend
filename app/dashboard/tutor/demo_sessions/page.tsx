@@ -22,7 +22,9 @@ export default function TutorDemoRequests() {
       setLoading(true);
       const res = await getTutorDemoRequests();
       if (res.success) {
-  const filtered = (res.data || []).filter((b: any) => b.status !== "cancelled");
+  const filtered = (res.data || [])
+    .filter((b: any) => b.status !== "cancelled")
+    .filter((b: any) => b.requestedBy === "student");
   setBookings(filtered);
 }
       else toast({ title: 'Error', description: res.message || 'Failed to load demo requests' });
@@ -125,7 +127,7 @@ export default function TutorDemoRequests() {
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {b.status === 'pending' && (
+                  {b.status === 'pending' && b.requestedBy === 'student' && (
                     <>
                       <Button
                         onClick={() => handleStatus(b._id, 'confirmed')}
@@ -140,6 +142,12 @@ export default function TutorDemoRequests() {
                         Reject
                       </Button>
                     </>
+                  )}
+
+                  {b.status === 'pending' && b.requestedBy === 'tutor' && (
+                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
+                      Pending Student Approval
+                    </Badge>
                   )}
 
                   {b.status === 'confirmed' && b.meetingLink && (

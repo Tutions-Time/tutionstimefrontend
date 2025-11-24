@@ -25,6 +25,7 @@ type BookingType = {
   type: "demo" | "regular";
   meetingLink?: string;
   note?: string;
+  requestedBy?: "student" | "tutor";
 
   // IMPORTANT — ensure demoFeedback exists
   demoFeedback?: {
@@ -176,9 +177,17 @@ export default function BookingCard({
             {canJoin ? "Join Demo" : "Join (available soon)"}
           </button>
         ) : booking.status !== "completed" ? (
-          <p className="text-xs text-gray-400 italic">
-            Meeting link will appear after tutor confirmation.
-          </p>
+          booking.type === "demo" && booking.status === "pending" ? (
+            <p className="text-xs text-gray-500 italic">
+              {booking.requestedBy === "student"
+                ? "Pending Tutor Approval"
+                : "Pending Your Approval (see Demo Requests)"}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400 italic">
+              Meeting link will appear after tutor confirmation.
+            </p>
+          )
         ) : null}
 
         {/* ⭐ START REGULAR CLASSES BUTTON ⭐ */}
