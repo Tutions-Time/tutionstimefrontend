@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -17,6 +18,8 @@ export default function StudentBookingsPage() {
 
   const themePrimary = "#FFD54F";
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     async function load() {
       try {
@@ -30,6 +33,14 @@ export default function StudentBookingsPage() {
     }
     load();
   }, []);
+
+  // Initialize tab from query param
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "regular" || tab === "demo") {
+      setActiveTab(tab as "regular" | "demo");
+    }
+  }, [searchParams]);
 
   // Filter based on active tab
   const filtered = bookings.filter(

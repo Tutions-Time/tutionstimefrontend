@@ -57,7 +57,7 @@ export default function UpgradeToRegularModal({
 
                     if (verifyRes?.success) {
                         toast.success("Payment successful and verified!");
-                        router.push(`/student/regular-classes/${order.regularClassId}`);
+                        router.push(`/dashboard/student/demoBookings?tab=regular`);
                     } else {
                         toast.error(verifyRes?.message || "Verification failed");
                     }
