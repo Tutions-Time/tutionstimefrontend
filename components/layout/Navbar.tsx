@@ -21,9 +21,12 @@ import { fetchUserProfile } from '@/store/slices/profileSlice';
 interface NavbarProps {
   onMenuClick?: () => void;
   unreadCount?: number;
+  userRole?: 'student' | 'tutor' | 'admin';
+  userName?: string;
+  onLogout?: () => void;
 }
 
-export function Navbar({ onMenuClick, unreadCount = 0 }: NavbarProps) {
+export function Navbar({ onMenuClick, unreadCount = 0, userName, userRole, onLogout }: NavbarProps) {
   const { user, logout } = useAuth();
   const dispatch = useAppDispatch();
 
@@ -44,13 +47,15 @@ export function Navbar({ onMenuClick, unreadCount = 0 }: NavbarProps) {
 
   // ---------------- RESOLVE NAME PROPERLY ----------------
   const resolvedName =
-    user?.role === 'student'
-      ? studentProfile?.name || 'Student'
-      : user?.role === 'tutor'
-      ? tutorProfile?.name || 'Tutor'
-      : user?.role === 'admin'
-      ? 'Admin'
-      : 'User';
+    userName ?? (
+      user?.role === 'student'
+        ? studentProfile?.name || 'Student'
+        : user?.role === 'tutor'
+        ? tutorProfile?.name || 'Tutor'
+        : user?.role === 'admin'
+        ? 'Admin'
+        : 'User'
+    );
 
 
   // ---------------- PROFILE URL BASED ON ROLE ----------------
@@ -64,7 +69,7 @@ export function Navbar({ onMenuClick, unreadCount = 0 }: NavbarProps) {
 
   // ---------------- LOGOUT HANDLER ----------------
   const handleLogout = () => {
-    logout();
+    (onLogout ?? logout)();
   };
 
 
