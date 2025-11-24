@@ -51,7 +51,11 @@ const initialState: ProfileState = {
 };
 
 // Async thunks
-export const fetchUserProfile = createAsyncThunk(
+export const fetchUserProfile = createAsyncThunk<
+  any,   // 🔥 RETURN TYPE
+  void,  // 🔥 ARGUMENT TYPE
+  { rejectValue: string } // 🔥 REJECT TYPE
+>(
   'profile/fetchProfile',
   async (_, { rejectWithValue }) => {
     try {
@@ -62,6 +66,8 @@ export const fetchUserProfile = createAsyncThunk(
     }
   }
 );
+
+
 
 export const updateStudentProfile = createAsyncThunk(
   'profile/updateStudent',

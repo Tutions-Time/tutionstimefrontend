@@ -167,14 +167,14 @@ export const getTutorDemoRequests = async (params?: {
 };
 
 // Regular classes for tutor dashboard
-export const getTutorRegularClasses = async () => {
-  try {
-    const res = await api.get('/regular/tutor/students');
-    return res.data; // { success, data }
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
-};
+// export const getTutorRegularClasses = async () => {
+//   try {
+//     const res = await api.get('/regular/tutor/students');
+//     return res.data; // { success, data }
+//   } catch (error) {
+//     throw new Error(handleApiError(error));
+//   }
+// };
 
 /**
  * Update demo booking status (Accept / Reject)
@@ -195,4 +195,26 @@ export const updateDemoRequestStatus = async (
 };
 
 
-// (Duplicate removed)
+export const getTutorRegularClasses = async () => {
+  try {
+    const res = await api.get("/regular/tutor/students");
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const scheduleRegularClass = async (
+  regularClassId: string,
+  payload: { time: string }
+) => {
+  try {
+    const res = await api.post(
+      `/regular/tutor/regular-class/${regularClassId}/schedule`,
+      payload
+    );
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

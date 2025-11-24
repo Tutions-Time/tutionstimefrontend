@@ -74,6 +74,48 @@ export default function TutorProfileCompletePage() {
     return Object.keys(e).length === 0;
   };
 
+  const clearAllStateAndCache = () => {
+    // Clear file states
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setDemoVideoFile(null);
+    setResumeFile(null);
+
+    // Clear local storage cache
+    localStorage.removeItem("tt_tutor_prefill");
+
+    // Reset redux slice fields to empty
+    dispatch(
+      setBulk({
+        name: "",
+        email: "",
+        gender: "",
+        addressLine1: "",
+        addressLine2: "",
+        city: "",
+        state: "",
+        pincode: "",
+        qualification: "",
+        specialization: "",
+        experience: "",
+        teachingMode: "",
+        subjects: [],
+        classLevels: [],
+        boards: [],
+        exams: [],
+        studentTypes: [],
+        groupSize: "",
+        hourlyRate: "",
+        monthlyRate: "",
+        availableDays: [],
+        bio: "",
+        achievements: "",
+        phone: "",
+        isSubmitting: false,
+      })
+    );
+  };
+
   // ---------- SUBMIT ----------
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -125,13 +167,15 @@ export default function TutorProfileCompletePage() {
       // Call your existing API (single endpoint)
       await updateTutorProfile(fd);
 
+      // ✅ CLEAR ALL FIELDS + FILES + LOCAL STORAGE BEFORE REDIRECT (SUCCESS)
+      clearAllStateAndCache();
       dispatch(stopSubmitting());
       router.push("/dashboard/tutor");
     } catch (err) {
+      // ✅ EVEN ON ERROR: CLEAR ALL FIELDS + FILES + LOCAL STORAGE, THEN REDIRECT
+      clearAllStateAndCache();
+      dispatch(stopSubmitting());
       router.push("/dashboard/tutor");
-      // console.error("❌ Submit failed:", err);
-      // dispatch(stopSubmitting());
-      // alert("Something went wrong. Try again later.");
     }
   };
 
