@@ -146,10 +146,13 @@ export default function BookingCard({
         </div>
 
         {/* JOIN BUTTON */}
-        {booking.status !== "completed" && booking.meetingLink && canJoin ? (
+        {booking.status !== "completed" && booking.meetingLink ? (
           <button
             type="button"
+            disabled={!canJoin}
             onClick={() => {
+              if (!canJoin) return;
+
               dispatch(
                 markJoiningDemo({
                   bookingId: booking._id,
@@ -157,16 +160,21 @@ export default function BookingCard({
                   tutorName: booking.tutorName,
                 })
               );
-              window.open(booking.meetingLink!, "_blank", "noopener,noreferrer");
+
+              window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
             }}
             className={`
               inline-flex items-center gap-2 font-semibold text-sm
               px-4 py-2 rounded-full w-fit transition
-              bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer
+              ${
+                canJoin
+                  ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }
             `}
           >
             <Video className="w-4 h-4" />
-            Join {booking.type === "demo" ? "Demo" : "Class"}
+            {canJoin ? "Join Demo" : "Join (available soon)"}
           </button>
         ) : booking.status !== "completed" ? (
           booking.type === "demo" && booking.status === "pending" ? (
@@ -177,7 +185,7 @@ export default function BookingCard({
             </p>
           ) : (
             <p className="text-xs text-gray-400 italic">
-              Meeting link will appear close to the session start time.
+              Meeting link will appear after tutor confirmation.
             </p>
           )
         ) : null}

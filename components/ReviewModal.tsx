@@ -6,6 +6,10 @@ import { RootState } from "@/store/store";
 import { closeReviewModal } from "@/store/slices/reviewSlice";
 import { submitReview } from "@/services/reviewService";
 import { Star, X } from "lucide-react";
+import { startRegularFromDemo } from "@/services/bookingService";
+import { verifyGenericPayment } from "@/services/razorpayService";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function ReviewModal() {
   const dispatch = useDispatch();
@@ -19,8 +23,10 @@ export default function ReviewModal() {
   const [comment, setComment] = useState("");
   const [likedTutor, setLikedTutor] = useState<boolean | null>(null);
 
-  const [step, setStep] = useState(1); // <-- NEW
-  const [tutorRates, setTutorRates] = useState<any>(null); // <-- NEW
+  const [step, setStep] = useState(1);
+  const [tutorRates, setTutorRates] = useState<any>(null);
+  const [loadingPay, setLoadingPay] = useState(false);
+  const router = useRouter();
 
   if (!shouldShowReview) return null;
 
@@ -61,7 +67,6 @@ export default function ReviewModal() {
     </div>
   );
 
-  // 🚀 Step 3 → payment selection
   const PaymentStep = () => (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">
@@ -84,11 +89,71 @@ export default function ReviewModal() {
     </div>
   );
 
-  const handlePaymentType = (type: "hourly" | "monthly") => {
-    console.log("User selected payment type:", type);
+  const openRazorpay = (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number }) => {
+    if (!(window as any).Razorpay) {
+      toast.error("Razorpay SDK not loaded");
+      return;
+    }
+    const options = {
+      key: order.razorpayKey,
+      amount: order.amount,
+      currency: order.currency,
+      name: "TuitionTime",
+      description: "Regular Class Payment",
+      order_id: order.orderId,
+      handler: async (response: any) => {
+        try {
+          const verifyRes = await verifyGenericPayment(
+            {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+            {
+              billingType: meta.billingType,
+              numberOfClasses: meta.numberOfClasses,
+              regularClassId: order.regularClassId,
+            }
+          );
+          if (verifyRes?.success) {
+            toast.success("Payment successful and verified!");
+            dispatch(closeReviewModal());
+            router.push(`/dashboard/student/sessions?tab=regular`);
+          } else {
+            toast.error(verifyRes?.message || "Verification failed");
+          }
+        } catch (e: any) {
+          toast.error(e.message || "Verification failed");
+        }
+      },
+      theme: { color: "#207EA9" },
+    };
+    const rzp = new (window as any).Razorpay(options);
+    rzp.open();
+  };
 
-    // TODO: trigger API to create order
-    dispatch(closeReviewModal());
+  const handlePaymentType = async (type: "hourly" | "monthly") => {
+    if (!bookingId) return;
+    try {
+      setLoadingPay(true);
+      const payload: any = {
+        planType: "regular",
+        billingType: type,
+      };
+      if (type === "hourly") {
+        payload.numberOfClasses = 4;
+      }
+      const res = await startRegularFromDemo(bookingId, payload);
+      if (!res?.success) {
+        toast.error(res?.message || "Checkout failed");
+        return;
+      }
+      openRazorpay(res.data, { billingType: type, numberOfClasses: payload.numberOfClasses });
+    } catch (err: any) {
+      toast.error(err.message || "Payment init failed");
+    } finally {
+      setLoadingPay(false);
+    }
   };
 
   return (

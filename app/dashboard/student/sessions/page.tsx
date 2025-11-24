@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Video, Star, XCircle, Users } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "@/hooks/use-toast";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   getMyBookings,
   addRatingAndFeedback,
@@ -30,7 +31,10 @@ export default function StudentSessions() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [subs, setSubs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"demo" | "regular">("demo");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") === "regular" ? "regular" : "demo") as "demo" | "regular";
+  const [activeTab, setActiveTab] = useState<"demo" | "regular">(initialTab);
   const [ratingModal, setRatingModal] = useState<{
     id: string;
     rating: number;
@@ -85,6 +89,7 @@ export default function StudentSessions() {
             await verifyBookingPayment(bookingId, response);
             toast({ title: "✅ Regular class confirmed!" });
             fetchAll();
+            router.push("/dashboard/student/sessions?tab=regular");
           } catch {
             toast({ title: "Verification failed", variant: "destructive" });
           }
@@ -273,7 +278,11 @@ export default function StudentSessions() {
           {/* === Filtered Sessions === */}
           {!loading && filteredSessions.length === 0 && (
             <Card className="p-10 text-center shadow-md border border-dashed border-gray-300">
-              <p className="text-gray-500">No {activeTab} classes found yet.</p>
+              <p className="text-gray-500">
+                {activeTab === "regular"
+                  ? "Regular classes will come here soon."
+                  : "No demo classes found yet."}
+              </p>
             </Card>
           )}
 
