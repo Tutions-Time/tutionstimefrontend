@@ -5,6 +5,7 @@ import { Bell, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect } from 'react';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { fetchUserProfile } from '@/store/slices/profileSlice';
@@ -19,44 +21,65 @@ import { fetchUserProfile } from '@/store/slices/profileSlice';
 interface NavbarProps {
   onMenuClick?: () => void;
   unreadCount?: number;
-  userRole?: 'student' | 'tutor' | 'admin';
-  userName?: string;
-  onLogout?: () => void;
 }
 
-export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLogout }: NavbarProps) {
+export function Navbar({ onMenuClick, unreadCount = 0 }: NavbarProps) {
   const { user, logout } = useAuth();
   const dispatch = useAppDispatch();
+
   const { studentProfile, tutorProfile } = useAppSelector((s) => s.profile);
 
+  // ---------------- FETCH USER PROFILE IF LOGGED IN ----------------
   useEffect(() => {
-    if ((user?.role === 'student' && !studentProfile) || (user?.role === 'tutor' && !tutorProfile)) {
+    if (!user?.role) return;
+
+    const needsStudentProfile = user.role === 'student' && !studentProfile;
+    const needsTutorProfile = user.role === 'tutor' && !tutorProfile;
+
+    if (needsStudentProfile || needsTutorProfile) {
       dispatch(fetchUserProfile());
     }
   }, [user?.role, studentProfile, tutorProfile, dispatch]);
 
+
+  // ---------------- RESOLVE NAME PROPERLY ----------------
   const resolvedName =
-    userName ??
-    (user?.role === 'student'
-      ? studentProfile?.name
+    user?.role === 'student'
+      ? studentProfile?.name || 'Student'
       : user?.role === 'tutor'
-        ? tutorProfile?.name
-        : userRole === 'admin'
-          ? 'Admin'
-          : undefined) ?? 'User';
+      ? tutorProfile?.name || 'Tutor'
+      : user?.role === 'admin'
+      ? 'Admin'
+      : 'User';
+
+
+  // ---------------- PROFILE URL BASED ON ROLE ----------------
+  const profileUrl =
+    user?.role === 'student'
+      ? '/dashboard/student/profile'
+      : user?.role === 'tutor'
+      ? '/dashboard/tutor/profile'
+      : '/admin/profile';
+
+
+  // ---------------- LOGOUT HANDLER ----------------
   const handleLogout = () => {
-    if (onLogout) return onLogout();
     logout();
   };
+
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+
+        {/* LEFT SECTION */}
         <div className="flex items-center gap-4">
           {onMenuClick && (
             <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
               <Menu className="h-5 w-5" />
             </Button>
           )}
+
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
               T
@@ -65,7 +88,10 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
           </Link>
         </div>
 
+        {/* RIGHT SECTION */}
         <div className="flex items-center gap-2 sm:gap-4">
+
+          {/* NOTIFICATIONS */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -77,9 +103,12 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
                 )}
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-80">
               <div className="px-2 py-1.5 text-sm font-semibold">Notifications</div>
               <DropdownMenuSeparator />
+
+              {/* Replace with dynamic notifications */}
               <div className="max-h-96 overflow-y-auto">
                 <DropdownMenuItem className="flex flex-col items-start py-3">
                   <p className="font-medium text-sm">New booking request</p>
@@ -90,6 +119,7 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* USER DROPDOWN */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
@@ -99,22 +129,15 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
                 <span className="hidden sm:inline text-sm font-medium">{resolvedName}</span>
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-48">
+              {/* PROFILE LINK */}
               <DropdownMenuItem asChild>
-                <Link
-                  href={
-                    userRole === "tutor"
-                      ? "/dashboard/tutor/profile"
-                      : userRole === "admin"
-                        ? "/admin/profile"
-                        : "/dashboard/student/profile"
-                  }
-                >
-                  Profile
-                </Link>
+                <Link href={profileUrl}>Profile</Link>
               </DropdownMenuItem>
 
-              {userRole === 'tutor' && (
+              {/* Tutor-only options */}
+              {user?.role === 'tutor' && (
                 <>
                   <DropdownMenuItem asChild>
                     <Link href="/wallet">Wallet</Link>
@@ -124,15 +147,22 @@ export function Navbar({ onMenuClick, unreadCount = 0, userRole, userName, onLog
                   </DropdownMenuItem>
                 </>
               )}
-              {userRole === 'admin' && (
+
+              {/* Admin-only options */}
+              {user?.role === 'admin' && (
                 <DropdownMenuItem asChild>
                   <Link href="/admin/analytics">Admin Panel</Link>
                 </DropdownMenuItem>
               )}
+
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-danger" onClick={handleLogout}>Logout</DropdownMenuItem>
+
+              <DropdownMenuItem className="text-danger" onClick={handleLogout}>
+                Logout
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
         </div>
       </div>
     </nav>

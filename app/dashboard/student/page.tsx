@@ -43,7 +43,7 @@ export default function StudentDashboard() {
   const studentProfile = useAppSelector((s) => s.profile.studentProfile);
 
   useEffect(() => {
-     dispatch(fetchUserProfile() as any);
+    dispatch(fetchUserProfile() as any);
   }, [dispatch]);
 
   const displayName = studentProfile?.name || 'Student';
@@ -53,10 +53,8 @@ export default function StudentDashboard() {
       <Navbar
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         unreadCount={3}
-        userRole={(user?.role as 'student' | 'tutor' | 'admin') || 'student'}
-        userName={displayName}
-        onLogout={logout}
       />
+
 
       <Sidebar
         userRole="student"
