@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
-import { getAdminPayouts, settleAdminPayout } from '@/services/razorpayService';
+import { getAdminPayouts, settleAdminPayout, getAdminPaymentHistory } from '@/services/razorpayService';
 
 /* Real UI */
 
@@ -27,6 +27,10 @@ export default function AdminRevenuePage() {
   const [searchTutor, setSearchTutor] = useState('');
   const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyFrom, setHistoryFrom] = useState<string>('');
+  const [historyTo, setHistoryTo] = useState<string>('');
 
   const filteredQueue = useMemo(() => {
     const q = searchTutor.trim().toLowerCase();
@@ -59,6 +63,25 @@ export default function AdminRevenuePage() {
       setLoading(false);
     }
   }
+
+  async function refreshHistory() {
+    setHistoryLoading(true);
+    try {
+      const params: any = { status: 'paid' };
+      if (historyFrom) params.from = historyFrom;
+      if (historyTo) params.to = historyTo;
+      const rows = await getAdminPaymentHistory(params);
+      setHistory(rows);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshPayouts();
+    refreshHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   
 
@@ -188,6 +211,73 @@ export default function AdminRevenuePage() {
                   ))}
                   {filteredQueue.length === 0 && (
                     <tr><td colSpan={5} className="px-4 py-12 text-center text-muted">{loading ? 'Loading…' : 'No pending payouts.'}</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Payment History */}
+          <Card className="rounded-2xl bg-white shadow-sm">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold">Payment History</h3>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="text-sm border rounded-md px-2 py-2"
+                  value={historyFrom}
+                  onChange={(e) => setHistoryFrom(e.target.value)}
+                />
+                <input
+                  type="date"
+                  className="text-sm border rounded-md px-2 py-2"
+                  value={historyTo}
+                  onChange={(e) => setHistoryTo(e.target.value)}
+                />
+                {/* <Button variant="outline" size="sm" onClick={refreshHistory}>Apply</Button> */}
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr className="text-left text-xs uppercase tracking-wider text-muted">
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Student</th>
+                    <th className="px-4 py-3">Tutor</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Class / Plan</th>
+                    <th className="px-4 py-3">Gateway</th>
+                    <th className="px-4 py-3">Order ID</th>
+                    <th className="px-4 py-3">Payment ID</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((h: any) => (
+                    <tr key={h._id} className="border-t">
+                      <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3">{h.studentName}</td>
+                      <td className="px-4 py-3">{h.tutorName}</td>
+                      <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">{h.subject || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : ''}</td>
+                      <td className="px-4 py-3">{h.gateway?.toUpperCase() || '—'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>
+                      <td className="px-4 py-3">
+                        <Badge className={cn(
+                          h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :
+                          h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
+                          'bg-gray-100 text-gray-700 border-gray-200'
+                        )}>
+                          {h.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                  {history.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-12 text-center text-muted">{historyLoading ? 'Loading…' : 'No payments found.'}</td>
+                    </tr>
                   )}
                 </tbody>
               </table>
