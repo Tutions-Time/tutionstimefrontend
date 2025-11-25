@@ -35,7 +35,7 @@ export default function WhyChooseUs() {
         {/* ---------- LEFT CONTENT ---------- */}
         <div>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-6">
-            Why Choose <span className="text-[#F9A825]">TuitionTime?</span>
+            Why Choose <span className="text-primary">TuitionTime?</span>
           </h2>
 
           <p className="text-lg text-gray-700 mb-8 leading-relaxed">

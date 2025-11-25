@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '../../lib/api';
+import { resetTutorKyc } from '../slices/tutorKycSlice';   // ✅ IMPORTANT FIX
 
 // Types
 export type User = {
@@ -15,7 +16,7 @@ export type Tokens = {
 };
 
 export type AuthState = {
-  user: User | null;  
+  user: User | null;
   tokens: Tokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -54,10 +55,14 @@ export const loginAsync = createAsyncThunk(
   'auth/login',
   async (
     { phone, otp, requestId }: { phone: string; otp: string; requestId: string },
-    { rejectWithValue }
+    { rejectWithValue, dispatch }
   ) => {
     try {
       const response = await api.post('/auth/verify-otp', { phone, otp, requestId, purpose: 'login' });
+
+      // Reset KYC for fresh login (avoids previous user data)
+      dispatch(resetTutorKyc());  // ✅ IMPORTANT FIX
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -69,7 +74,7 @@ export const signupAsync = createAsyncThunk(
   'auth/signup',
   async (
     { phone, otp, requestId, role }: { phone: string; otp: string; requestId: string; role: 'student' | 'tutor' },
-    { rejectWithValue }
+    { rejectWithValue, dispatch }
   ) => {
     try {
       if (!phone || !otp || !requestId || !role) {
@@ -88,6 +93,9 @@ export const signupAsync = createAsyncThunk(
         throw new Error(response.data.message || 'Signup failed');
       }
 
+      // Reset KYC when new account is created
+      dispatch(resetTutorKyc());  // ✅ IMPORTANT FIX
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message || 'Signup failed');
@@ -99,10 +107,13 @@ export const adminLoginAsync = createAsyncThunk(
   'auth/adminLogin',
   async (
     { username, password }: { username: string; password: string },
-    { rejectWithValue }
+    { rejectWithValue, dispatch }
   ) => {
     try {
       const response = await api.post('/auth/admin-login', { username, password });
+
+      dispatch(resetTutorKyc());  // optional but safe
+
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Admin login failed');
@@ -111,19 +122,23 @@ export const adminLoginAsync = createAsyncThunk(
 );
 
 export const logoutAsync = createAsyncThunk(
-  'auth/logout', 
-  async (_, { getState, rejectWithValue }) => {
+  'auth/logout',
+  async (_, { getState, rejectWithValue, dispatch }) => {
     try {
       const state = getState() as { auth: AuthState };
       const refreshToken = state.auth.tokens?.refreshToken;
-      
+
       if (refreshToken) {
         await api.post('/auth/logout', { refreshToken });
       }
-      return true;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Logout failed');
+    } finally {
+      // 🔥 ALWAYS CLEAR KYC ON LOGOUT
+      dispatch(resetTutorKyc());
     }
+
+    return true;
   }
 );
 
@@ -223,7 +238,6 @@ const authSlice = createSlice({
     });
     builder.addCase(logoutAsync.rejected, (state) => {
       state.isLoading = false;
-      // Even if logout fails on the server, we clear the local state
       state.user = null;
       state.tokens = null;
       state.isAuthenticated = false;

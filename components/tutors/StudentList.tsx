@@ -37,16 +37,16 @@ export default function StudentList({
   const currentPage = Number(filter.page || 1);
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
     setFilter((prev) => ({
       ...prev,
-      sort: value,
+      sort: e.target.value,
       page: "1",
     }));
   };
 
   return (
     <section className="lg:col-span-9 space-y-4">
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
@@ -73,15 +73,13 @@ export default function StudentList({
         </div>
       </div>
 
-      {/* Students Grid */}
+      {/* GRID */}
       <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-40 rounded-xl bg-gray-100 animate-pulse"
-              />
+              <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
         ) : students.length === 0 ? (
@@ -94,7 +92,7 @@ export default function StudentList({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {students.map((student) => (
               <StudentCard
                 key={student._id}
@@ -105,7 +103,7 @@ export default function StudentList({
           </div>
         )}
 
-        {/* Pagination */}
+        {/* PAGINATION */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
             <button

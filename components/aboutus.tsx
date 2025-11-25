@@ -32,7 +32,7 @@ export default function AboutUs() {
       >
         {/* TITLE */}
         <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6">
-          About <span className="text-[#F9A825]">TuitionTimes</span>
+          About <span className="text-primary">TuitionTimes</span>
         </h2>
 
         {/* SUBTITLE */}
@@ -44,7 +44,7 @@ export default function AboutUs() {
 
         {/* Decorative divider */}
         <motion.div
-          className="mx-auto mt-10 mb-4 h-1.5 w-24 bg-[#F9A825] rounded-full"
+          className="mx-auto mt-10 mb-4 h-1.5 w-24 bg-primary rounded-full"
           whileHover={{ scale: 1.05 }}
         />
 

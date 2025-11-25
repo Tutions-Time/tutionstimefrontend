@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface TutorKycState {
-  kycStatus: 'pending' | 'submitted' | 'approved' | 'rejected';
+  kycStatus: 'pending' | 'approved' | 'rejected' | 'under_review';
   aadhaarUrls: string[];
   panUrl: string | null;
   bankProofUrl: string | null;
@@ -32,9 +32,8 @@ const tutorKycSlice = createSlice({
       state.panUrl = action.payload.panUrl;
       state.bankProofUrl = action.payload.bankProofUrl;
     },
-    resetTutorKyc: (state) => {
-      Object.assign(state, initialState);
-    },
+
+    resetTutorKyc: () => initialState,
   },
 });
 

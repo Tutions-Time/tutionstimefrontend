@@ -103,7 +103,8 @@ export default function TutorList({
       </div>
 
       {/* Tutors Grid */}
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
         {loading
           ? [...Array(6)].map((_, i) => (
             <div
@@ -203,7 +204,8 @@ export default function TutorList({
               {/* ▲▲ RESTORED FULL DETAILS ▲▲ */}
 
               {/* BUTTONS */}
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3">
+
                 {/* VIEW PROFILE */}
                 <Link
                   href={`search/tutor/${tutor._id}?userId=${tutor.userId?._id ?? ""}`}
@@ -211,7 +213,7 @@ export default function TutorList({
                 >
                   <Button
                     variant="outline"
-                    className="w-full h-8 text-xs rounded-full border-primary text-primary hover:bg-primary hover:text-white"
+                    className="w-full h-8 min-w-[110px] text-xs rounded-full bg-primary text-black hover:bg-primary hover:text-white"
                   >
                     View Profile
                   </Button>
@@ -225,7 +227,7 @@ export default function TutorList({
                     setDemoModalOpen(true);
                   }}
                   className={clsx(
-                    "flex-1 h-8 text-[11px] font-semibold rounded-full border-primary text-primary hover:bg-primary hover:text-white"
+                    "flex-1 h-8 text-[11px] min-w-[110px] font-semibold rounded-full border-primary text-black hover:bg-primary hover:text-white"
                   )}
                 >
                   Get Free Demo
