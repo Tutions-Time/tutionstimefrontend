@@ -204,7 +204,7 @@ export default function StudentSessions() {
   const filteredSessions = sessions.filter((s) => {
     if (activeTab === "demo") return s.type === "demo";
     if (activeTab === "regular")
-      return s.type === "regular" || s.subscriptionId;
+      return s.type === "regular";
     return true;
   });
 

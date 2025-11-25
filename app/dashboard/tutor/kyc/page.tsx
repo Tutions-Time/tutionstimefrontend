@@ -17,9 +17,7 @@ import { toast } from '@/hooks/use-toast';
 
 import { uploadTutorKyc, getTutorProfile } from '@/services/tutorService';
 
-// ---------------------------------------------
-// Build correct image URL (S3 + local compatible)
-// ---------------------------------------------
+// Build image URL
 const getImageUrl = (path?: string | null) => {
   if (!path) return '';
   const base =
@@ -28,46 +26,45 @@ const getImageUrl = (path?: string | null) => {
   return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
-// ---------------------------------------------
-// Map backend value → frontend value
-// backend sends: pending | approved | rejected
-// ---------------------------------------------
-const mapStatus = (status: string): 'pending' | 'approved' | 'rejected' | 'under_review' => {
-  if (status === 'approved') return 'approved';
-  if (status === 'rejected') return 'rejected';
-  if (status === 'submitted') return 'under_review'; // future-proof
+// Map backend → frontend status
+const mapStatus = (
+  status: string
+): 'pending' | 'approved' | 'rejected' | 'under_review' => {
+  if (!status) return 'pending';
+
+  const s = status.toLowerCase();
+  if (s === 'approved') return 'approved';
+  if (s === 'rejected') return 'rejected';
+  if (s === 'submitted') return 'under_review'; // IMPORTANT
+  if (s === 'under_review') return 'under_review';
+
   return 'pending';
 };
 
 export default function TutorKycPage() {
   const dispatch = useDispatch();
-  const { kycStatus, aadhaarUrls, panUrl, bankProofUrl } = useSelector(
+  const { kycStatus, aadhaarUrls, panUrl } = useSelector(
     (state: RootState) => state.tutorKyc
   );
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // File Inputs
   const [aadhaarFiles, setAadhaarFiles] = useState<File[]>([]);
   const [panFile, setPanFile] = useState<File | null>(null);
-  const [bankFile, setBankFile] = useState<File | null>(null);
 
   const [loading, setLoading] = useState(false);
 
-  // ---------------------------------------------
-  // Fetch profile & load KYC
-  // ---------------------------------------------
+  // Fetch profile on mount
   useEffect(() => {
     const fetchKycData = async () => {
       try {
         const res = await getTutorProfile();
+        const profile = res?.profile;
 
         dispatch(
           setTutorKyc({
-            kycStatus: mapStatus(res.profile?.kycStatus),
-            aadhaarUrls: res.profile?.aadhaarUrls || [],
-            panUrl: res.profile?.panUrl || null,
-            bankProofUrl: res.profile?.bankProofUrl || null,
+            kycStatus: mapStatus(profile?.kycStatus),
+            aadhaarUrls: profile?.aadhaarUrls || [],
+            panUrl: profile?.panUrl || null
           })
         );
       } catch (err) {
@@ -78,9 +75,7 @@ export default function TutorKycPage() {
     fetchKycData();
   }, [dispatch]);
 
-  // ---------------------------------------------
-  // File input handlers
-  // ---------------------------------------------
+  // File inputs
   const handleAadhaarChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAadhaarFiles(Array.from(e.target.files || []));
   };
@@ -88,17 +83,12 @@ export default function TutorKycPage() {
   const handlePanChange = (e: ChangeEvent<HTMLInputElement>) =>
     setPanFile(e.target.files?.[0] || null);
 
-  const handleBankChange = (e: ChangeEvent<HTMLInputElement>) =>
-    setBankFile(e.target.files?.[0] || null);
-
-  // ---------------------------------------------
   // Submit KYC
-  // ---------------------------------------------
   const handleSubmit = async () => {
-    if (!aadhaarFiles.length || !panFile ) {
+    if (!aadhaarFiles.length || !panFile) {
       return toast({
         title: 'Missing Files',
-        description: 'Please upload Aadhaar, PAN, and Bank Proof.',
+        description: 'Please upload Aadhaar & PAN.',
         variant: 'destructive',
       });
     }
@@ -111,14 +101,13 @@ export default function TutorKycPage() {
       formData.append('pan', panFile);
 
       const res = await uploadTutorKyc(formData);
-      const data = res.data;
+      const server = res?.data?.data; // FIXED PATH
 
       dispatch(
         setTutorKyc({
-          kycStatus: mapStatus(data.kycStatus),
-          aadhaarUrls: data.aadhaarUrls || [],
-          panUrl: data.panUrl || null,
-          bankProofUrl: data.bankProofUrl || null,
+          kycStatus: mapStatus(server?.kycStatus),
+          aadhaarUrls: server?.aadhaarUrls || [],
+          panUrl: server?.panUrl || null
         })
       );
 
@@ -137,11 +126,9 @@ export default function TutorKycPage() {
     }
   };
 
-  // ---------------------------------------------
-  // Render image previews
-  // ---------------------------------------------
+  // Render backend images
   const renderImages = () => (
-    <div className="grid md:grid-cols-3 gap-4">
+    <div className="grid md:grid-cols-3 gap-4 mt-4">
       {aadhaarUrls?.map((src, i) => (
         <img
           key={i}
@@ -158,20 +145,10 @@ export default function TutorKycPage() {
           className="w-32 h-24 rounded object-cover border"
         />
       )}
-
-      {bankProofUrl && (
-        <img
-          src={getImageUrl(bankProofUrl)}
-          alt="Bank Proof"
-          className="w-32 h-24 rounded object-cover border"
-        />
-      )}
     </div>
   );
 
-  // ---------------------------------------------
-  // Render upload inputs
-  // ---------------------------------------------
+  // Render inputs
   const renderUploadInputs = () => (
     <>
       <div className="grid md:grid-cols-3 gap-4 mt-6">
@@ -184,11 +161,6 @@ export default function TutorKycPage() {
           <label className="text-sm font-medium">PAN Card</label>
           <Input type="file" onChange={handlePanChange} />
         </div>
-
-        {/* <div>
-          <label className="text-sm font-medium">Bank Proof</label>
-          <Input type="file" onChange={handleBankChange} />
-        </div> */}
       </div>
 
       <div className="mt-6 flex gap-2">
@@ -200,9 +172,7 @@ export default function TutorKycPage() {
     </>
   );
 
-  // ---------------------------------------------
   // Badge color
-  // ---------------------------------------------
   const getStatusBadgeClass = () => {
     switch (kycStatus) {
       case 'approved':
@@ -216,9 +186,6 @@ export default function TutorKycPage() {
     }
   };
 
-  // ---------------------------------------------
-  // MAIN UI RENDER
-  // ---------------------------------------------
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
@@ -233,6 +200,7 @@ export default function TutorKycPage() {
 
         <main className="p-4 lg:p-6 space-y-6">
           <Card className="p-6 rounded-2xl bg-white shadow-sm">
+            {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -241,9 +209,7 @@ export default function TutorKycPage() {
 
                 <div>
                   <div className="font-semibold">KYC Status</div>
-                  <div className="text-sm text-muted">
-                    Aadhaar / PAN 
-                  </div>
+                  <div className="text-sm text-muted">Aadhaar / PAN</div>
                 </div>
               </div>
 
@@ -252,9 +218,7 @@ export default function TutorKycPage() {
               </Badge>
             </div>
 
-            {/* ----------------------------- */}
-            {/* CONDITIONAL UI RENDERING      */}
-            {/* ----------------------------- */}
+            {/* UI Rendering */}
             {kycStatus === 'approved' ? (
               <>
                 <p className="font-medium mt-6 mb-3">✅ Your KYC is verified.</p>
@@ -262,9 +226,7 @@ export default function TutorKycPage() {
               </>
             ) : kycStatus === 'under_review' ? (
               <>
-                <p className="font-medium mt-6 mb-3">
-                  🕓 Your KYC is under review.
-                </p>
+                <p className="font-medium mt-6 mb-3">🕓 Your KYC is under review.</p>
                 {renderImages()}
               </>
             ) : kycStatus === 'rejected' ? (
@@ -275,7 +237,7 @@ export default function TutorKycPage() {
                 {renderUploadInputs()}
               </>
             ) : (
-              // pending
+              // Pending
               renderUploadInputs()
             )}
           </Card>

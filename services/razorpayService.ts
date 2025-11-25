@@ -118,3 +118,13 @@ export const settleAdminPayout = async (payoutId: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
+// Admin: payment history (student → admin subscription payments)
+export const getAdminPaymentHistory = async (params?: { status?: 'paid' | 'failed' | 'pending'; from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/admin/history`, { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

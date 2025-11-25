@@ -1,10 +1,10 @@
 import api, { handleApiError } from '../lib/api';
 
-// Get tutor profile
+// Get tutor profile (aligned to backend GET /api/users/profile)
 export const getTutorProfile = async () => {
   try {
-    const response = await api.get('/users/tutor/profile');
-    return response.data.profile;
+    const response = await api.get('/users/profile');
+    return response.data?.data?.profile;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -146,7 +146,7 @@ export const uploadTutorKyc = async (formData: FormData) => {
     const response = await api.post('/users/tutor-kyc', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return response.data?.data; // return updated TutorProfile
   } catch (error) {
     throw new Error(handleApiError(error));
   }

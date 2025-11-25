@@ -37,6 +37,8 @@ type TutorRow = {
   email: string;
   phone?: string;
   kyc: Kyc;
+  aadhaarUrls: string[];
+  panUrl: string | null;
   rating: number;
   classes30d: number;
   earnings30d: number;
@@ -52,6 +54,19 @@ export default function AdminTutorsPage() {
   const [minRating, setMinRating] = useState<number>(0);
   const [rows, setRows] = useState<TutorRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [kycModal, setKycModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
+
+  const getProperImageUrl = (path?: string | null) => {
+    if (!path) return "";
+    const p = String(path);
+    if (p.startsWith("http://") || p.startsWith("https://")) return p;
+    const cleaned = p
+      .replace(/^[A-Za-z]:\\.*?uploads\\/i, "uploads/")
+      .replace(/\\/g, "/");
+    const base = (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://127.0.0.1:5000").replace(/\/$/, "");
+    const rel = cleaned.replace(/^\//, "");
+    return `${base}/${rel}`;
+  };
 
   // ✅ Fetch tutors from backend
   useEffect(() => {
@@ -270,18 +285,28 @@ export default function AdminTutorsPage() {
                       </td>
                       <td className="px-4 py-4">{t.phone ?? "-"}</td>
                       <td className="px-4 py-4">
-                        <Badge
-                          className={cn(
-                            "border capitalize",
-                            t.kyc === "approved"
-                              ? "bg-green-100 text-green-700 border-green-300"
-                              : t.kyc === "pending"
-                              ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                              : "bg-red-100 text-red-700 border-red-300"
-                          )}
-                        >
-                          {t.kyc}
-                        </Badge>
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            className={cn(
+                              "border capitalize",
+                              t.kyc === "approved"
+                                ? "bg-green-100 text-green-700 border-green-300"
+                                : t.kyc === "pending"
+                                ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                                : "bg-red-100 text-red-700 border-red-300"
+                            )}
+                          >
+                            {t.kyc}
+                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {(t.aadhaarUrls || []).slice(0, 2).map((src, i) => (
+                              <img key={i} src={getProperImageUrl(src)} alt={`aadhaar-${i}`} className="w-8 h-8 rounded object-cover border" />
+                            ))}
+                            {t.panUrl && (
+                              <img src={getProperImageUrl(t.panUrl)} alt="PAN" className="w-8 h-8 rounded object-cover border" />
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-4">{t.rating.toFixed(1)}</td>
                       <td className="px-4 py-4">{t.classes30d}</td>
@@ -305,17 +330,13 @@ export default function AdminTutorsPage() {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
-                          {/* <Button
+                          <Button
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              alert(
-                                `Open KYC drawer for ${t.name}\n(Attach actual document viewer later)`
-                              )
-                            }
+                            onClick={() => setKycModal({ open: true, row: t })}
                           >
                             <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
-                          </Button> */}
+                          </Button>
                           {t.kyc !== "approved" && (
                             <Button
                               variant="outline"
@@ -378,6 +399,24 @@ export default function AdminTutorsPage() {
           </Card>
         </main>
       </div>
+    {kycModal.open && kycModal.row && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <Card className="p-6 rounded-2xl bg-white shadow-lg w-[90vw] max-w-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-semibold">KYC Documents — {kycModal.row.name}</div>
+            <Button variant="outline" size="sm" onClick={() => setKycModal({ open: false })}>Close</Button>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {(kycModal.row.aadhaarUrls || []).map((src, i) => (
+              <img key={i} src={getProperImageUrl(src)} alt={`aadhaar-${i}`} className="w-full h-32 rounded object-cover border" />
+            ))}
+            {kycModal.row.panUrl && (
+              <img src={getProperImageUrl(kycModal.row.panUrl)} alt="PAN" className="w-full h-32 rounded object-cover border" />
+            )}
+          </div>
+        </Card>
+      </div>
+    )}
     </div>
   );
 }

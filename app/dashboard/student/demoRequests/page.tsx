@@ -171,7 +171,7 @@ export default function StudentDemoRequests() {
                 {/* ACTION BUTTONS */}
                 <div className="mt-4 flex gap-2 flex-wrap">
                   {/* Accept / Reject */}
-                  {req.status === "pending" && (
+                  {req.status === "pending" && req.requestedBy === "tutor" && (
                     <>
                       <Button
                         onClick={() => handleStatus(req._id, "confirmed")}
@@ -187,6 +187,10 @@ export default function StudentDemoRequests() {
                         Reject
                       </Button>
                     </>
+                  )}
+
+                  {req.status === "pending" && req.requestedBy === "student" && (
+                    <span className="text-xs text-gray-500 italic">Pending Tutor Approval</span>
                   )}
 
                   {/* Join Demo */}

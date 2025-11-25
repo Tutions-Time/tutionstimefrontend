@@ -125,7 +125,7 @@ export default function TutorDemoRequests() {
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {b.status === 'pending' && (
+                  {b.status === 'pending' && b.requestedBy === 'student' && (
                     <>
                       <Button
                         onClick={() => handleStatus(b._id, 'confirmed')}
@@ -140,6 +140,10 @@ export default function TutorDemoRequests() {
                         Reject
                       </Button>
                     </>
+                  )}
+
+                  {b.status === 'pending' && b.requestedBy === 'tutor' && (
+                    <span className="text-xs text-gray-500 italic">Pending Student Approval</span>
                   )}
 
                   {b.status === 'confirmed' && b.meetingLink && (
