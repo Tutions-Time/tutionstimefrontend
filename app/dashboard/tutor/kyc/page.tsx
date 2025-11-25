@@ -15,26 +15,34 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { uploadTutorKyc, getTutorProfile } from '@/services/tutorService';
 
-// ✅ Helper for building correct image URLs
-const getImageUrl = (path?: string | null) => {
+// ✅ Helper for building correct image URLs (handles S3 + local uploads)
+const getProperImageUrl = (path?: string | null) => {
   if (!path) return '';
+  const p = String(path);
+  // If already an absolute URL (S3), return as is
+  if (p.startsWith('http://') || p.startsWith('https://')) return p;
+  // Normalize windows-style paths
+  const cleaned = p
+    .replace(/^[A-Za-z]:\\.*?uploads\\/i, 'uploads/')
+    .replace(/\\/g, '/');
   const base =
-    process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') ||
-    'http://127.0.0.1:5000';
-  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+    (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:5000')
+      .replace(/\/$/, '');
+  const rel = cleaned.replace(/^\//, '');
+  return `${base}/${rel}`;
 };
 
 export default function TutorKycPage() {
   const dispatch = useDispatch();
-  const { kycStatus, aadhaarUrls, panUrl, bankProofUrl } = useSelector(
+  const { kycStatus, aadhaarUrls, panUrl } = useSelector(
     (state: RootState) => state.tutorKyc
   );
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aadhaarFiles, setAadhaarFiles] = useState<File[]>([]);
   const [panFile, setPanFile] = useState<File | null>(null);
-  const [bankFile, setBankFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // 🧠 Fetch KYC data on mount
   useEffect(() => {
@@ -43,10 +51,9 @@ export default function TutorKycPage() {
         const profile = await getTutorProfile();
         dispatch(
           setTutorKyc({
-            kycStatus: profile.kycStatus || 'pending',
-            aadhaarUrls: profile.aadhaarUrls || [],
-            panUrl: profile.panUrl || null,
-            bankProofUrl: profile.bankProofUrl || null,
+            kycStatus: profile?.kycStatus || 'pending',
+            aadhaarUrls: profile?.aadhaarUrls || [],
+            panUrl: profile?.panUrl || null,
           })
         );
       } catch (error: any) {
@@ -63,15 +70,13 @@ export default function TutorKycPage() {
   };
   const handlePanChange = (e: ChangeEvent<HTMLInputElement>) =>
     setPanFile(e.target.files?.[0] || null);
-  const handleBankChange = (e: ChangeEvent<HTMLInputElement>) =>
-    setBankFile(e.target.files?.[0] || null);
 
   // 🧩 Submit handler
   const handleSubmit = async () => {
-    if (!aadhaarFiles.length || !panFile || !bankFile) {
+    if (!aadhaarFiles.length || !panFile) {
       return toast({
         title: 'Missing files',
-        description: 'Please upload all required documents.',
+        description: 'Please upload Aadhaar (front/back) and PAN.',
         variant: 'destructive',
       });
     }
@@ -81,18 +86,14 @@ export default function TutorKycPage() {
       const formData = new FormData();
       aadhaarFiles.forEach((f) => formData.append('aadhaar', f));
       formData.append('pan', panFile);
-      formData.append('bankProof', bankFile);
-
-      const res = await uploadTutorKyc(formData);
-      const data = res.data;
+      const data = await uploadTutorKyc(formData);
 
       // ✅ Update Redux
       dispatch(
         setTutorKyc({
-          kycStatus: data.kycStatus || 'submitted',
-          aadhaarUrls: data.aadhaarUrls || [],
-          panUrl: data.panUrl || null,
-          bankProofUrl: data.bankProofUrl || null,
+          kycStatus: data?.kycStatus || 'submitted',
+          aadhaarUrls: data?.aadhaarUrls || [],
+          panUrl: data?.panUrl || null,
         })
       );
 
@@ -138,14 +139,14 @@ export default function TutorKycPage() {
                 </div>
                 <div>
                   <div className="font-semibold">KYC Status</div>
-                  <div className="text-sm text-muted">Aadhaar / PAN / Bank Proof</div>
+                  <div className="text-sm text-muted">Aadhaar / PAN</div>
                 </div>
               </div>
               <Badge className={`capitalize ${getStatusBadgeClass()}`}>{kycStatus}</Badge>
             </div>
 
             {/* ✅ Display existing KYC images */}
-            {kycStatus === 'approved' || kycStatus === 'submitted' ? (
+            {(!editMode) && (kycStatus === 'approved' || kycStatus === 'submitted') ? (
               <div className="mt-6">
                 <p className="font-medium mb-3">
                   {kycStatus === 'approved'
@@ -158,7 +159,7 @@ export default function TutorKycPage() {
                     aadhaarUrls.map((src, i) => (
                       <img
                         key={i}
-                        src={getImageUrl(src)}
+                        src={getProperImageUrl(src)}
                         alt={`aadhaar-${i}`}
                         className="w-32 h-24 rounded object-cover border"
                       />
@@ -166,19 +167,14 @@ export default function TutorKycPage() {
 
                   {panUrl && (
                     <img
-                      src={getImageUrl(panUrl)}
+                      src={getProperImageUrl(panUrl)}
                       alt="PAN"
                       className="w-32 h-24 rounded object-cover border"
                     />
                   )}
-
-                  {bankProofUrl && (
-                    <img
-                      src={getImageUrl(bankProofUrl)}
-                      alt="Bank Proof"
-                      className="w-32 h-24 rounded object-cover border"
-                    />
-                  )}
+                </div>
+                <div className="mt-6">
+                  <Button variant="outline" onClick={() => setEditMode(true)}>Replace Documents</Button>
                 </div>
               </div>
             ) : (
@@ -193,10 +189,6 @@ export default function TutorKycPage() {
                     <label className="text-sm font-medium">PAN Card</label>
                     <Input type="file" onChange={handlePanChange} />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Bank Proof (Passbook/Cheque)</label>
-                    <Input type="file" onChange={handleBankChange} />
-                  </div>
                 </div>
 
                 <div className="mt-6 flex gap-2">
@@ -204,6 +196,9 @@ export default function TutorKycPage() {
                     <Upload className="w-4 h-4 mr-2" />
                     {loading ? 'Uploading...' : 'Submit for Review'}
                   </Button>
+                  {editMode && (
+                    <Button variant="ghost" onClick={() => setEditMode(false)}>Cancel</Button>
+                  )}
                 </div>
               </>
             )}

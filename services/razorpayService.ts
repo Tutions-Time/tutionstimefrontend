@@ -119,8 +119,8 @@ export const settleAdminPayout = async (payoutId: string) => {
   }
 };
 
-// ----- Admin payment history -----
-export const getAdminPaymentHistory = async (params?: { status?: 'created' | 'paid' | 'failed'; from?: string; to?: string }) => {
+// Admin: payment history (student → admin subscription payments)
+export const getAdminPaymentHistory = async (params?: { status?: 'paid' | 'failed' | 'pending'; from?: string; to?: string }) => {
   try {
     const res = await api.get(`/payments/admin/history`, { params });
     return res.data?.data || [];

@@ -31,6 +31,41 @@ export default function AdminRevenuePage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyFrom, setHistoryFrom] = useState<string>('');
   const [historyTo, setHistoryTo] = useState<string>('');
+  const historySummary = useMemo(() => {
+    const total = history.reduce((sum, h) => sum + Number(h.amount || 0), 0);
+    const count = history.length;
+    const byStatus = history.reduce<Record<string, number>>((acc, h) => {
+      const s = h.status || 'unknown';
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+    return { total, count, byStatus };
+  }, [history]);
+
+  function exportHistoryCsv() {
+    const header = ['Date','Student','Tutor','Amount','Currency','Plan','Classes','Gateway','OrderId','PaymentId','Status'];
+    const rows = history.map(h => [
+      new Date(h.createdAt).toISOString(),
+      h.studentName,
+      h.tutorName,
+      String(h.amount || 0),
+      h.currency || 'INR',
+      h.planType || '',
+      String(h.classCount ?? ''),
+      (h.gateway || '').toUpperCase(),
+      h.gatewayOrderId || '',
+      h.gatewayPaymentId || '',
+      h.status || ''
+    ]);
+    const csv = [header, ...rows].map(r => r.map(v => `${String(v).replace(/"/g,'""')}`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payment-history-${historyFrom || 'all'}-${historyTo || 'all'}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   const filteredQueue = useMemo(() => {
     const q = searchTutor.trim().toLowerCase();
@@ -234,8 +269,17 @@ export default function AdminRevenuePage() {
                   value={historyTo}
                   onChange={(e) => setHistoryTo(e.target.value)}
                 />
-                {/* <Button variant="outline" size="sm" onClick={refreshHistory}>Apply</Button> */}
+                <Button variant="outline" size="sm" onClick={refreshHistory}>Apply</Button>
+                <Button variant="outline" size="sm" onClick={exportHistoryCsv}>Export CSV</Button>
               </div>
+            </div>
+            <div className="px-4 pb-2 text-xs text-muted flex items-center gap-4">
+              <span>Total: <span className="font-semibold">{inr(historySummary.total)}</span></span>
+              <span>Count: <span className="font-semibold">{historySummary.count}</span></span>
+              <span>
+                Paid: <span className="font-semibold">{historySummary.byStatus['paid'] || 0}</span>
+                , Failed: <span className="font-semibold">{historySummary.byStatus['failed'] || 0}</span>
+              </span>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
