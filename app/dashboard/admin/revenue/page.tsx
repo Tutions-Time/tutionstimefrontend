@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
-import { getAdminPayouts, settleAdminPayout, getAdminPaymentHistory } from '@/services/razorpayService';
+import { getAdminPayouts, settleAdminPayout, getAdminPaymentHistory, getAdminNotePaymentHistory } from '@/services/razorpayService';
 
 /* Real UI */
 
@@ -41,6 +41,21 @@ export default function AdminRevenuePage() {
     }, {});
     return { total, count, byStatus };
   }, [history]);
+
+  const [noteHistory, setNoteHistory] = useState<any[]>([]);
+  const [noteHistoryLoading, setNoteHistoryLoading] = useState(false);
+  const [noteFrom, setNoteFrom] = useState<string>('');
+  const [noteTo, setNoteTo] = useState<string>('');
+  const noteSummary = useMemo(() => {
+    const total = noteHistory.reduce((sum, h) => sum + Number(h.amount || 0), 0);
+    const count = noteHistory.length;
+    const byStatus = noteHistory.reduce<Record<string, number>>((acc, h) => {
+      const s = h.status || 'unknown';
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+    }, {});
+    return { total, count, byStatus };
+  }, [noteHistory]);
 
   function exportHistoryCsv() {
     const header = ['Date','Student','Tutor','Amount','Currency','Plan','Classes','Gateway','OrderId','PaymentId','Status'];
@@ -112,9 +127,23 @@ export default function AdminRevenuePage() {
     }
   }
 
+  async function refreshNoteHistory() {
+    setNoteHistoryLoading(true);
+    try {
+      const params: any = { status: 'paid' };
+      if (noteFrom) params.from = noteFrom;
+      if (noteTo) params.to = noteTo;
+      const rows = await getAdminNotePaymentHistory(params);
+      setNoteHistory(rows);
+    } finally {
+      setNoteHistoryLoading(false);
+    }
+  }
+
   useEffect(() => {
     refreshPayouts();
     refreshHistory();
+    refreshNoteHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -321,6 +350,66 @@ export default function AdminRevenuePage() {
                   {history.length === 0 && (
                     <tr>
                       <td colSpan={9} className="px-4 py-12 text-center text-muted">{historyLoading ? 'Loading…' : 'No payments found.'}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Note Payment History */}
+          <Card className="rounded-2xl bg-white shadow-sm">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-semibold">Note Payment History</h3>
+              <div className="flex items-center gap-2">
+                <input type="date" className="text-sm border rounded-md px-2 py-2" value={noteFrom} onChange={(e) => setNoteFrom(e.target.value)} />
+                <input type="date" className="text-sm border rounded-md px-2 py-2" value={noteTo} onChange={(e) => setNoteTo(e.target.value)} />
+                <Button variant="outline" size="sm" onClick={refreshNoteHistory}>Apply</Button>
+              </div>
+            </div>
+            <div className="px-4 pb-2 text-xs text-muted flex items-center gap-4">
+              <span>Total: <span className="font-semibold">{inr(noteSummary.total)}</span></span>
+              <span>Count: <span className="font-semibold">{noteSummary.count}</span></span>
+              <span>Paid: <span className="font-semibold">{noteSummary.byStatus['paid'] || 0}</span>, Failed: <span className="font-semibold">{noteSummary.byStatus['failed'] || 0}</span></span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr className="text-left text-xs uppercase tracking-wider text-muted">
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Student</th>
+                    <th className="px-4 py-3">Tutor</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Note</th>
+                    <th className="px-4 py-3">Gateway</th>
+                    <th className="px-4 py-3">Order ID</th>
+                    <th className="px-4 py-3">Payment ID</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {noteHistory.map((h: any) => (
+                    <tr key={h._id} className="border-t">
+                      <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3">{h.studentName || h.studentId}</td>
+                      <td className="px-4 py-3">{h.tutorName || h.tutorId}</td>
+                      <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">{h.noteId}</td>
+                      <td className="px-4 py-3">{h.gateway?.toUpperCase() || '—'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>
+                      <td className="px-4 py-3">
+                        <Badge className={cn(
+                          h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :
+                          h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
+                          'bg-gray-100 text-gray-700 border-gray-200'
+                        )}>{h.status}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                  {noteHistory.length === 0 && (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-12 text-center text-muted">{noteHistoryLoading ? 'Loading…' : 'No note payments found.'}</td>
                     </tr>
                   )}
                 </tbody>

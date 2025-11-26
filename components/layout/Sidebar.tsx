@@ -40,10 +40,7 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
   { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
   { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
-  // { href: '/dashboard/student/sessions', label: 'My Sessions', icon: Calendar },
-  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  // { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
-  // { href: '/dashboard/student/progress', label: 'My Progress', icon: TrendingUp },
+  { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
@@ -53,8 +50,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
   { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
-  // { href: '/assignments', label: 'Assignments', icon: ClipboardList },
-  // { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 

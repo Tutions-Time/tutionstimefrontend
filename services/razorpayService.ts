@@ -128,3 +128,21 @@ export const getAdminPaymentHistory = async (params?: { status?: 'paid' | 'faile
     throw new Error(handleApiError(error));
   }
 };
+
+export const getAdminNotePaymentHistory = async (params?: { status?: 'paid' | 'failed' | 'pending'; from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/admin/note-history`, { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getTutorNoteRevenue = async () => {
+  try {
+    const res = await api.get(`/payments/tutor/note-revenue`);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
