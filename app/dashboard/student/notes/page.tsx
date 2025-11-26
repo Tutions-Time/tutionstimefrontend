@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, IndianRupee } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -21,17 +21,17 @@ import {
 
 export default function NotesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Search
   const [q, setQ] = useState("");
 
-  // Notes
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [purchased, setPurchased] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState<"purchased" | "all">("purchased");
+  const [activeTab, setActiveTab] =
+    useState<"purchased" | "all">("purchased");
+
+  // 🛑 Prevent multiple Razorpay popups
+  const paymentInProgress = useRef(false);
 
   const fetchPurchased = async () => {
     try {
@@ -62,28 +62,41 @@ export default function NotesPage() {
 
   const buy = async (note: any) => {
     try {
+      if (paymentInProgress.current) return; // 🛑 stop duplicate opens
+
       const orderRes = await createNoteOrder(String(note._id));
 
-      if (!orderRes?.orderId || !orderRes?.key) {
+      if (orderRes?.free) {
+        toast({ title: "Purchased" });
+        fetchPurchased();
+        return;
+      }
+
+      if (!orderRes?.orderId || !(orderRes?.key || orderRes?.razorpayKey)) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
 
       if (!(window as any).Razorpay) {
-        toast({
-          title: "Razorpay SDK not loaded",
-          variant: "destructive",
-        });
+        toast({ title: "Razorpay SDK not loaded", variant: "destructive" });
         return;
       }
 
       const options = {
-        key: orderRes.key,
+        key: orderRes.key || orderRes.razorpayKey,
         amount: orderRes.amount,
         currency: "INR",
         name: "TuitionTime",
         description: "Paid Note",
         order_id: orderRes.orderId,
+
+        modal: {
+          ondismiss: () => {
+            paymentInProgress.current = false; // reset lock
+            toast({ title: "Payment cancelled", variant: "destructive" });
+          },
+        },
+
         handler: async (response: any) => {
           const verify = await verifyNotePayment(
             {
@@ -94,6 +107,8 @@ export default function NotesPage() {
             String(note._id)
           );
 
+          paymentInProgress.current = false; // reset
+
           if (verify?.success) {
             toast({ title: "Purchased" });
             fetchPurchased();
@@ -101,12 +116,22 @@ export default function NotesPage() {
             toast({ title: "Verification failed", variant: "destructive" });
           }
         },
+
         theme: { color: "#207EA9" },
       };
 
+      paymentInProgress.current = true; // lock Razorpay
       const rz = new (window as any).Razorpay(options);
+
+      rz.on("payment.failed", (response: any) => {
+        paymentInProgress.current = false;
+        const msg = response?.error?.description || "Payment failed";
+        toast({ title: msg, variant: "destructive" });
+      });
+
       rz.open();
     } catch {
+      paymentInProgress.current = false;
       toast({ title: "Payment failed", variant: "destructive" });
     }
   };
@@ -126,6 +151,7 @@ export default function NotesPage() {
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         userRole="student"
       />
+
       <Sidebar
         userRole="student"
         isOpen={sidebarOpen}
@@ -133,45 +159,24 @@ export default function NotesPage() {
       />
 
       <div className="lg:pl-64">
-        <Topbar
-          title="Notes"
-          subtitle="Search & purchase premium curated notes"
-        />
+        <Topbar title="Notes" subtitle="Search & purchase premium curated notes" />
 
         <main className="p-4 lg:p-8">
           <div className="max-w-3xl mx-auto space-y-10">
-            {/* Search Bar — Slightly Bigger */}
+
+            {/* Search */}
             <div className="p-2 rounded-2xl bg-transparent">
               <div className="flex gap-4 items-center">
                 <Input
                   placeholder="Search by subject, class, board, title…"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  className="
-                    h-14
-                    flex-1
-                    rounded-2xl
-                    bg-white/0 
-                    border border-gray-300
-                    shadow-md
-                    text-base
-                    focus:ring-2 focus:ring-blue-300
-                    placeholder:text-gray-500
-                  "
+                  className="h-14 flex-1 rounded-2xl bg-white/0 border border-gray-300 shadow-md text-base focus:ring-2 focus:ring-blue-300"
                 />
 
                 <Button
                   onClick={fetchAll}
-                  className="
-                    h-14 px-7 rounded-2xl
-                    bg-yellow-400
-                    hover:bg-yellow-500
-                    text-black
-                    text-base
-                    font-semibold
-                    shadow-[0_3px_10px_rgba(0,0,0,0.15)]
-                    flex items-center gap-2
-                  "
+                  className="h-14 px-7 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-black text-base font-semibold shadow"
                 >
                   <Search className="w-5 h-5" />
                   Search
@@ -179,14 +184,14 @@ export default function NotesPage() {
               </div>
             </div>
 
-            {/* Tabs — Slightly Bigger */}
+            {/* Tabs */}
             <div className="flex justify-center">
-              <div className="flex p-2 bg-white/60 backdrop-blur-xl rounded-full border border-white/40 shadow-inner gap-1">
+              <div className="flex p-2 bg-white/60 backdrop-blur-xl rounded-full border gap-1">
                 <button
                   onClick={() => setActiveTab("purchased")}
-                  className={`px-8 py-3 text-base font-medium rounded-full transition-all duration-300 ${
+                  className={`px-8 py-3 text-base font-medium rounded-full ${
                     activeTab === "purchased"
-                      ? "bg-white shadow-md text-blue-700"
+                      ? "bg-white shadow text-blue-700"
                       : "text-gray-600"
                   }`}
                 >
@@ -195,9 +200,9 @@ export default function NotesPage() {
 
                 <button
                   onClick={() => setActiveTab("all")}
-                  className={`px-8 py-3 text-base font-medium rounded-full transition-all duration-300 ${
+                  className={`px-8 py-3 text-base font-medium rounded-full ${
                     activeTab === "all"
-                      ? "bg-white shadow-md text-blue-700"
+                      ? "bg-white shadow text-blue-700"
                       : "text-gray-600"
                   }`}
                 >
@@ -206,13 +211,13 @@ export default function NotesPage() {
               </div>
             </div>
 
-            {/* TAB CONTENT */}
+            {/* CONTENT */}
             {activeTab === "purchased" ? (
               <>
                 <div className="text-xl font-semibold">Purchased Notes</div>
 
                 {purchased.length === 0 && (
-                  <Card className="p-6 text-center text-base text-gray-600 bg-white/70 backdrop-blur-xl rounded-2xl">
+                  <Card className="p-6 text-center text-base text-gray-600 bg-white/70 rounded-2xl">
                     No purchased notes yet.
                   </Card>
                 )}
@@ -220,9 +225,9 @@ export default function NotesPage() {
                 {purchased.map((p: any) => (
                   <Card
                     key={p?.note?._id}
-                    className="p-6 bg-white/90 backdrop-blur-xl rounded-3xl border shadow-lg flex items-center gap-6"
+                    className="p-6 bg-white/90 rounded-3xl border shadow flex items-center gap-6"
                   >
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden border bg-gray-100 shadow-inner">
+                    <div className="w-20 h-20 overflow-hidden border bg-gray-100">
                       <iframe src={p?.note?.pdfUrl} className="w-full h-full" />
                     </div>
 
@@ -231,18 +236,17 @@ export default function NotesPage() {
                         {p?.note?.title}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {p?.note?.subject} • {p?.note?.classLevel} •{" "}
-                        {p?.note?.board}
+                        {p?.note?.subject} • {p?.note?.classLevel} • {p?.note?.board}
                       </div>
 
-                      <Badge className="mt-2 bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-md">
+                      <Badge className="mt-2 bg-blue-50 text-blue-700 text-xs px-2 py-1">
                         Paid ₹{p?.purchase?.amount}
                       </Badge>
                     </div>
 
                     <Button
                       size="lg"
-                      className="text-sm px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+                      className="text-sm px-5 py-2 rounded-xl bg-gray-600 text-white hover:bg-gray-700"
                       onClick={() => download(p?.note?._id)}
                     >
                       Download
@@ -257,9 +261,9 @@ export default function NotesPage() {
                 {allNotes.map((n: any) => (
                   <Card
                     key={n._id}
-                    className="p-6 bg-white/90 backdrop-blur-xl rounded-3xl border shadow-lg flex items-center gap-6"
+                    className="p-6 bg-white/90 rounded-3xl border shadow flex items-center gap-6"
                   >
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden border bg-gray-100 shadow-inner">
+                    <div className="w-20 h-20 overflow-hidden border bg-gray-100">
                       <iframe src={n.pdfUrl} className="w-full h-full" />
                     </div>
 
@@ -280,7 +284,7 @@ export default function NotesPage() {
                     {purchasedIds.has(String(n._id)) ? (
                       <Button
                         size="lg"
-                        className="text-sm px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+                        className="text-sm px-5 py-2 rounded-xl bg-gray-600 text-white hover:bg-gray-700"
                         onClick={() => download(n._id)}
                       >
                         Download
