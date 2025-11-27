@@ -53,6 +53,10 @@ export default function TutorNotesPage() {
       setTotal(res.pagination?.total || 0);
     } catch (e) {
       console.error("getMyNotes error", e);
+      toast({
+        title: "Failed to load notes",
+        variant: "destructive",
+      });
     } finally {
       setListLoading(false);
     }
@@ -135,9 +139,7 @@ export default function TutorNotesPage() {
         />
 
         <main className="p-4 lg:p-6">
-          {/* CENTERED & VERY COMPACT WRAPPER */}
           <div className="max-w-4xl mx-auto space-y-4">
-           
             <div className="flex flex-col gap-3">
               {items.map((n) => (
                 <NoteCard
@@ -157,6 +159,13 @@ export default function TutorNotesPage() {
                   }}
                 />
               ))}
+
+              {items.length === 0 && !listLoading && (
+                <p className="text-center text-sm text-gray-500">
+                  No notes found. Click &quot;Add Note&quot; to upload your first
+                  note.
+                </p>
+              )}
             </div>
 
             {/* LOAD MORE */}
@@ -179,9 +188,17 @@ export default function TutorNotesPage() {
       </div>
 
       {/* ----- MODALS ----- */}
-      <CreateNoteModal open={createOpen} setOpen={setCreateOpen} onCreate={handleCreate} />
+      <CreateNoteModal
+        open={createOpen}
+        setOpen={setCreateOpen}
+        onCreate={handleCreate}
+      />
 
-      <PreviewNoteModal open={previewOpen} setOpen={setPreviewOpen} note={previewNote} />
+      <PreviewNoteModal
+        open={previewOpen}
+        setOpen={setPreviewOpen}
+        note={previewNote}
+      />
 
       <DeleteNoteModal
         open={deleteOpen}
@@ -190,7 +207,12 @@ export default function TutorNotesPage() {
         onConfirm={handleDelete}
       />
 
-      <EditNoteModal open={editOpen} setOpen={setEditOpen} note={editNoteItem} onSave={handleUpdate} />
+      <EditNoteModal
+        open={editOpen}
+        setOpen={setEditOpen}
+        note={editNoteItem}
+        onSave={handleUpdate}
+      />
     </div>
   );
 }

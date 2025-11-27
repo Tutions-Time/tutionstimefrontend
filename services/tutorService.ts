@@ -4,11 +4,12 @@ import api, { handleApiError } from '../lib/api';
 export const getTutorProfile = async () => {
   try {
     const response = await api.get('/users/profile');
-    return response.data?.data?.profile;
+    return response.data?.data;   // THIS RETURNS: { user, profile, roleDetails }
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
+
 
 export const fetchStudents = async (params?: Record<string, any>) => {
   try {

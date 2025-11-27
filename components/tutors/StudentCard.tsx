@@ -19,6 +19,7 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
 
   const {
     _id,
+    userId,
     name,
     gender,
     city,
@@ -130,10 +131,10 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
         <div className="flex gap-2 min-w-0">
           <Button
             variant="outline"
-            onClick={() => router.push(`/tutor/students/${_id}`)}
+            onClick={() => router.push(`/dashboard/tutor/student/${userId}`)}
             className="flex-1 min-w-0 h-8 text-xs rounded-full bg-primary text-black hover:bg-primary hover:text-white"
           >
-            View Details
+            View Profile
           </Button>
 
           <Button

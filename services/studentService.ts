@@ -242,6 +242,13 @@ export const sendTutorEnquiry = async (data: {
   }
 };
 
-
+export const getStudentProfileById = async (userId: string) => {
+  try {
+    const response = await api.get(`/users/student-profile/${userId}`);
+    return response.data?.data; // { user, profile }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
 
 
