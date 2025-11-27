@@ -138,6 +138,24 @@ export const getAdminNotePaymentHistory = async (params?: { status?: 'paid' | 'f
   }
 };
 
+export const getAdminAllPaymentHistory = async (params?: { from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/admin/all-history`, { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getTutorNoteHistory = async (params?: { from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/tutor/note-history`, { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const getTutorNoteRevenue = async () => {
   try {
     const res = await api.get(`/payments/tutor/note-revenue`);

@@ -57,15 +57,19 @@ export default function AdminRevenuePage() {
     return { total, count, byStatus };
   }, [noteHistory]);
 
+  const allHistory = useMemo(() => {
+    return [...history, ...noteHistory].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [history, noteHistory]);
+
   function exportHistoryCsv() {
     const header = ['Date','Student','Tutor','Amount','Currency','Plan','Classes','Gateway','OrderId','PaymentId','Status'];
-    const rows = history.map(h => [
+    const rows = allHistory.map(h => [
       new Date(h.createdAt).toISOString(),
       h.studentName,
       h.tutorName,
       String(h.amount || 0),
       h.currency || 'INR',
-      h.planType || '',
+      h.planType || h.noteTitle || '',
       String(h.classCount ?? ''),
       (h.gateway || '').toUpperCase(),
       h.gatewayOrderId || '',
@@ -77,7 +81,7 @@ export default function AdminRevenuePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `payment-history-${historyFrom || 'all'}-${historyTo || 'all'}.csv`;
+    a.download = `payment-history-all-${historyFrom || 'all'}-${historyTo || 'all'}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -281,10 +285,10 @@ export default function AdminRevenuePage() {
             </div>
           </Card>
 
-          {/* Payment History */}
+          {/* Payment History (Combined) */}
           <Card className="rounded-2xl bg-white shadow-sm">
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold">Payment History</h3>
+              <h3 className="font-semibold">Payment History (All)</h3>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -326,13 +330,13 @@ export default function AdminRevenuePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {history.map((h: any) => (
+                  {allHistory.map((h: any) => (
                     <tr key={h._id} className="border-t">
                       <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
-                      <td className="px-4 py-3">{h.studentName}</td>
-                      <td className="px-4 py-3">{h.tutorName}</td>
+                      <td className="px-4 py-3">{h.studentName || h.studentId}</td>
+                      <td className="px-4 py-3">{h.tutorName || h.tutorId}</td>
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-3">{h.subject || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : ''}</td>
+                      <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : ''}</td>
                       <td className="px-4 py-3">{h.gateway?.toUpperCase() || '—'}</td>
                       <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
                       <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>
@@ -347,7 +351,7 @@ export default function AdminRevenuePage() {
                       </td>
                     </tr>
                   ))}
-                  {history.length === 0 && (
+                  {allHistory.length === 0 && (
                     <tr>
                       <td colSpan={9} className="px-4 py-12 text-center text-muted">{historyLoading ? 'Loading…' : 'No payments found.'}</td>
                     </tr>

@@ -17,6 +17,7 @@ import {
   deleteNote,
   updateNote,
 } from "@/services/noteService";
+import { getTutorNoteHistory } from "@/services/razorpayService";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -37,6 +38,8 @@ export default function TutorNotesPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [listLoading, setListLoading] = useState(false);
+  const [sales, setSales] = useState<any[]>([]);
+  const [salesLoading, setSalesLoading] = useState(false);
 
   // ---- LOAD PAGINATED NOTES ----
   const load = async (pageToLoad: number, reset = false) => {
@@ -61,6 +64,15 @@ export default function TutorNotesPage() {
   useEffect(() => {
     setPage(1);
     load(1, true);
+    (async () => {
+      try {
+        setSalesLoading(true);
+        const rows = await getTutorNoteHistory();
+        setSales(rows);
+      } finally {
+        setSalesLoading(false);
+      }
+    })();
   }, []);
 
   // ---- CREATE ----
@@ -174,6 +186,38 @@ export default function TutorNotesPage() {
                 </Button>
               </div>
             )}
+
+            {/* Note Sales History */}
+            <div className="mt-6">
+              <div className="text-lg font-semibold mb-2">Note Sales</div>
+              <div className="overflow-x-auto rounded-xl border bg-white">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr className="text-left text-xs uppercase tracking-wider text-muted">
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Student</th>
+                      <th className="px-4 py-3">Note</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sales.map((s) => (
+                      <tr key={s._id} className="border-t">
+                        <td className="px-4 py-3 text-muted">{new Date(s.createdAt).toLocaleString()}</td>
+                        <td className="px-4 py-3">{s.studentName}</td>
+                        <td className="px-4 py-3">{s.noteTitle}</td>
+                        <td className="px-4 py-3">₹{Number(s.amount || 0).toLocaleString('en-IN')}</td>
+                        <td className="px-4 py-3">{s.status}</td>
+                      </tr>
+                    ))}
+                    {sales.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-12 text-center text-muted">{salesLoading ? 'Loading…' : 'No sales found.'}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </main>
       </div>

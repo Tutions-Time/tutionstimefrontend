@@ -19,6 +19,7 @@ export const getMyWallet = async () => {
 export const getMyTransactions = async (params?: {
   page?: number;
   limit?: number;
+  type?: 'booking' | 'note' | 'payout' | 'refund';
 }) => {
   try {
     const response = await api.get("/wallet/transactions", { params });
