@@ -11,13 +11,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-// if you have a Note type, import it; otherwise keep `any`
-import type { Note } from "./NoteCard";
+ 
 
 type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  note: Note | any | null;
+  note: any | null;
   onSave: (id: string, fd: FormData) => Promise<boolean>;
 };
 
