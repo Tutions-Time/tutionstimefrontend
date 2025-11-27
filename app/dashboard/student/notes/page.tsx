@@ -60,6 +60,7 @@ export default function NotesPage() {
     [purchased]
   );
 
+  
   const buy = async (note: any) => {
     try {
       if (paymentInProgress.current) return; // 🛑 stop duplicate opens
