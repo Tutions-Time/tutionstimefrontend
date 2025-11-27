@@ -78,7 +78,19 @@ export default function NotesPage() {
         return;
       }
 
-      if (!(window as any).Razorpay) {
+      const ensureRazorpay = async () => {
+        if ((window as any).Razorpay) return true;
+        return await new Promise<boolean>((resolve) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = () => resolve(!!(window as any).Razorpay);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+      };
+
+      const sdkReady = await ensureRazorpay();
+      if (!sdkReady) {
         toast({ title: "Razorpay SDK not loaded", variant: "destructive" });
         return;
       }
