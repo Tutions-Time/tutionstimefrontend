@@ -119,10 +119,16 @@ const profileSlice = createSlice({
     });
     builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
       state.loading = false;
-      if (action.payload.profile?.role === 'student') {
-        state.studentProfile = action.payload.profile;
-      } else if (action.payload.profile?.role === 'tutor') {
-        state.tutorProfile = action.payload.profile;
+      const data = action.payload?.data || action.payload; // support both shapes
+      const role = data?.user?.role;
+      const profile = data?.profile || null;
+
+      if (role === 'student') {
+        state.studentProfile = profile;
+        state.tutorProfile = null;
+      } else if (role === 'tutor') {
+        state.tutorProfile = profile;
+        state.studentProfile = null;
       }
     });
     builder.addCase(fetchUserProfile.rejected, (state, action) => {
