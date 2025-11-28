@@ -109,6 +109,15 @@ export const getTransactionHistory = async (params?: { page?: number; limit?: nu
   }
 };
 
+export const getStudentRegularClasses = async () => {
+  try {
+    const res = await api.get('/regular/student/regular-classes');
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Get all subjects
 export const getAllSubjects = async () => {
   try {
