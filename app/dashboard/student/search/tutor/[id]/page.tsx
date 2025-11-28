@@ -198,13 +198,13 @@ export default function TutorDetailPage() {
                     label="Location"
                     value={[tutor.city, tutor.state].filter(Boolean).join(", ")}
                   />
-                  <Fact
+                  {/* <Fact
                     icon={ShieldCheck}
                     label="Verification"
                     value={
                       tutor.isKycVerified ? "KYC Verified" : "Not Verified"
                     }
-                  />
+                  /> */}
                 </div>
 
                 <div className="border-t pt-3 sm:pt-4 space-y-2">
@@ -216,10 +216,10 @@ export default function TutorDetailPage() {
                       <Mail className="w-4 h-4" />
                       <span>{tutor.userId?.email || "N/A"}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       <span>{tutor.userId?.phone || "N/A"}</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </CardContent>

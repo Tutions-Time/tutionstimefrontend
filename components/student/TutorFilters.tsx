@@ -115,7 +115,7 @@ export default function TutorFilters({
       </div>
 
       {/* Tuition Type */}
-      <div>
+      {/* <div>
         <label className="text-xs font-medium text-gray-600">Tuition Type</label>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
           {[
@@ -145,7 +145,7 @@ export default function TutorFilters({
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Experience */}
       <div>
@@ -225,7 +225,7 @@ export default function TutorFilters({
           Teaching Mode
         </label>
         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          {["Online", "Offline", "Both", "Any"].map((t) => (
+          {["Online", "Offline", "Any"].map((t) => (
             <button
               key={t}
               onClick={() =>
