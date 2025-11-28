@@ -6,7 +6,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, User, BookOpen } from "lucide-react";
+import { CalendarDays, User, BookOpen, Clock, Video } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getTutorRegularClasses, scheduleRegularClass } from "@/services/tutorService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
@@ -114,9 +115,12 @@ export default function TutorRegularClasses() {
               <Card key={c.regularClassId} className="p-6 bg-white rounded-2xl shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="font-semibold text-lg flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {c.studentName}
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={getImageUrl(c.student?.photoUrl || c.photoUrl)} alt={c.student?.name || c.studentName || "Student"} />
+                        <AvatarFallback>{(c.student?.name || c.studentName || "S").charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="font-semibold text-lg">{c.student?.name || c.studentName}</div>
                     </div>
 
                     <div className="text-gray-600 text-sm flex items-center gap-2">
@@ -124,14 +128,36 @@ export default function TutorRegularClasses() {
                       {c.subject}
                     </div>
 
-                    <div className="text-gray-500 text-sm flex items-center gap-2 mt-2">
-                      <CalendarDays className="w-4 h-4" />
-                      {new Date(c.startDate).toLocaleDateString("en-IN")}
-                    </div>
+                    {c.nextSession && (
+                      <div className="text-gray-500 text-sm flex items-center gap-4 mt-2">
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="w-4 h-4" />
+                          {new Date(c.nextSession.startDateTime).toLocaleDateString("en-IN")}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {new Date(c.nextSession.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <Badge className="bg-[#FFD54F] text-black border-white">Scheduled</Badge>
                 </div>
+
+                {c.nextSession?.meetingLink && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => window.open(c.nextSession.meetingLink, "_blank")}
+                      className={`px-4 py-2 rounded-lg text-sm font-semibold ${c.nextSession.canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
+                      disabled={!c.nextSession.canJoin}
+                      title={c.nextSession.canJoin ? "Join session" : "Join opens 5 min before and closes 5 min after"}
+                    >
+                      <Video className="w-4 h-4 inline-block mr-2" />
+                      {c.nextSession.canJoin ? "Join" : "Join (available soon)"}
+                    </button>
+                  </div>
+                )}
               </Card>
             ))}
 
@@ -204,3 +230,19 @@ export default function TutorRegularClasses() {
     </div>
   );
 }
+  const IMAGE_BASE =
+    process.env.NEXT_PUBLIC_IMAGE_URL ||
+    (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace("/api", "");
+
+  const getImageUrl = (photoUrl?: string | null) => {
+    if (!photoUrl) return "/default-avatar.png";
+    const p = String(photoUrl);
+    if (p.startsWith("http://") || p.startsWith("https://")) return p;
+    const cleaned = p
+      .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+      .replace(/\\/g, "/")
+      .replace(/^.*uploads\//, "uploads/");
+    const base = (IMAGE_BASE || "").replace(/\/$/, "");
+    const rel = cleaned.replace(/^\//, "");
+    return `${base}/${rel}`;
+  };

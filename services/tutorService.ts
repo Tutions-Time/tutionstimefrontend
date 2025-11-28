@@ -197,7 +197,7 @@ export const updateDemoRequestStatus = async (
 
 export const getTutorRegularClasses = async () => {
   try {
-    const res = await api.get("/regular/tutor/students");
+    const res = await api.get("/regular/tutor/regular-classes");
     return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));

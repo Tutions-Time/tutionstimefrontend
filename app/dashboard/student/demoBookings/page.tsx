@@ -11,7 +11,7 @@ import { getStudentRegularClasses } from "@/services/studentService";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, Video } from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -27,7 +27,7 @@ export default function StudentBookingsPage() {
 
   const IMAGE_BASE =
     process.env.NEXT_PUBLIC_IMAGE_URL ||
-    (process.env.NEXT_PUBLIC_API_URL || "").replace("/api", "");
+    (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace("/api", "");
 
   const getImageUrl = (photoUrl?: string | null) => {
     if (!photoUrl) return "/default-avatar.png";
@@ -60,7 +60,7 @@ export default function StudentBookingsPage() {
     load();
   }, []);
 
-  // Filter based on active tab
+  // Filter based on active tab (UNCHANGED)
   const filtered = bookings.filter(
     (b) => b.type?.toLowerCase() === activeTab
   );
@@ -89,14 +89,17 @@ export default function StudentBookingsPage() {
 
         <main className="p-4 lg:p-6">
 
+          {/* Small accent bar (visual only) */}
+          <div className="h-1 w-24 rounded-full bg-gradient-to-r from-[#FFD54F] via-amber-300 to-yellow-400 mb-4" />
+
           {/* ---------- TABS ---------- */}
           <div className="flex gap-4 mb-6">
             <button
               onClick={() => setActiveTab("demo")}
-              className={`px-4 py-2 rounded-full font-semibold text-sm ${
+              className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${
                 activeTab === "demo"
-                  ? "bg-[#FFD54F] text-black"
-                  : "bg-gray-200 text-gray-600"
+                  ? "bg-[#FFD54F] text-black shadow-sm"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
               }`}
             >
               Demo Classes
@@ -104,10 +107,10 @@ export default function StudentBookingsPage() {
 
             <button
               onClick={() => setActiveTab("regular")}
-              className={`px-4 py-2 rounded-full font-semibold text-sm ${
+              className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${
                 activeTab === "regular"
-                  ? "bg-[#FFD54F] text-black"
-                  : "bg-gray-200 text-gray-600"
+                  ? "bg-[#FFD54F] text-black shadow-sm"
+                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
               }`}
             >
               Regular Classes
@@ -115,33 +118,55 @@ export default function StudentBookingsPage() {
           </div>
 
           {loading ? (
-            <p className="text-center text-gray-500 mt-10">Loading your classes...</p>
+            <p className="text-center text-gray-500 mt-10">
+              Loading your classes...
+            </p>
           ) : activeTab === "demo" ? (
+            // ✅ DEMO FUNCTIONALITY 100% SAME – STILL USING BookingList
             <BookingList bookings={filtered} />
           ) : regularClasses.length === 0 ? (
-            <Card className="p-6 text-center text-gray-500">No Regular Classes yet.</Card>
+            <Card className="p-6 text-center text-gray-500 bg-white/80 backdrop-blur-xl border border-dashed border-gray-300">
+              No Regular Classes yet.
+            </Card>
           ) : (
             <div className="grid gap-4">
               {regularClasses.map((rc: any) => {
                 const next = rc.nextSession;
-                const canJoin = next?.canJoin && !!next?.meetingLink;
+                const hasLink = !!next?.meetingLink;
+                const canJoin = !!next?.canJoin && hasLink;
+
                 return (
-                  <Card key={rc.regularClassId} className="p-6 bg-white rounded-2xl shadow-sm">
+                  <Card
+                    key={rc.regularClassId}
+                    className="p-6 bg-white/80 rounded-2xl border border-white/60 backdrop-blur-xl shadow-[0_18px_45px_rgba(15,23,42,0.18)] hover:shadow-[0_22px_60px_rgba(15,23,42,0.25)] transition-all duration-300"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={getImageUrl(rc.tutor?.photoUrl)} alt={rc.tutor?.name || "Tutor"} />
+                          <Avatar className="h-11 w-11 shadow-md">
+                            <AvatarImage
+                              src={getImageUrl(rc.tutor?.photoUrl)}
+                              alt={rc.tutor?.name || "Tutor"}
+                            />
                             <AvatarFallback>
                               {(rc.tutor?.name || "T").charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="font-semibold text-lg">{rc.tutor?.name || "Tutor"}</div>
+                          <div>
+                            <div className="font-semibold text-lg">
+                              {rc.tutor?.name || "Tutor"}
+                            </div>
+                            <div className="text-gray-600 text-sm">
+                              {rc.subject}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Regular Class
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-gray-600 text-sm">{rc.subject}</div>
-                        <div className="text-xs text-gray-400 mt-1">Regular Class</div>
+
                         {next && (
-                          <div className="text-gray-500 text-sm flex items-center gap-3 mt-2">
+                          <div className="text-gray-500 text-sm flex items-center gap-3 mt-3">
                             <span className="flex items-center gap-1">
                               <CalendarDays className="w-4 h-4" />
                               {dayjs(next.startDateTime).format("MMM D, YYYY")}
@@ -153,20 +178,44 @@ export default function StudentBookingsPage() {
                           </div>
                         )}
                       </div>
+
                       <div className="text-right">
-                        <Badge className="bg-[#FFD54F] text-black border-white">
-                          {rc.scheduleStatus === "scheduled" ? "Scheduled" : "Not Scheduled"}
+                        <Badge className="bg-[#FFD54F] text-black border-white shadow-sm">
+                          {rc.scheduleStatus === "scheduled"
+                            ? "Scheduled"
+                            : "Not Scheduled"}
                         </Badge>
                         {next?.status && (
-                          <div className="text-xs text-gray-500 mt-1">{next.status}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {next.status}
+                          </div>
                         )}
                       </div>
                     </div>
-                    {canJoin && (
+
+                    {hasLink && (
                       <div className="mt-4">
-                        <Button onClick={() => window.open(next.meetingLink, "_blank")} className="bg-[#FFD54F] text-black">
-                          Join
+                        <Button
+                          onClick={() =>
+                            window.open(next.meetingLink, "_blank")
+                          }
+                          className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg border border-black/5"
+                          disabled={!canJoin}
+                          title={
+                            canJoin
+                              ? "Join session"
+                              : "Join opens 5 min before and closes 5 min after"
+                          }
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          {canJoin ? "Join" : "Join (available soon)"}
                         </Button>
+                        {!canJoin && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Available at{" "}
+                            {dayjs(next.startDateTime).format("h:mm A")}
+                          </div>
+                        )}
                       </div>
                     )}
                   </Card>
