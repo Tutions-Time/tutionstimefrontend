@@ -48,6 +48,15 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
+const buildUrl = (path?: string | null) => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+    "http://127.0.0.1:5000";
+  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+};
+
 export default function TutorDetailPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -78,7 +87,7 @@ export default function TutorDetailPage() {
 
   const imgUrl = useMemo(() => {
     if (!tutor?.photoUrl) return "/default-avatar.png";
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}${tutor.photoUrl}`;
+    return buildUrl(tutor.photoUrl);
   }, [tutor]);
 
   if (!tutor)
@@ -208,14 +217,14 @@ export default function TutorDetailPage() {
                 </div>
 
                 <div className="border-t pt-3 sm:pt-4 space-y-2">
-                  <h3 className="text-sm font-semibold text-gray-800">
+                  {/* <h3 className="text-sm font-semibold text-gray-800">
                     Contact Info
-                  </h3>
+                  </h3> */}
                   <div className="text-xs sm:text-sm text-gray-700 space-y-1">
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       <span>{tutor.userId?.email || "N/A"}</span>
-                    </div>
+                    </div> */}
                     {/* <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       <span>{tutor.userId?.phone || "N/A"}</span>
@@ -321,7 +330,7 @@ export default function TutorDetailPage() {
                       <video
                         controls
                         className="rounded-lg mt-1 w-full max-h-[300px] border border-gray-200"
-                        src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${tutor.demoVideoUrl}`}
+                        src={buildUrl(tutor.demoVideoUrl)}
                       />
                     </div>
                   )}
