@@ -120,6 +120,7 @@ const handleSubmit = async () => {
     appendIf("subjects", profile.subjects);
     appendIf("subjectOther", profile.subjectOther);
     appendIf("availability", JSON.stringify(profile.availability || []));
+    appendIf("preferredTimes", JSON.stringify(profile.preferredTimes || []));
     appendIf("goals", profile.goals);
 
     // ===== TUTOR PREFERENCES =====

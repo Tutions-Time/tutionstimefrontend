@@ -57,7 +57,8 @@ export interface StudentProfileState {
 
   tutorGenderPref: '' | 'Male' | 'Female' | 'No Preference' | 'Other';
   tutorGenderOther: string;
-  availability: DaySlot[];
+  availability: string[];
+  preferredTimes: string[];
 
   goals: string;
   photoUrl?: string;
@@ -108,6 +109,7 @@ const initialState: StudentProfileState = {
   tutorGenderPref: 'No Preference',
   tutorGenderOther: '',
   availability: [],
+  preferredTimes: [],
 
   goals: '',
   photoUrl: undefined,
@@ -126,7 +128,7 @@ export const updateStudentProfileThunk = createAsyncThunk<
   'studentProfile/update',
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await api.post('/student/profile/update', formData, {
+      const res = await api.post('/users/student-profile', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

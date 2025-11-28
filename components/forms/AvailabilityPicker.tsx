@@ -94,17 +94,38 @@ export default function AvailabilityPicker({
     onChange(Array.from(next).sort());
   };
 
-  const pickNext7Days = () => {
+  const pickNextTwoWeekends = () => {
     if (disabled) return;
     const next = new Set<string>(selected);
-    const base = new Date(); // from today
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(base);
-      d.setDate(base.getDate() + i);
-      next.add(toISO(d));
+    let count = 0;
+    let d = new Date();
+    // Move to upcoming Saturday
+    while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+    // Collect two weekends (Sat and Sun)
+    while (count < 2) {
+      const sat = new Date(d);
+      const sun = new Date(d);
+      sun.setDate(sun.getDate() + 1);
+      next.add(toISO(sat));
+      next.add(toISO(sun));
+      // advance to next Saturday
+      d.setDate(d.getDate() + 7);
+      count++;
     }
     onChange(Array.from(next).sort());
-    setCursor(startOfMonth(new Date())); // focus current month
+    setCursor(startOfMonth(new Date()));
+  };
+
+  const pickFullMonth = () => {
+    if (disabled) return;
+    const first = startOfMonth(cursor);
+    const last = endOfMonth(cursor);
+    const next = new Set<string>(selected);
+    for (let day = 1; day <= last.getDate(); day++) {
+      const dt = new Date(cursor.getFullYear(), cursor.getMonth(), day);
+      next.add(toISO(dt));
+    }
+    onChange(Array.from(next).sort());
   };
 
   return (
@@ -149,11 +170,11 @@ export default function AvailabilityPicker({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" onClick={pickWeekendsThisMonth} disabled={disabled} className="h-9 rounded-xl">
-              <CalendarCheck className="h-4 w-4 mr-2" /> Weekends
+            <Button type="button" variant="secondary" onClick={pickNextTwoWeekends} disabled={disabled} className="h-9 rounded-xl">
+              <CalendarCheck className="h-4 w-4 mr-2" /> 2 Weekends
             </Button>
-            <Button type="button" variant="secondary" onClick={pickNext7Days} disabled={disabled} className="h-9 rounded-xl">
-              <Sparkles className="h-4 w-4 mr-2" /> Next 7 days
+            <Button type="button" variant="secondary" onClick={pickFullMonth} disabled={disabled} className="h-9 rounded-xl">
+              <Sparkles className="h-4 w-4 mr-2" /> Full Month
             </Button>
             <Button type="button" variant="secondary" onClick={jumpToday} disabled={disabled} className="h-9 rounded-xl">
               Today

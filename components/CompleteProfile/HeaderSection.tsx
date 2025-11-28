@@ -11,10 +11,6 @@ export default function HeaderSection() {
           </div>
           <span className="font-semibold text-lg text-gray-900">Tuitions time</span>
         </div>
-        <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
-          <Sparkles className="w-4 h-4" />
-          Smooth onboarding • Better matches
-        </div>
       </div>
     </nav>
   );
