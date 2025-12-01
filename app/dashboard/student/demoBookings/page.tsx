@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Clock, Video } from "lucide-react";
+import { joinSession } from "@/services/studentService";
 import dayjs from "dayjs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -132,8 +133,7 @@ export default function StudentBookingsPage() {
             <div className="grid gap-4">
               {regularClasses.map((rc: any) => {
                 const next = rc.nextSession;
-                const hasLink = !!next?.meetingLink;
-                const canJoin = !!next?.canJoin && hasLink;
+                const canJoin = !!next?.canJoin;
 
                 return (
                   <Card
@@ -193,12 +193,17 @@ export default function StudentBookingsPage() {
                       </div>
                     </div>
 
-                    {hasLink && (
+                    {next && (
                       <div className="mt-4">
                         <Button
-                          onClick={() =>
-                            window.open(next.meetingLink, "_blank")
-                          }
+                          onClick={async () => {
+                            try {
+                              const res = await joinSession(next.sessionId);
+                              if (res?.success && res?.url) window.open(res.url, "_blank");
+                            } catch (e: any) {
+                              console.error("Join failed", e);
+                            }
+                          }}
                           className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg border border-black/5"
                           disabled={!canJoin}
                           title={
@@ -218,6 +223,14 @@ export default function StudentBookingsPage() {
                         )}
                       </div>
                     )}
+                    <div className="mt-4">
+                      <a
+                        href={`/dashboard/student/regular-classes/${rc.regularClassId}`}
+                        className="inline-block px-4 py-2 border rounded-full text-sm"
+                      >
+                        View Sessions
+                      </a>
+                    </div>
                   </Card>
                 );
               })}

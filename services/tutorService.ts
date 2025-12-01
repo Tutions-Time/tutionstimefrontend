@@ -218,3 +218,81 @@ export const scheduleRegularClass = async (
     throw new Error(handleApiError(error));
   }
 };
+
+export const getRegularClassSessions = async (regularClassId: string) => {
+  try {
+    const res = await api.get(`/regular/${regularClassId}/sessions`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const joinSession = async (sessionId: string) => {
+  try {
+    const res = await api.post(`/sessions/${sessionId}/join`);
+    return res.data; // { success, url }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const createOrUpdateAssignment = async (
+  sessionId: string,
+  payload: { title: string; description?: string; dueDate?: string },
+  files?: File[]
+) => {
+  try {
+    const fd = new FormData();
+    fd.append("title", payload.title);
+    if (payload.description) fd.append("description", payload.description);
+    if (payload.dueDate) fd.append("dueDate", payload.dueDate);
+    (files || []).forEach((f) => fd.append("files", f));
+    const res = await api.post(`/sessions/${sessionId}/assignments`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getSessionAssignments = async (sessionId: string) => {
+  try {
+    const res = await api.get(`/sessions/${sessionId}/assignments`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getAssignmentDownloadUrls = async (assignmentId: string) => {
+  try {
+    const res = await api.get(`/sessions/assignments/${assignmentId}/download-urls`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const submitAssignment = async (assignmentId: string, files: File[]) => {
+  try {
+    const fd = new FormData();
+    files.forEach((f) => fd.append("files", f));
+    const res = await api.post(`/sessions/assignments/${assignmentId}/submit`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateAssignmentStatus = async (assignmentId: string, status: string) => {
+  try {
+    const res = await api.put(`/sessions/assignments/${assignmentId}/status`, { status });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

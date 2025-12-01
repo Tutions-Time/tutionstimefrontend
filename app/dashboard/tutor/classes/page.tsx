@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, User, BookOpen, Clock, Video } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getTutorRegularClasses, scheduleRegularClass } from "@/services/tutorService";
+import { getTutorRegularClasses, scheduleRegularClass, joinSession } from "@/services/tutorService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 
@@ -145,10 +145,18 @@ export default function TutorRegularClasses() {
                   <Badge className="bg-[#FFD54F] text-black border-white">Scheduled</Badge>
                 </div>
 
-                {c.nextSession?.meetingLink && (
+                {c.nextSession && (
                   <div className="mt-4">
                     <button
-                      onClick={() => window.open(c.nextSession.meetingLink, "_blank")}
+                      onClick={async () => {
+                        try {
+                          const res = await joinSession(c.nextSession.sessionId);
+                          if (res?.success && res?.url) window.open(res.url, "_blank");
+                          else toast({ title: "Unable to join", description: res?.message || "Please try again closer to the start time." });
+                        } catch (e: any) {
+                          toast({ title: "Join failed", description: e.message });
+                        }
+                      }}
                       className={`px-4 py-2 rounded-lg text-sm font-semibold ${c.nextSession.canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
                       disabled={!c.nextSession.canJoin}
                       title={c.nextSession.canJoin ? "Join session" : "Join opens 5 min before and closes 5 min after"}
@@ -158,6 +166,14 @@ export default function TutorRegularClasses() {
                     </button>
                   </div>
                 )}
+                <div className="mt-4">
+                  <a
+                    href={`/dashboard/tutor/regular-classes/${c.regularClassId}`}
+                    className="inline-block px-4 py-2 border rounded-lg text-sm"
+                  >
+                    View Sessions
+                  </a>
+                </div>
               </Card>
             ))}
 

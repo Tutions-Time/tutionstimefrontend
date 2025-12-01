@@ -251,6 +251,46 @@ export const sendTutorEnquiry = async (data: {
   }
 };
 
+export const joinSession = async (sessionId: string) => {
+  try {
+    const res = await api.post(`/sessions/${sessionId}/join`);
+    return res.data; // { success, url }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getSessionAssignments = async (sessionId: string) => {
+  try {
+    const res = await api.get(`/sessions/${sessionId}/assignments`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getAssignmentDownloadUrls = async (assignmentId: string) => {
+  try {
+    const res = await api.get(`/sessions/assignments/${assignmentId}/download-urls`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const submitAssignment = async (assignmentId: string, files: File[]) => {
+  try {
+    const fd = new FormData();
+    files.forEach((f) => fd.append("files", f));
+    const res = await api.post(`/sessions/assignments/${assignmentId}/submit`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 
 
