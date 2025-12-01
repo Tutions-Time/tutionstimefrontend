@@ -65,8 +65,8 @@ export default function BookingCard({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    const EARLY_JOIN_MINUTES = 10;
-    const LATE_JOIN_MINUTES = 30;
+    const EARLY_JOIN_MINUTES = 5;
+    const LATE_JOIN_MINUTES = 5;
     const SESSION_DURATION_MIN = booking.type === "demo" ? 15 : 60;
 
     const checkWindow = () => {
@@ -146,7 +146,7 @@ export default function BookingCard({
         </div>
 
         {/* JOIN BUTTON */}
-        {booking.status !== "completed" && booking.meetingLink ? (
+        {booking.meetingLink ? (
           <button
             type="button"
             disabled={!canJoin}
@@ -192,7 +192,7 @@ export default function BookingCard({
 
         {/* ⭐ START REGULAR CLASSES BUTTON ⭐ */}
         {booking.type === "demo" &&
-          booking.status === "completed" && (
+          booking.status === "completed" && !canJoin && (
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="mt-2 bg-[#FFD54F] text-black font-bold px-4 py-2 rounded-full text-sm hover:bg-[#FFD54F]"

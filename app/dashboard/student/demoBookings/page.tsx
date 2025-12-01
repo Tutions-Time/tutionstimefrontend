@@ -60,10 +60,16 @@ export default function StudentBookingsPage() {
     load();
   }, []);
 
-  // Filter based on active tab (UNCHANGED)
-  const filtered = bookings.filter(
-    (b) => b.type?.toLowerCase() === activeTab
-  );
+  // Filter based on active tab
+  // Hide demo bookings that have an associated PAID regular class
+  const filtered = bookings.filter((b) => {
+    const isTabMatch = (b.type?.toLowerCase() === activeTab);
+    if (!isTabMatch) return false;
+    if (activeTab !== "demo") return true;
+    const rc = regularClasses.find((rc: any) => String(rc.regularClassId) === String(b.regularClassId));
+    if (!rc) return true;
+    return rc.paymentStatus !== "paid";
+  });
 
   return (
     <div
