@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, User, BookOpen, Clock, Video } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getTutorRegularClasses, scheduleRegularClass, getRegularClassSessions, joinSession } from "@/services/tutorService";
+import { getTutorRegularClasses, scheduleRegularClass, getRegularClassSessions, joinSession, uploadSessionRecording, uploadSessionNotes, uploadSessionAssignment, completeSession } from "@/services/tutorService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 
@@ -25,6 +25,7 @@ export default function TutorRegularClasses() {
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
   const openScheduleModal = (regularClassId: string) => {
     setSelectedClassId(regularClassId);
