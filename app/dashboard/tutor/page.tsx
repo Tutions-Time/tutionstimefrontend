@@ -16,45 +16,29 @@ import KpiSection from "@/components/tutors/dashboard/KpiSection";
 import MyClassesSection from "@/components/tutors/dashboard/MyClassesSection";
 import QuickActionsSection from "@/components/tutors/dashboard/QuickActionsSection";
 
-/* ---------------------------------------------
-   Tutor Class Type
+import { getTutorRegularClasses } from "@/services/tutorService";
+
+/* ---------------------------------------------  
+   Tutor Class Type  
 ---------------------------------------------- */
 export type TutorClass = {
   id: string;
   studentName: string;
   subject: string;
-  date: string;     // YYYY-MM-DD
-  time: string;     // e.g. "6:00 PM"
+  date: string;
+  time: string;
   status: "scheduled" | "completed" | "cancelled" | "confirmed";
   type: "demo" | "regular";
+  meetingLink?: string;
+  nextSession?: {
+    startDateTime: string;
+    meetingLink?: string;
+    canJoin?: boolean;
+  };
 };
 
-/* ---------------------------------------------
-   Mock Data (until API connected)
----------------------------------------------- */
-const mockClasses: TutorClass[] = [
-  {
-    id: "c1",
-    studentName: "Aarav Sharma",
-    subject: "Physics",
-    date: "2025-10-14",
-    time: "6:00 PM",
-    status: "scheduled",
-    type: "demo",
-  },
-  {
-    id: "c2",
-    studentName: "Ishita Verma",
-    subject: "Mathematics",
-    date: "2025-10-12",
-    time: "7:30 PM",
-    status: "completed",
-    type: "regular",
-  },
-];
-
-/* ---------------------------------------------
-   Tutor Dashboard Component
+/* ---------------------------------------------  
+   MAIN COMPONENT  
 ---------------------------------------------- */
 export default function TutorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,10 +47,62 @@ export default function TutorDashboard() {
   const dispatch = useAppDispatch();
   const tutorProfile = useAppSelector((s) => s.profile.tutorProfile);
 
-  // Fetch tutor profile on load
+  const [classes, setClasses] = useState<TutorClass[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch backend classes
+  const loadClasses = async () => {
+    try {
+      setLoading(true);
+      const res = await getTutorRegularClasses();
+
+      if (res.success) {
+        const formatted: TutorClass[] = (res.data || []).map((c: any) => {
+          const next = c.nextSession;
+
+          return {
+            id: c.regularClassId,
+            studentName: c.student?.name || c.studentName || "Student",
+            subject: c.subject,
+            date: next
+              ? new Date(next.startDateTime).toISOString().split("T")[0]
+              : new Date().toISOString().split("T")[0],
+            time: next
+              ? new Date(next.startDateTime).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "00:00",
+
+            status: c.scheduleStatus === "scheduled" ? "scheduled" : "confirmed",
+            type: "regular",
+
+            meetingLink: next?.meetingLink || undefined,
+
+            nextSession: next
+              ? {
+                  startDateTime: next.startDateTime,
+                  meetingLink: next.meetingLink,
+                  canJoin: next.canJoin,
+                }
+              : undefined,
+          };
+        });
+
+        setClasses(formatted);
+      }
+    } catch (e) {
+      console.log("Error loading classes", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch profile + classes on load
   useEffect(() => {
     dispatch(fetchUserProfile());
-  }, [dispatch]);
+    loadClasses();
+  }, []);
 
   const displayName = tutorProfile?.name || "Tutor";
 
@@ -81,14 +117,13 @@ export default function TutorDashboard() {
         onLogout={logout}
       />
 
-      {/* Sidebar */}
       <Sidebar
         userRole="tutor"
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main Layout */}
+      {/* Main Content */}
       <div className="lg:pl-64">
         <Topbar
           title={displayName}
@@ -96,7 +131,6 @@ export default function TutorDashboard() {
           greeting
           action={
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Availability */}
               <Link href="/dashboard/tutor/availability">
                 <Button
                   variant="outline"
@@ -107,7 +141,6 @@ export default function TutorDashboard() {
                 </Button>
               </Link>
 
-              {/* Create Class */}
               <Link href="/dashboard/tutor/book">
                 <Button
                   className="bg-primary hover:bg-primary/90 text-text font-semibold"
@@ -122,17 +155,12 @@ export default function TutorDashboard() {
           }
         />
 
-        {/* Main Content */}
+        {/* Body */}
         <main className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
-          {/* KPI Metrics */}
           <KpiSection />
 
-          {/* Main Grid */}
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* My Classes Section */}
-            <MyClassesSection classes={mockClasses} />
-
-            {/* Quick Actions */}
+           <MyClassesSection classes={classes.slice(0, 3)} />
             <QuickActionsSection />
           </div>
         </main>
