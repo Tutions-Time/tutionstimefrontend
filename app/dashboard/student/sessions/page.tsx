@@ -454,7 +454,7 @@ export default function StudentSessions() {
                       variant="outline"
                       onClick={() => openSessionsModal(s.regularClassId)}
                     >
-                      View Sessionsss
+                      View Sessions
                     </Button>
                   )}
                 </div>
