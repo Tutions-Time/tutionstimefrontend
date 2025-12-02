@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import { Dialog } from "@headlessui/react";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { submitSessionFeedback } from "@/services/progressService";
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +29,11 @@ export default function StudentBookingsPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackSessionId, setFeedbackSessionId] = useState<string | null>(null);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({ teaching: 5, communication: 5, understanding: 5, comment: "" });
 
   const themePrimary = "#FFD54F";
 
@@ -88,6 +94,28 @@ export default function StudentBookingsPage() {
       setSessions([]);
     } finally {
       setSessionsLoading(false);
+    }
+  };
+
+  const openFeedback = (sessionId: string) => {
+    setFeedbackSessionId(sessionId);
+    setFeedbackForm({ teaching: 5, communication: 5, understanding: 5, comment: "" });
+    setFeedbackOpen(true);
+  };
+
+  const submitFeedback = async () => {
+    if (!feedbackSessionId) return;
+    try {
+      setFeedbackSubmitting(true);
+      const res = await submitSessionFeedback(feedbackSessionId, feedbackForm);
+      if (res?.success) {
+        setFeedbackOpen(false);
+        // Update in-memory sessions state
+        setSessions((prev) => prev.map((s: any) => (s._id === feedbackSessionId ? { ...s, sessionFeedback: res.data } : s)));
+      }
+    } catch (e) {
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
@@ -318,23 +346,33 @@ export default function StudentBookingsPage() {
                   <div className="text-xs text-gray-500">{s.status}</div>
                 </div>
 
-                <Button
-                  onClick={async () => {
-                    try {
-                      const res = await joinSession(s._id);
-                      if (res?.success && res?.url)
-                        window.open(res.url, "_blank");
-                    } catch {}
-                  }}
-                  disabled={!canJoin}
-                  className={`px-3 py-2 rounded-full text-sm ${
-                    canJoin
-                      ? "bg-[#FFD54F] text-black"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  Join Now
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const res = await joinSession(s._id);
+                        if (res?.success && res?.url)
+                          window.open(res.url, "_blank");
+                      } catch {}
+                    }}
+                    disabled={!canJoin}
+                    className={`px-3 py-2 rounded-full text-sm ${
+                      canJoin
+                        ? "bg-[#FFD54F] text-black"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    Join Now
+                  </Button>
+                  {s.status === "completed" && !s.sessionFeedback && (
+                    <Button
+                      onClick={() => openFeedback(s._id)}
+                      className="px-3 py-2 rounded-full text-sm bg-white border text-gray-700"
+                    >
+                      Give Feedback
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })
@@ -343,6 +381,52 @@ export default function StudentBookingsPage() {
     </Dialog.Panel>
   </div>
 </Dialog>
+
+ {/* Feedback Modal */}
+ <Dialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} className="relative z-50">
+   <div className="fixed inset-0 bg-black/40" />
+   <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+     <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
+       <div className="p-6 border-b">
+         <Dialog.Title className="text-lg font-semibold">Session Feedback</Dialog.Title>
+       </div>
+       <div className="p-6 space-y-4">
+         <div className="grid grid-cols-3 gap-3">
+           <div>
+             <label className="text-sm">Teaching</label>
+             <input type="number" min={1} max={5} value={feedbackForm.teaching}
+               onChange={(e)=>setFeedbackForm({...feedbackForm, teaching: Number(e.target.value)})}
+               className="mt-1 w-full border rounded px-2 py-1" />
+           </div>
+           <div>
+             <label className="text-sm">Communication</label>
+             <input type="number" min={1} max={5} value={feedbackForm.communication}
+               onChange={(e)=>setFeedbackForm({...feedbackForm, communication: Number(e.target.value)})}
+               className="mt-1 w-full border rounded px-2 py-1" />
+           </div>
+           <div>
+             <label className="text-sm">Understanding</label>
+             <input type="number" min={1} max={5} value={feedbackForm.understanding}
+               onChange={(e)=>setFeedbackForm({...feedbackForm, understanding: Number(e.target.value)})}
+               className="mt-1 w-full border rounded px-2 py-1" />
+           </div>
+         </div>
+         <div>
+           <label className="text-sm">Comment</label>
+           <textarea value={feedbackForm.comment}
+             onChange={(e)=>setFeedbackForm({...feedbackForm, comment: e.target.value})}
+             className="mt-1 w-full border rounded px-2 py-1" rows={3} />
+         </div>
+         <div className="flex justify-end gap-2">
+           <Button onClick={()=>setFeedbackOpen(false)} variant="outline" className="border">Cancel</Button>
+           <Button onClick={submitFeedback} disabled={feedbackSubmitting} className="bg-[#FFD54F] text-black">
+             {feedbackSubmitting ? "Submitting..." : "Submit"}
+           </Button>
+         </div>
+       </div>
+     </Dialog.Panel>
+   </div>
+ </Dialog>
 
     </>
   );
