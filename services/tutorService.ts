@@ -218,3 +218,21 @@ export const scheduleRegularClass = async (
     throw new Error(handleApiError(error));
   }
 };
+
+export const getRegularClassSessions = async (regularClassId: string) => {
+  try {
+    const res = await api.get(`/regular/${regularClassId}/sessions`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const joinSession = async (sessionId: string) => {
+  try {
+    const res = await api.post(`/sessions/${sessionId}/join`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

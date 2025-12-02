@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Clock, Video } from "lucide-react";
 import dayjs from "dayjs";
+import { Dialog } from "@headlessui/react";
+import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function StudentBookingsPage() {
@@ -22,6 +24,10 @@ export default function StudentBookingsPage() {
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<"demo" | "regular">("demo");
+  const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
 
   const themePrimary = "#FFD54F";
 
@@ -71,7 +77,22 @@ export default function StudentBookingsPage() {
     return rc.paymentStatus !== "paid";
   });
 
+  const openSessionsModal = async (regularClassId: string) => {
+    setSelectedRegularClassId(regularClassId);
+    setSessionsModalOpen(true);
+    try {
+      setSessionsLoading(true);
+      const res = await getRegularClassSessions(regularClassId);
+      setSessions(res.success ? (res.data || []) : []);
+    } catch {
+      setSessions([]);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
   return (
+    <>
     <div
       className="min-h-screen bg-gray-50"
       style={{ ["--primary" as any]: themePrimary }}
@@ -216,6 +237,12 @@ export default function StudentBookingsPage() {
                           <Video className="w-4 h-4 mr-2" />
                           {canJoin ? "Join" : "Join (available soon)"}
                         </Button>
+                        <Button
+                          onClick={() => openSessionsModal(rc.regularClassId)}
+                          className="ml-3 bg-white text-gray-700 border rounded-full px-5"
+                        >
+                          View Sessions
+                        </Button>
                         {!canJoin && (
                           <div className="text-xs text-gray-500 mt-1">
                             Available at{" "}
@@ -232,5 +259,58 @@ export default function StudentBookingsPage() {
         </main>
       </div>
     </div>
+
+    <Dialog open={sessionsModalOpen} onClose={() => setSessionsModalOpen(false)} className="relative z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-40"></div>
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4">
+          <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+          {sessionsLoading ? (
+            <div className="text-center text-gray-500">Loading...</div>
+          ) : sessions.length === 0 ? (
+            <div className="text-center text-gray-500">No sessions found.</div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((s: any) => {
+                const start = new Date(s.startDateTime);
+                const startMs = start.getTime();
+                const classDurationMin = 60;
+                const joinBeforeMin = 5;
+                const expireAfterMin = 5;
+                const endMs = startMs + classDurationMin * 60 * 1000;
+                const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
+                const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
+                const nowMs = Date.now();
+                const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
+                return (
+                  <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
+                    <div className="text-sm">
+                      <div>{start.toLocaleDateString("en-IN")}</div>
+                      <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                      <div className="text-xs text-gray-500">{s.status}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={async () => {
+                          try {
+                            const res = await joinSession(s._id);
+                            if (res?.success && res?.url) window.open(res.url, "_blank");
+                          } catch {}
+                        }}
+                        disabled={!canJoin}
+                        className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
+                      >
+                        Join Now
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+    </>
   );
 }

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, User, BookOpen, Clock, Video } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getTutorRegularClasses, scheduleRegularClass } from "@/services/tutorService";
+import { getTutorRegularClasses, scheduleRegularClass, getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 
@@ -22,6 +22,9 @@ export default function TutorRegularClasses() {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [timeValue, setTimeValue] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
 
   const openScheduleModal = (regularClassId: string) => {
     setSelectedClassId(regularClassId);
@@ -44,6 +47,20 @@ export default function TutorRegularClasses() {
       loadClasses();
     } catch (error: any) {
       toast({ title: "Error", description: error.message });
+    }
+  };
+
+  const openSessionsModal = async (regularClassId: string) => {
+    setSelectedClassId(regularClassId);
+    setSessionsModalOpen(true);
+    try {
+      setSessionsLoading(true);
+      const res = await getRegularClassSessions(regularClassId);
+      setSessions(res.success ? (res.data || []) : []);
+    } catch {
+      setSessions([]);
+    } finally {
+      setSessionsLoading(false);
     }
   };
 
@@ -156,6 +173,12 @@ export default function TutorRegularClasses() {
                       <Video className="w-4 h-4 inline-block mr-2" />
                       {c.nextSession.canJoin ? "Join" : "Join (available soon)"}
                     </button>
+                    <button
+                      onClick={() => openSessionsModal(c.regularClassId)}
+                      className="ml-3 px-4 py-2 border rounded-lg text-sm"
+                    >
+                      View Sessions
+                    </button>
                   </div>
                 )}
               </Card>
@@ -224,6 +247,58 @@ export default function TutorRegularClasses() {
             >
               Save
             </button>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      <Dialog open={sessionsModalOpen} onClose={() => setSessionsModalOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-40"></div>
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4">
+            <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+            {sessionsLoading ? (
+              <div className="text-center text-gray-500">Loading...</div>
+            ) : sessions.length === 0 ? (
+              <div className="text-center text-gray-500">No sessions found.</div>
+            ) : (
+              <div className="space-y-3">
+                {sessions.map((s) => {
+                  const start = new Date(s.startDateTime);
+                  const startMs = start.getTime();
+                  const classDurationMin = 60;
+                  const joinBeforeMin = 5;
+                  const expireAfterMin = 5;
+                  const endMs = startMs + classDurationMin * 60 * 1000;
+                  const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
+                  const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
+                  const nowMs = Date.now();
+                  const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
+                  return (
+                    <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
+                      <div className="text-sm">
+                        <div>{start.toLocaleDateString("en-IN")}</div>
+                        <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div className="text-xs text-gray-500">{s.status}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await joinSession(s._id);
+                              if (res?.success && res?.url) window.open(res.url, "_blank");
+                            } catch {}
+                          }}
+                          disabled={!canJoin}
+                          className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
+                        >
+                          Join Now
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Dialog.Panel>
         </div>
       </Dialog>
