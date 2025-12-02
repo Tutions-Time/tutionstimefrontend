@@ -375,6 +375,7 @@ export default function TutorRegularClasses() {
                         </div>
                       )}
 
+
                       {s.status !== "completed" && (
                         <div className="flex items-center justify-end">
                           {/* <button
