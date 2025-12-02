@@ -236,3 +236,55 @@ export const joinSession = async (sessionId: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
+// Upload session recording (tutor only)
+export const uploadSessionRecording = async (sessionId: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("recording", file);
+    const res = await api.post(`/sessions/${sessionId}/upload-recording`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Upload session notes (tutor only)
+export const uploadSessionNotes = async (sessionId: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("notes", file);
+    const res = await api.post(`/sessions/${sessionId}/upload-notes`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Upload session assignment (tutor only)
+export const uploadSessionAssignment = async (sessionId: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("assignment", file);
+    const res = await api.post(`/sessions/${sessionId}/upload-assignment`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+// Mark a session as completed (tutor only)
+export const completeSession = async (sessionId: string) => {
+  try {
+    const res = await api.post(`/sessions/${sessionId}/complete`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

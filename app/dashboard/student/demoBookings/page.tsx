@@ -283,26 +283,57 @@ export default function StudentBookingsPage() {
                 const nowMs = Date.now();
                 const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
                 return (
-                  <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
-                    <div className="text-sm">
-                      <div>{start.toLocaleDateString("en-IN")}</div>
-                      <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
-                      <div className="text-xs text-gray-500">{s.status}</div>
+                  <div key={s._id} className="border rounded-lg p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm">
+                        <div>{start.toLocaleDateString("en-IN")}</div>
+                        <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div className="text-xs text-gray-500">{s.status}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const res = await joinSession(s._id);
+                              if (res?.success && res?.url) window.open(res.url, "_blank");
+                            } catch {}
+                          }}
+                          disabled={!canJoin}
+                          className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
+                        >
+                          Join Now
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={async () => {
-                          try {
-                            const res = await joinSession(s._id);
-                            if (res?.success && res?.url) window.open(res.url, "_blank");
-                          } catch {}
-                        }}
-                        disabled={!canJoin}
-                        className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
-                      >
-                        Join Now
-                      </Button>
-                    </div>
+
+                    {s.status === "completed" && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div className="border rounded-lg p-2">
+                          <div className="font-medium">Recording</div>
+                          {s.recordingUrl ? (
+                            <a href={s.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                          ) : (
+                            <div className="text-xs text-gray-500">Not available</div>
+                          )}
+                        </div>
+                        <div className="border rounded-lg p-2">
+                          <div className="font-medium">Notes</div>
+                          {s.notesUrl ? (
+                            <a href={s.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                          ) : (
+                            <div className="text-xs text-gray-500">Not available</div>
+                          )}
+                        </div>
+                        <div className="border rounded-lg p-2">
+                          <div className="font-medium">Assignment</div>
+                          {s.assignmentUrl ? (
+                            <a href={s.assignmentUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
+                          ) : (
+                            <div className="text-xs text-gray-500">Not available</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

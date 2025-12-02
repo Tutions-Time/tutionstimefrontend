@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, User, BookOpen, Clock, Video } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getTutorRegularClasses, scheduleRegularClass, getRegularClassSessions, joinSession } from "@/services/tutorService";
+import { getTutorRegularClasses, scheduleRegularClass, getRegularClassSessions, joinSession, uploadSessionRecording, uploadSessionNotes, uploadSessionAssignment, completeSession } from "@/services/tutorService";
 import { toast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 
@@ -25,6 +25,7 @@ export default function TutorRegularClasses() {
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
   const openScheduleModal = (regularClassId: string) => {
     setSelectedClassId(regularClassId);
@@ -274,26 +275,122 @@ export default function TutorRegularClasses() {
                   const nowMs = Date.now();
                   const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
                   return (
-                    <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
-                      <div className="text-sm">
-                        <div>{start.toLocaleDateString("en-IN")}</div>
-                        <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
-                        <div className="text-xs text-gray-500">{s.status}</div>
+                    <div key={s._id} className="border rounded-lg p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <div>{start.toLocaleDateString("en-IN")}</div>
+                          <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                          <div className="text-xs text-gray-500">{s.status}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await joinSession(s._id);
+                                if (res?.success && res?.url) window.open(res.url, "_blank");
+                              } catch {}
+                            }}
+                            disabled={!canJoin}
+                            className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
+                          >
+                            Join Now
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={async () => {
-                            try {
-                              const res = await joinSession(s._id);
-                              if (res?.success && res?.url) window.open(res.url, "_blank");
-                            } catch {}
-                          }}
-                          disabled={!canJoin}
-                          className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
-                        >
-                          Join Now
-                        </button>
-                      </div>
+
+                      {s.status === "completed" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Recording</div>
+                            {s.recordingUrl ? (
+                              <a href={s.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <label className="text-xs block">
+                                <input
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    setUploading((u) => ({ ...u, [s._id]: true }));
+                                    try {
+                                      await uploadSessionRecording(s._id, file);
+                                      const res = await getRegularClassSessions(selectedClassId!);
+                                      setSessions(res.success ? (res.data || []) : []);
+                                    } catch {}
+                                    setUploading((u) => ({ ...u, [s._id]: false }));
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Notes</div>
+                            {s.notesUrl ? (
+                              <a href={s.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <label className="text-xs block">
+                                <input
+                                  type="file"
+                                  accept="application/pdf,.doc,.docx,.txt,image/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    setUploading((u) => ({ ...u, [s._id]: true }));
+                                    try {
+                                      await uploadSessionNotes(s._id, file);
+                                      const res = await getRegularClassSessions(selectedClassId!);
+                                      setSessions(res.success ? (res.data || []) : []);
+                                    } catch {}
+                                    setUploading((u) => ({ ...u, [s._id]: false }));
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Assignment</div>
+                            {s.assignmentUrl ? (
+                              <a href={s.assignmentUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
+                            ) : (
+                              <label className="text-xs block">
+                                <input
+                                  type="file"
+                                  accept="application/pdf,.doc,.docx,.txt,image/*"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    setUploading((u) => ({ ...u, [s._id]: true }));
+                                    try {
+                                      await uploadSessionAssignment(s._id, file);
+                                      const res = await getRegularClassSessions(selectedClassId!);
+                                      setSessions(res.success ? (res.data || []) : []);
+                                    } catch {}
+                                    setUploading((u) => ({ ...u, [s._id]: false }));
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {s.status !== "completed" && (
+                        <div className="flex items-center justify-end">
+                          <button
+                            className="px-3 py-2 rounded-lg text-sm border"
+                            onClick={async () => {
+                              try {
+                                await completeSession(s._id);
+                                const res = await getRegularClassSessions(selectedClassId!);
+                                setSessions(res.success ? (res.data || []) : []);
+                              } catch {}
+                            }}
+                          >
+                            Mark Completed
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

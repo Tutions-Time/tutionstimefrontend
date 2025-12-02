@@ -1,21 +1,61 @@
 'use client';
 
-import { useState } from 'react';
-import { ClipboardList, Upload, CheckCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ClipboardList, CheckCircle } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { getStudentRegularClasses } from '@/services/studentService';
+import { getRegularClassSessions } from '@/services/tutorService';
 
-const ITEMS = [
-  { id:'a1', title:'Algebra Worksheet 3', subject:'Math', due:'2025-10-18', status:'pending' as const },
-  { id:'a2', title:'Optics Numericals', subject:'Physics', due:'2025-10-12', status:'submitted' as const },
-];
+type AssignmentItem = {
+  id: string;
+  title: string;
+  subject: string;
+  due?: string;
+  url: string;
+};
 
 export default function AssignmentsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [items, setItems] = useState<AssignmentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const classes = await getStudentRegularClasses();
+        const sessionsLists = await Promise.all(
+          (classes || []).map((rc: any) => getRegularClassSessions(rc.regularClassId))
+        );
+        const assignments: AssignmentItem[] = [];
+        sessionsLists.forEach((res: any, idx: number) => {
+          const rc = classes[idx];
+          const sessions = res?.success ? (res.data || []) : [];
+          sessions.forEach((s: any) => {
+            if (s.status === 'completed' && s.assignmentUrl) {
+              assignments.push({
+                id: s._id,
+                title: `${rc.subject} • Session ${new Date(s.startDateTime).toLocaleDateString('en-IN')}`,
+                subject: rc.subject,
+                due: undefined,
+                url: s.assignmentUrl,
+              });
+            }
+          });
+        });
+        setItems(assignments);
+      } catch (err) {
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -24,16 +64,22 @@ export default function AssignmentsPage() {
       <div className="lg:pl-64">
         <Topbar title="Assignments" subtitle="Your homework and classwork" />
         <main className="p-4 lg:p-6 space-y-4">
-          {ITEMS.map(i=>(
+          {loading && (
+            <Card className="p-5 rounded-2xl bg-white shadow-sm">Loading assignments...</Card>
+          )}
+          {!loading && items.length === 0 && (
+            <Card className="p-5 rounded-2xl bg-white shadow-sm">No assignments available yet.</Card>
+          )}
+          {!loading && items.map((i)=> (
             <Card key={i.id} className="p-5 rounded-2xl bg-white shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="font-semibold">{i.title}</div>
-                  <div className="text-sm text-muted">{i.subject} • Due {new Date(i.due).toLocaleDateString()}</div>
+                  <div className="text-sm text-muted">{i.subject}</div>
                 </div>
-                {i.status==='submitted'
-                  ? <Badge className="bg-success/10 text-success border-success/20"><CheckCircle className="w-3 h-3 mr-1"/>Submitted</Badge>
-                  : <Button variant="outline"><Upload className="w-4 h-4 mr-2"/>Submit</Button>}
+                <a href={i.url} target="_blank" rel="noreferrer">
+                  <Button variant="outline">Download</Button>
+                </a>
               </div>
             </Card>
           ))}
