@@ -94,16 +94,23 @@ export default function SearchStudents() {
 
   useUrlSync(filter, (next) => setFilter(next));
 
-  function getImageUrl(photoUrl?: string) {
-    if (!photoUrl) return "/default-avatar.png";
+ function getImageUrl(photoUrl?: string) {
+  if (!photoUrl) return "/default-avatar.png";
 
-    const cleaned = photoUrl
-      .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-      .replace(/\\/g, "/")
-      .replace(/^.*uploads\//, "uploads/");
-
-    return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
+  // If photoUrl is already a full URL (S3), return as-is
+  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
+    return photoUrl;
   }
+
+  // Otherwise: local uploads path
+  const cleaned = photoUrl
+    .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+    .replace(/\\/g, "/")
+    .replace(/^.*uploads\//, "uploads/");
+
+  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
+}
+
 
   /* ---------- Query Builder ---------- */
   const params = useMemo(() => {
