@@ -8,7 +8,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Video, Star, XCircle, Users } from "lucide-react";
+import { Calendar, Clock, Video, Star, XCircle, Users, FileText, ClipboardList } from "lucide-react";
 import dayjs from "dayjs";
 import { toast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -25,11 +25,15 @@ import {
   createSubscriptionCheckout,
   verifySubscriptionPayment, // updated signature
 } from "@/services/razorpayService";
+import { getStudentRegularClasses } from "@/services/studentService";
+import { getRegularClassSessions, joinSession } from "@/services/tutorService";
+import { Dialog } from "@headlessui/react";
 
 export default function StudentSessions() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [subs, setSubs] = useState<any[]>([]);
+  const [regularClasses, setRegularClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,12 +44,23 @@ export default function StudentSessions() {
     rating: number;
     feedback: string;
   } | null>(null);
+  const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [regularClassSessions, setRegularClassSessions] = useState<any[]>([]);
+  const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
+  const [regularSessionsByClass, setRegularSessionsByClass] = useState<Record<string, any[]>>({});
+
+  const safeUrl = (u?: string) => {
+    const s = String(u || "").trim();
+    return s.replace(/^`|`$/g, "");
+  };
 
   const fetchAll = async () => {
     try {
-      const [b, s] = await Promise.all([getMyBookings(), getMySubscriptions()]);
+      const [b, s, rc] = await Promise.all([getMyBookings(), getMySubscriptions(), getStudentRegularClasses()]);
       setSessions(b);
       setSubs(s);
+      setRegularClasses(rc || []);
     } catch (err) {
       console.error(err);
       toast({ title: "Error loading sessions", variant: "destructive" });
@@ -54,9 +69,47 @@ export default function StudentSessions() {
     }
   };
 
+  const openSessionsModal = async (regularClassId: string) => {
+    setSelectedRegularClassId(regularClassId);
+    setSessionsModalOpen(true);
+    try {
+      setSessionsLoading(true);
+      const res = await getRegularClassSessions(regularClassId);
+      setRegularClassSessions(res.success ? (res.data || []) : []);
+    } catch {
+      setRegularClassSessions([]);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAll();
   }, []);
+
+  useEffect(() => {
+    async function loadAllSessions() {
+      try {
+        const ids = (regularClasses || [])
+          .map((rc: any) => rc.regularClassId)
+          .filter(Boolean);
+        if (ids.length === 0) {
+          setRegularSessionsByClass({});
+          return;
+        }
+        const results = await Promise.all(ids.map((id: string) => getRegularClassSessions(id)));
+        const map: Record<string, any[]> = {};
+        results.forEach((res: any, idx: number) => {
+          const id = ids[idx];
+          map[id] = res?.success ? (res.data || []) : [];
+        });
+        setRegularSessionsByClass(map);
+      } catch {
+        setRegularSessionsByClass({});
+      }
+    }
+    loadAllSessions();
+  }, [regularClasses]);
 
   // --- Convert demo → regular (one-time) ---
   const handleConvertToRegular = async (bookingId: string) => {
@@ -395,12 +448,201 @@ export default function StudentSessions() {
                         this Class
                       </Button>
                     )}
+
+                  {s.type === "regular" && s.regularClassId && (
+                    <Button
+                      variant="outline"
+                      onClick={() => openSessionsModal(s.regularClassId)}
+                    >
+                      View Sessions
+                    </Button>
+                  )}
                 </div>
+
+                {s.type === "regular" && s.regularClassId && (() => {
+                  const sessionsForRC = regularSessionsByClass[s.regularClassId] || [];
+                  const completed = sessionsForRC.filter((x: any) => x.status === "completed");
+                  const latest = completed
+                    .slice()
+                    .sort((a: any, b: any) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime())
+                    .pop();
+                  const recCount = completed.filter((x: any) => !!x.recordingUrl).length;
+                  const notesCount = completed.filter((x: any) => !!x.notesUrl).length;
+                  const assgnCount = completed.filter((x: any) => !!x.assignmentUrl).length;
+                  return (
+                    <div className="mt-4 border rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">Materials</div>
+                        <div className="flex gap-3 text-xs">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-700">
+                            <Video className="w-3 h-3" /> {recCount}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-700">
+                            <FileText className="w-3 h-3" /> {notesCount}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-700">
+                            <ClipboardList className="w-3 h-3" /> {assgnCount}
+                          </span>
+                        </div>
+                      </div>
+                      {latest ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Recording</div>
+                            {latest.recordingUrl ? (
+                              <a href={latest.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Notes</div>
+                            {latest.notesUrl ? (
+                              <a href={latest.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Assignment</div>
+                            {latest.assignmentUrl ? (
+                              <a href={latest.assignmentUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-500 mt-2">No materials yet</div>
+                      )}
+                      {latest && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          From session on {dayjs(latest.startDateTime).format("MMM D, YYYY")}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </Card>
             ))}
           </div>
         </main>
       </div>
+      <Dialog open={sessionsModalOpen} onClose={() => setSessionsModalOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+            <div className="p-6 pb-3 border-b">
+              <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4">
+              {sessionsLoading ? (
+                <div className="text-center text-gray-500">Loading...</div>
+              ) : regularClassSessions.length === 0 ? (
+                <div className="text-center text-gray-500">No sessions found.</div>
+              ) : (
+                regularClassSessions.map((s: any) => {
+                  const start = new Date(s.startDateTime);
+                  const startMs = start.getTime();
+                  const classDurationMin = 60;
+                  const joinBeforeMin = 5;
+                  const expireAfterMin = 5;
+                  const endMs = startMs + classDurationMin * 60 * 1000;
+                  const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
+                  const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
+                  const nowMs = Date.now();
+                  const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
+                  return (
+                    <div key={s._id} className="border rounded-lg p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <div>{start.toLocaleDateString("en-IN")}</div>
+                          <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                          <div className="text-xs text-gray-500">{s.status}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={async () => {
+                              try {
+                                const res = await joinSession(s._id);
+                                if (res?.success && res?.url) window.open(res.url, "_blank");
+                              } catch {}
+                            }}
+                            disabled={!canJoin}
+                            className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}
+                          >
+                            Join Now
+                          </Button>
+
+                          {s.status === "completed" && s.notesUrl && (
+                            <a href={safeUrl(s.notesUrl)} target="_blank" rel="noreferrer">
+                              <Button
+                                variant="outline"
+                                className="px-3 py-2 rounded-full text-sm"
+                              >
+                                Notes
+                              </Button>
+                            </a>
+                          )}
+                          {s.status === "completed" && s.recordingUrl && (
+                            <a href={safeUrl(s.recordingUrl)} target="_blank" rel="noreferrer">
+                              <Button
+                                variant="outline"
+                                className="px-3 py-2 rounded-full text-sm"
+                              >
+                                Recording
+                              </Button>
+                            </a>
+                          )}
+                          {s.status === "completed" && s.assignmentUrl && (
+                            <a href={safeUrl(s.assignmentUrl)} target="_blank" rel="noreferrer">
+                              <Button
+                                variant="outline"
+                                className="px-3 py-2 rounded-full text-sm"
+                              >
+                                Assignment
+                              </Button>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {s.status === "completed" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Recording</div>
+                            {s.recordingUrl ? (
+                              <a href={s.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Notes</div>
+                            {s.notesUrl ? (
+                              <a href={s.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="border rounded-lg p-2 text-sm">
+                            <div className="font-medium">Assignment</div>
+                            {s.assignmentUrl ? (
+                              <a href={s.assignmentUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }
