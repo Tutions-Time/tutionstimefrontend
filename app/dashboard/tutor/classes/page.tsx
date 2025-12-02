@@ -251,57 +251,79 @@ export default function TutorRegularClasses() {
         </div>
       </Dialog>
 
-      <Dialog open={sessionsModalOpen} onClose={() => setSessionsModalOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black bg-opacity-40"></div>
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4">
-            <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
-            {sessionsLoading ? (
-              <div className="text-center text-gray-500">Loading...</div>
-            ) : sessions.length === 0 ? (
-              <div className="text-center text-gray-500">No sessions found.</div>
-            ) : (
-              <div className="space-y-3">
-                {sessions.map((s) => {
-                  const start = new Date(s.startDateTime);
-                  const startMs = start.getTime();
-                  const classDurationMin = 60;
-                  const joinBeforeMin = 5;
-                  const expireAfterMin = 5;
-                  const endMs = startMs + classDurationMin * 60 * 1000;
-                  const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
-                  const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
-                  const nowMs = Date.now();
-                  const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
-                  return (
-                    <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
-                      <div className="text-sm">
-                        <div>{start.toLocaleDateString("en-IN")}</div>
-                        <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
-                        <div className="text-xs text-gray-500">{s.status}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={async () => {
-                            try {
-                              const res = await joinSession(s._id);
-                              if (res?.success && res?.url) window.open(res.url, "_blank");
-                            } catch {}
-                          }}
-                          disabled={!canJoin}
-                          className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"}`}
-                        >
-                          Join Now
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+  <Dialog open={sessionsModalOpen} onClose={() => setSessionsModalOpen(false)} className="relative z-50">
+  {/* Overlay */}
+  <div className="fixed inset-0 bg-black/40" />
+
+  {/* Wrapper that allows scroll */}
+  <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+    <Dialog.Panel
+      className="
+        bg-white 
+        rounded-xl 
+        shadow-xl 
+        w-full 
+        max-w-lg 
+        max-h-[85vh] 
+        flex 
+        flex-col
+      "
+    >
+      {/* Header */}
+      <div className="p-6 pb-3 border-b">
+        <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="p-6 overflow-y-auto space-y-4">
+        {sessionsLoading ? (
+          <div className="text-center text-gray-500">Loading...</div>
+        ) : sessions.length === 0 ? (
+          <div className="text-center text-gray-500">No sessions found.</div>
+        ) : (
+          sessions.map((s) => {
+            const start = new Date(s.startDateTime);
+            const startMs = start.getTime();
+            const classDurationMin = 60;
+            const joinBeforeMin = 5;
+            const expireAfterMin = 5;
+            const endMs = startMs + classDurationMin * 60 * 1000;
+            const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
+            const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
+            const nowMs = Date.now();
+            const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
+
+            return (
+              <div key={s._id} className="flex items-center justify-between border rounded-lg p-3">
+                <div className="text-sm">
+                  <div>{start.toLocaleDateString("en-IN")}</div>
+                  <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                  <div className="text-xs text-gray-500">{s.status}</div>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await joinSession(s._id);
+                      if (res?.success && res?.url) window.open(res.url, "_blank");
+                    } catch {}
+                  }}
+                  disabled={!canJoin}
+                  className={`px-3 py-2 rounded-lg text-sm ${
+                    canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  Join Now
+                </button>
               </div>
-            )}
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+            );
+          })
+        )}
+      </div>
+    </Dialog.Panel>
+  </div>
+</Dialog>
+
     </div>
   );
 }

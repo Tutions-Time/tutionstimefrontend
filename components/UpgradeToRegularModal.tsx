@@ -24,18 +24,52 @@ export default function UpgradeToRegularModal({
     const hourlyRate = booking?.tutorHourlyRate || 0;
     const monthlyRate = booking?.tutorMonthlyRate || 0;
 
-    const openRazorpay = (order: any) => {
+    /* -----------------------------------------
+     * Razorpay Script Loader (Fresh)
+     * --------------------------------------- */
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            // Remove existing script
+            const existing = document.getElementById("razorpay-js");
+            if (existing) existing.remove();
+
+            const script = document.createElement("script");
+            script.id = "razorpay-js";
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve(true);
+            document.body.appendChild(script);
+        });
+    };
+
+    /* -----------------------------------------
+     * FINAL FIXED Razorpay Handler
+     * --------------------------------------- */
+    const openRazorpay = async (order: any) => {
+        // 1️⃣ Remove any previous Razorpay instance
+        if ((window as any).rzp_instance) {
+            (window as any).rzp_instance.close();
+            (window as any).rzp_instance = null;
+        }
+
+        // 2️⃣ Remove Razorpay constructor from cache
+        delete (window as any).Razorpay;
+
+        // 3️⃣ Reload Razorpay fresh
+        await loadRazorpayScript();
+
         if (!(window as any).Razorpay) {
-            toast.error("Razorpay SDK not loaded");
+            toast.error("Unable to load Razorpay");
             return;
         }
+
+        // 4️⃣ Fresh options every time
         const options = {
             key: order.razorpayKey,
             amount: order.amount,
             currency: order.currency,
             name: "TuitionTime",
             description: "Regular Class Payment",
-            order_id: order.orderId,
+            order_id: order.orderId, // MUST be fresh from backend
             handler: async (response: any) => {
                 try {
                     const verifyRes = await verifyGenericPayment(
@@ -56,22 +90,32 @@ export default function UpgradeToRegularModal({
                     );
 
                     if (verifyRes?.success) {
-                        toast.success("Payment successful and verified!");
+                        toast.success("Payment successful!");
                         router.push(`/dashboard/student/sessions?tab=regular`);
                     } else {
                         toast.error(verifyRes?.message || "Verification failed");
                     }
-                } catch (e: any) {
-                    toast.error(e.message || "Verification failed");
+                } catch (err: any) {
+                    toast.error(err.message || "Verification failed");
                 }
             },
             theme: { color: "#207EA9" },
         };
 
+        // 5️⃣ Create fresh instance
         const rzp = new (window as any).Razorpay(options);
+        (window as any).rzp_instance = rzp;
+
         rzp.open();
+
+        rzp.on("payment.failed", () => {
+            (window as any).rzp_instance = null;
+        });
     };
 
+    /* -----------------------------------------
+     * SUBMIT → Create new order → openRazorpay
+     * --------------------------------------- */
     const handleSubmit = async () => {
         try {
             setLoading(true);
@@ -88,7 +132,9 @@ export default function UpgradeToRegularModal({
                 return;
             }
 
+            // IMPORTANT: res.data MUST contain a NEW orderId
             openRazorpay(res.data);
+
         } catch (err: any) {
             toast.error(err.message || "Something went wrong");
         } finally {
@@ -108,20 +154,12 @@ export default function UpgradeToRegularModal({
                     </button>
                 </div>
 
-                {/* RATE BOX */}
+                {/* RATES BOX */}
                 <div className="border rounded-lg p-3 bg-gray-50 mb-4">
-                    <p className="text-sm font-medium text-gray-700">
-                        💰 Tutor Rates
-                    </p>
+                    <p className="text-sm font-medium text-gray-700">💰 Tutor Rates</p>
                     <div className="mt-1 text-sm text-gray-800 space-y-1">
-                        <p>
-                            <span className="font-semibold">Hourly: </span>
-                            ₹{hourlyRate} per class
-                        </p>
-                        <p>
-                            <span className="font-semibold">Monthly: </span>
-                            ₹{monthlyRate} per month
-                        </p>
+                        <p><span className="font-semibold">Hourly: </span>₹{hourlyRate} per class</p>
+                        <p><span className="font-semibold">Monthly: </span>₹{monthlyRate} per month</p>
                     </div>
                 </div>
 
@@ -130,9 +168,7 @@ export default function UpgradeToRegularModal({
                 <select
                     className="border p-2 rounded w-full mt-1"
                     value={billingType}
-                    onChange={(e) =>
-                        setBillingType(e.target.value as "hourly" | "monthly")
-                    }
+                    onChange={(e) => setBillingType(e.target.value as "hourly" | "monthly")}
                 >
                     <option value="hourly">Hourly (per class)</option>
                     <option value="monthly">Monthly (subscription)</option>
@@ -141,9 +177,7 @@ export default function UpgradeToRegularModal({
                 {/* NUMBER OF CLASSES */}
                 {billingType === "hourly" && (
                     <>
-                        <label className="font-medium text-sm mt-4">
-                            Number of Classes
-                        </label>
+                        <label className="font-medium text-sm mt-4">Number of Classes</label>
                         <input
                             type="number"
                             className="border p-2 rounded w-full mt-1"
@@ -153,10 +187,11 @@ export default function UpgradeToRegularModal({
                     </>
                 )}
 
+                {/* BUTTON */}
                 <button
                     disabled={loading}
                     onClick={handleSubmit}
-                    className="bg-[#FFD54F] text-black mt-6 px-4 py-2 rounded w-full font-semibold hover:bg-[#FFD54F]"
+                    className="bg-[#FFD54F] text-black mt-6 px-4 py-2 rounded w-full font-semibold hover:bg-[#f3c942]"
                 >
                     {loading ? "Processing..." : "Proceed to Payment"}
                 </button>
