@@ -103,6 +103,7 @@ const handleSubmit = async () => {
       appendOtherPair("stream", "streamOther", profile.stream, profile.streamOther);
     }
 
+    
     // ===== COLLEGE TRACK =====
     if (profile.track === "college") {
       appendOtherPair("program", "programOther", profile.program, profile.programOther);
