@@ -377,7 +377,7 @@ export default function TutorRegularClasses() {
 
                       {s.status !== "completed" && (
                         <div className="flex items-center justify-end">
-                          <button
+                          {/* <button
                             className="px-3 py-2 rounded-lg text-sm border"
                             onClick={async () => {
                               try {
@@ -388,7 +388,7 @@ export default function TutorRegularClasses() {
                             }}
                           >
                             Mark Completed
-                          </button>
+                          </button> */}
                         </div>
                       )}
                     </div>
