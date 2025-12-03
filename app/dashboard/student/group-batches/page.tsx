@@ -3,6 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { listBatches, reserveSeat, createGroupOrder, verifyGroupPayment } from "@/services/groupBatchService";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Navbar } from "@/components/layout/Navbar";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/Topbar";
+import { Button } from "@/components/ui/button";
 
 export default function GroupBatchesPage() {
   const enabled = String(process.env.NEXT_PUBLIC_FEATURE_GROUP_BATCHES || "false").toLowerCase() === "true";
@@ -10,6 +14,7 @@ export default function GroupBatchesPage() {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -82,8 +87,8 @@ export default function GroupBatchesPage() {
   };
 
   useEffect(() => {
-    if (enabled) fetchData();
-  }, [enabled, filters.subject, filters.level, filters.date]);
+    fetchData();
+  }, [filters.subject, filters.level, filters.date]);
 
   const reserveAndPay = async (batchId: string) => {
     try {
@@ -105,26 +110,34 @@ export default function GroupBatchesPage() {
 
   const list = useMemo(() => items || [], [items]);
 
-  if (!enabled) return <div className="p-6">Feature disabled</div>;
+  
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Group Batches</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input className="border p-2 rounded" placeholder="Subject" value={filters.subject||""} onChange={(e)=>setFilters({ ...filters, subject: e.target.value })} />
-        <input className="border p-2 rounded" placeholder="Level" value={filters.level||""} onChange={(e)=>setFilters({ ...filters, level: e.target.value })} />
-        <input className="border p-2 rounded" placeholder="Date (YYYY-MM-DD)" value={filters.date||""} onChange={(e)=>setFilters({ ...filters, date: e.target.value })} />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {list.map((b:any)=> (
-          <div key={b._id} className="border rounded p-4 flex flex-col gap-2">
-            <div className="font-medium">{b.subject} • {b.level || "General"}</div>
-            <div className="text-sm">Type: {b.batchType}</div>
-            <div className="text-sm">Price: ₹{b.pricePerStudent}</div>
-            <div className="text-sm">Seats left: {b.liveSeats}</div>
-            <button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="bg-blue-600 text-white px-3 py-2 rounded disabled:opacity-50">{loading ? "Processing..." : "Join"}</button>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
+      <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="lg:pl-64">
+        <Topbar title="Group Batches" subtitle="Find and join group classes" action={
+          <Button onClick={()=>setFilters({})} variant="outline">Clear Filters</Button>
+        } />
+        <main className="p-4 lg:p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input className="border p-2 rounded" placeholder="Subject" value={filters.subject||""} onChange={(e)=>setFilters({ ...filters, subject: e.target.value })} />
+            <input className="border p-2 rounded" placeholder="Level" value={filters.level||""} onChange={(e)=>setFilters({ ...filters, level: e.target.value })} />
+            <input className="border p-2 rounded" placeholder="Date (YYYY-MM-DD)" value={filters.date||""} onChange={(e)=>setFilters({ ...filters, date: e.target.value })} />
           </div>
-        ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {list.map((b:any)=> (
+              <div key={b._id} className="border rounded p-4 flex flex-col gap-2 bg-white shadow-sm">
+                <div className="font-medium">{b.subject} • {b.level || "General"}</div>
+                <div className="text-sm">Type: {b.batchType}</div>
+                <div className="text-sm">Price: ₹{b.pricePerStudent}</div>
+                <div className="text-sm">Seats left: {b.liveSeats}</div>
+                <Button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="disabled:opacity-50">{loading ? "Processing..." : "Join"}</Button>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     </div>
   );

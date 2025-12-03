@@ -38,6 +38,7 @@ type NavLink = {
 const studentLinks: NavLink[] = [
   { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
+  { href: '/dashboard/student/group-batches', label: 'Group Batches', icon: Users },
   { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
   { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
   { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
@@ -49,6 +50,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/search', label: 'Find Students', icon: User },
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
   { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
+  { href: '/dashboard/tutor/group-batches', label: 'Group Batches', icon: Users },
   { href: '/dashboard/tutor/weekly-summary', label: 'Weekly Summary', icon: TrendingUp },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
