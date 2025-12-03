@@ -45,3 +45,12 @@ export const verifyGroupPayment = async (payload: { orderId: string; paymentId: 
   }
 };
 
+export const getCreateOptions = async () => {
+  try {
+    const res = await api.get(`/group-batches/create/options`);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
