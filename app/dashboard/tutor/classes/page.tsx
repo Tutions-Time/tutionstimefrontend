@@ -1,6 +1,6 @@
 "use client";
+import React, { useEffect, useState } from "react";
 
-import { useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -17,9 +17,8 @@ import {
   uploadSessionNotes,
   uploadSessionAssignment,
 } from "@/services/tutorService";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
-
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -44,11 +43,16 @@ function UploadCard({
   const safeUrl = (u?: string | null) => {
     if (!u) return undefined;
     try {
-      if (u.startsWith("/uploads") || u.startsWith("uploads")) return u.startsWith("/") ? u : "/" + u;
+      if (u.startsWith("/uploads") || u.startsWith("uploads")) {
+        return u.startsWith("/") ? u : "/" + u;
+      }
       const url = new URL(u);
       return ["http:", "https:"].includes(url.protocol) ? u : undefined;
-    } catch { return undefined; }
+    } catch {
+      return undefined;
+    }
   };
+
   return (
     <div className="rounded-xl border p-4 bg-white shadow-sm">
       <div className="text-sm font-semibold mb-2">{label}</div>
@@ -86,17 +90,17 @@ function UploadCard({
   );
 }
 
-
-
 // ======================================================
 // ⭐ MAIN COMPONENT
 // ======================================================
-export default function TutorRegularClasses() {
+const TutorRegularClasses = () => {
+  const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<"scheduled" | "not-scheduled">("scheduled");
+  const [activeTab, setActiveTab] =
+    useState<"scheduled" | "not-scheduled">("scheduled");
 
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [timeValue, setTimeValue] = useState("");
@@ -160,7 +164,10 @@ export default function TutorRegularClasses() {
 
     try {
       await scheduleRegularClass(selectedClassId!, { time: timeValue });
-      toast({ title: "Success", description: "Class scheduled successfully!" });
+      toast({
+        title: "Success",
+        description: "Class scheduled successfully!",
+      });
       setModalOpen(false);
       loadClasses();
     } catch (e: any) {
@@ -181,36 +188,52 @@ export default function TutorRegularClasses() {
     }
   };
 
-  const scheduledClasses = classes.filter((c) => c.scheduleStatus === "scheduled");
-  const notScheduledClasses = classes.filter((c) => c.scheduleStatus === "not-scheduled");
+  const scheduledClasses = classes.filter(
+    (c) => c.scheduleStatus === "scheduled"
+  );
+  const notScheduledClasses = classes.filter(
+    (c) => c.scheduleStatus === "not-scheduled"
+  );
 
-
-
-  // ======================================================
-  // ⭐ RENDER
-  // ======================================================
+  // Render
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
-      <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Navbar
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+        userRole="tutor"
+      />
+      <Sidebar
+        userRole="tutor"
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div className="lg:pl-64">
-        <Topbar title="Regular Classes" subtitle="Your active regular class students" />
+        <Topbar
+          title="Regular Classes"
+          subtitle="Your active regular class students"
+        />
 
         {/* Tabs */}
         <div className="px-4 lg:px-6 mt-4 flex gap-3">
           <button
             onClick={() => setActiveTab("scheduled")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${activeTab === "scheduled" ? "bg-[#FFD54F] text-white" : "bg-white border"
-              }`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              activeTab === "scheduled"
+                ? "bg-[#FFD54F] text-white"
+                : "bg-white border"
+            }`}
           >
             Scheduled Classes
           </button>
 
           <button
             onClick={() => setActiveTab("not-scheduled")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${activeTab === "not-scheduled" ? "bg-[#FFD54F] text-white" : "bg-white border"
-              }`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              activeTab === "not-scheduled"
+                ? "bg-[#FFD54F] text-white"
+                : "bg-white border"
+            }`}
           >
             Not Scheduled
           </button>
@@ -218,7 +241,6 @@ export default function TutorRegularClasses() {
 
         {/* Content */}
         <main className="p-4 lg:p-6 space-y-4">
-
           {/* Loading */}
           {loading && (
             <div className="text-center text-muted py-10 animate-pulse">
@@ -227,28 +249,40 @@ export default function TutorRegularClasses() {
           )}
 
           {/* Scheduled */}
-          {!loading && activeTab === "scheduled" && scheduledClasses.length === 0 && (
-            <Card className="p-6 text-center text-muted">No scheduled classes.</Card>
-          )}
+          {!loading &&
+            activeTab === "scheduled" &&
+            scheduledClasses.length === 0 && (
+              <Card className="p-6 text-center text-muted">
+                No scheduled classes.
+              </Card>
+            )}
 
           {!loading &&
             activeTab === "scheduled" &&
             scheduledClasses.map((c) => {
-              const { canJoin, isExpired } = getSessionJoinData(c.nextSession?.startDateTime);
+              const { canJoin, isExpired } = getSessionJoinData(
+                c.nextSession?.startDateTime
+              );
 
               return (
-                <Card key={c.regularClassId} className="p-6 bg-white rounded-2xl shadow-sm">
-
+                <Card
+                  key={c.regularClassId}
+                  className="p-6 bg-white rounded-2xl shadow-sm"
+                >
                   {/* Header */}
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarImage
-                            src={getImageUrl(c.student?.photoUrl || c.photoUrl)}
+                            src={getImageUrl(
+                              c.student?.photoUrl || c.photoUrl
+                            )}
                             alt={c.student?.name || c.studentName}
                           />
-                          <AvatarFallback>{(c.student?.name || c.studentName)[0]}</AvatarFallback>
+                          <AvatarFallback>
+                            {(c.student?.name || c.studentName)[0]}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="font-semibold text-lg">
                           {c.student?.name || c.studentName}
@@ -263,36 +297,42 @@ export default function TutorRegularClasses() {
                         <span className="flex items-center gap-1">
                           <CalendarDays className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            new Date(c.nextSession.startDateTime).toLocaleDateString("en-IN")}
-
+                            new Date(
+                              c.nextSession.startDateTime
+                            ).toLocaleDateString("en-IN")}
                         </span>
 
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            new Date(c.nextSession.startDateTime).toLocaleTimeString([], {
+                            new Date(
+                              c.nextSession.startDateTime
+                            ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
-
                         </span>
                       </div>
                     </div>
 
-                    <Badge className="bg-[#FFD54F] text-black">Scheduled</Badge>
+                    <Badge className="bg-[#FFD54F] text-black">
+                      Scheduled
+                    </Badge>
                   </div>
 
                   {/* Buttons */}
                   <div className="mt-4 flex gap-3">
-
                     {!isExpired && (
                       <button
-                        onClick={() => window.open(c.nextSession.meetingLink, "_blank")}
+                        onClick={() =>
+                          window.open(c.nextSession.meetingLink, "_blank")
+                        }
                         disabled={!canJoin}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold ${canJoin
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                          canJoin
                             ? "bg-[#FFD54F] text-black"
                             : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                          }`}
+                        }`}
                       >
                         <Video className="w-4 h-4 inline-block mr-2" />
                         Join
@@ -306,20 +346,26 @@ export default function TutorRegularClasses() {
                       View Sessions
                     </button>
                   </div>
-
                 </Card>
               );
             })}
 
           {/* Not Scheduled */}
-          {!loading && activeTab === "not-scheduled" && notScheduledClasses.length === 0 && (
-            <Card className="p-6 text-center text-muted">All classes are scheduled.</Card>
-          )}
+          {!loading &&
+            activeTab === "not-scheduled" &&
+            notScheduledClasses.length === 0 && (
+              <Card className="p-6 text-center text-muted">
+                All classes are scheduled.
+              </Card>
+            )}
 
           {!loading &&
             activeTab === "not-scheduled" &&
             notScheduledClasses.map((c) => (
-              <Card key={c.regularClassId} className="p-6 bg-white rounded-2xl shadow-sm">
+              <Card
+                key={c.regularClassId}
+                className="p-6 bg-white rounded-2xl shadow-sm"
+              >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="font-semibold text-lg flex items-center gap-2">
@@ -336,7 +382,9 @@ export default function TutorRegularClasses() {
                     </div>
                   </div>
 
-                  <Badge className="bg-[#FFD54F] text-red-700">Not Scheduled</Badge>
+                  <Badge className="bg-[#FFD54F] text-red-700">
+                    Not Scheduled
+                  </Badge>
                 </div>
 
                 <button
@@ -350,17 +398,17 @@ export default function TutorRegularClasses() {
         </main>
       </div>
 
-
-
       {/* ======================================================
           ⭐ Schedule Time Modal
       ====================================================== */}
       <Dialog open={modalOpen} onClose={() => setModalOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/40"></div>
+        <div className="fixed inset-0 bg-black/40" />
 
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm space-y-4">
-            <Dialog.Title className="text-lg font-semibold">Schedule Class</Dialog.Title>
+            <Dialog.Title className="text-lg font-semibold">
+              Schedule Class
+            </Dialog.Title>
 
             <input
               type="time"
@@ -379,9 +427,6 @@ export default function TutorRegularClasses() {
         </div>
       </Dialog>
 
-
-
-
       {/* ======================================================
           ⭐ Sessions Modal
       ====================================================== */}
@@ -390,36 +435,56 @@ export default function TutorRegularClasses() {
         onClose={() => setSessionsModalOpen(false)}
         className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black/40"></div>
+        <div className="fixed inset-0 bg-black/40" />
 
         <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
+          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4 max-h[90vh] overflow-y-auto">
+            <Dialog.Title className="text-lg font-semibold">
+              Sessions
+            </Dialog.Title>
 
-            <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+            {/* Sessions content */}
+            {sessionsLoading && (
+              <div className="text-center text-gray-500">Loading...</div>
+            )}
 
-            {(() => {
-              if (sessionsLoading) return <div className="text-center text-gray-500">Loading...</div>;
-              if (sessions.length === 0) return <div className="text-center text-gray-500">No sessions found.</div>;
-              return (
+            {!sessionsLoading && sessions.length === 0 && (
+              <div className="text-center text-gray-500">
+                No sessions found.
+              </div>
+            )}
+
+            {!sessionsLoading && sessions.length > 0 && (
               <div className="space-y-3">
-
                 {sessions.map((s) => {
-                  const { canJoin, isExpired } = getSessionJoinData(s.startDateTime);
+                  const { canJoin, isExpired } = getSessionJoinData(
+                    s.startDateTime
+                  );
 
                   return (
-                    <div key={s._id} className="border rounded-lg p-3 space-y-3">
-
+                    <div
+                      key={s._id}
+                      className="border rounded-lg p-3 space-y-3"
+                    >
                       {/* Top Section */}
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
-                          <div>{new Date(s.startDateTime).toLocaleDateString("en-IN")}</div>
                           <div>
-                            {new Date(s.startDateTime).toLocaleTimeString([], {
+                            {new Date(
+                              s.startDateTime
+                            ).toLocaleDateString("en-IN")}
+                          </div>
+                          <div>
+                            {new Date(
+                              s.startDateTime
+                            ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
                           </div>
-                          <div className="text-xs text-gray-500">{s.status}</div>
+                          <div className="text-xs text-gray-500">
+                            {s.status}
+                          </div>
                         </div>
 
                         {/* Join Button */}
@@ -428,27 +493,34 @@ export default function TutorRegularClasses() {
                             onClick={async () => {
                               try {
                                 const res = await joinSession(s._id);
-                                if (res?.success && res?.url) window.open(res.url, "_blank");
-                              } catch { }
+                                if (res?.success && res?.url) {
+                                  window.open(res.url, "_blank");
+                                }
+                              } catch {
+                                // ignore
+                              }
                             }}
                             disabled={!canJoin}
-                            className={`px-3 py-2 rounded-lg text-sm ${canJoin
+                            className={`px-3 py-2 rounded-lg text-sm ${
+                              canJoin
                                 ? "bg-[#FFD54F] text-black"
                                 : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                              }`}
+                            }`}
                           >
                             Join Now
                           </button>
                         )}
                       </div>
 
-                      {/* Uploads Section */}
+                      {/* Uploads Section (only when completed) */}
                       {s.status === "completed" && (
                         <div className="space-y-4">
                           {/* Ratings & Feedback */}
                           {s.sessionFeedback && (
                             <div className="rounded-xl border p-4 bg-white shadow-sm">
-                              <div className="text-sm font-semibold mb-2">Session Feedback</div>
+                              <div className="text-sm font-semibold mb-2">
+                                Session Feedback
+                              </div>
                               <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div>Teaching: {s.sessionFeedback.teaching}/5</div>
                                 <div>Communication: {s.sessionFeedback.communication}/5</div>
@@ -465,73 +537,85 @@ export default function TutorRegularClasses() {
 
                           {/* Materials */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <UploadCard
+                              label="Recording"
+                              fileUrl={s.recordingUrl}
+                              buttonId={`upload-recording-${s._id}`}
+                              accept="video/*"
+                              buttonLabel="Upload"
+                              uploadHandler={async (file) => {
+                                await uploadSessionRecording(s._id, file);
+                                const res = await getRegularClassSessions(
+                                  selectedClassId!
+                                );
+                                setSessions(res.success ? res.data : []);
+                              }}
+                            />
 
-                          <UploadCard
-                            label="Recording"
-                            fileUrl={s.recordingUrl}
-                            buttonId={`upload-recording-${s._id}`}
-                            accept="video/*"
-                            buttonLabel="Upload"
-                            uploadHandler={async (file) => {
-                              await uploadSessionRecording(s._id, file);
-                              const res = await getRegularClassSessions(selectedClassId!);
-                              setSessions(res.success ? res.data : []);
-                            }}
-                          />
+                            <UploadCard
+                              label="Notes"
+                              fileUrl={s.notesUrl}
+                              buttonId={`upload-notes-${s._id}`}
+                              accept="application/pdf,.doc,.docx,.txt,image/*"
+                              buttonLabel="Upload"
+                              uploadHandler={async (file) => {
+                                await uploadSessionNotes(s._id, file);
+                                const res = await getRegularClassSessions(
+                                  selectedClassId!
+                                );
+                                setSessions(res.success ? res.data : []);
+                              }}
+                            />
 
-                          <UploadCard
-                            label="Notes"
-                            fileUrl={s.notesUrl}
-                            buttonId={`upload-notes-${s._id}`}
-                            accept="application/pdf,.doc,.docx,.txt,image/*"
-                            buttonLabel="Upload"
-                            uploadHandler={async (file) => {
-                              await uploadSessionNotes(s._id, file);
-                              const res = await getRegularClassSessions(selectedClassId!);
-                              setSessions(res.success ? res.data : []);
-                            }}
-                          />
-
-                          <UploadCard
-                            label="Assignment"
-                            fileUrl={s.assignmentUrl}
-                            buttonId={`upload-assignment-${s._id}`}
-                            accept="application/pdf,.doc,.docx,.txt,image/*"
-                            buttonLabel="Upload"
-                            uploadHandler={async (file) => {
-                              await uploadSessionAssignment(s._id, file);
-                              const res = await getRegularClassSessions(selectedClassId!);
-                              setSessions(res.success ? res.data : []);
-                            }}
-                          />
+                            <UploadCard
+                              label="Assignment"
+                              fileUrl={s.assignmentUrl}
+                              buttonId={`upload-assignment-${s._id}`}
+                              accept="application/pdf,.doc,.docx,.txt,image/*"
+                              buttonLabel="Upload"
+                              uploadHandler={async (file) => {
+                                await uploadSessionAssignment(s._id, file);
+                                const res = await getRegularClassSessions(
+                                  selectedClassId!
+                                );
+                                setSessions(res.success ? res.data : []);
+                              }}
+                            />
                           </div>
-                        )}
+                        </div>
+                      )}
                     </div>
                   );
-                })
+                })}
               </div>
-              );
-            })()}
+            )}
           </Dialog.Panel>
         </div>
       </Dialog>
     </div>
   );
-}
+};
 
-
+export default TutorRegularClasses;
 
 // ======================================================
 // ⭐ IMAGE URL HELPER
 // ======================================================
 const IMAGE_BASE =
   process.env.NEXT_PUBLIC_IMAGE_URL ||
-  (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace("/api", "");
+  (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace(
+    "/api",
+    ""
+  );
 
 const getImageUrl = (photoUrl?: string | null) => {
   if (!photoUrl) return "/default-avatar.png";
 
-  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) return photoUrl;
+  if (
+    photoUrl.startsWith("http://") ||
+    photoUrl.startsWith("https://")
+  )
+    return photoUrl;
 
   const cleaned = photoUrl
     .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
