@@ -143,7 +143,7 @@ export default function StudentDashboard() {
                 <p className="text-sm text-muted mb-4">
                   View your learning analytics and achievements
                 </p>
-                <Link href="/progress">
+                <Link href="/dashboard/student/progress">
                   <Button variant="outline" className="w-full">
                     View Progress
                   </Button>
