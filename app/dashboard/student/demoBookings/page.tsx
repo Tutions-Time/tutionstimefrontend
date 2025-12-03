@@ -30,10 +30,16 @@ export default function StudentBookingsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
 
+  // ✅ Feedback state
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackSessionId, setFeedbackSessionId] = useState<string | null>(null);
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
-  const [feedbackForm, setFeedbackForm] = useState({ teaching: 5, communication: 5, understanding: 5, comment: "" });
+  const [feedbackForm, setFeedbackForm] = useState({
+    teaching: 5,
+    communication: 5,
+    understanding: 5,
+    comment: "",
+  });
 
   const themePrimary = "#FFD54F";
 
@@ -75,10 +81,12 @@ export default function StudentBookingsPage() {
     load();
   }, []);
 
+  // Filter bookings based on active tab
   const filtered = bookings.filter((b) => {
     const isTabMatch = b.type?.toLowerCase() === activeTab;
     if (!isTabMatch) return false;
 
+    // Hide demo bookings that have an associated PAID regular class
     if (activeTab !== "demo") return true;
 
     const rc = regularClasses.find(
@@ -101,6 +109,40 @@ export default function StudentBookingsPage() {
       setSessions([]);
     } finally {
       setSessionsLoading(false);
+    }
+  };
+
+  // ✅ Open feedback modal for a session
+  const openFeedback = (sessionId: string) => {
+    setFeedbackSessionId(sessionId);
+    setFeedbackForm({
+      teaching: 5,
+      communication: 5,
+      understanding: 5,
+      comment: "",
+    });
+    setFeedbackOpen(true);
+  };
+
+  // ✅ Submit feedback
+  const submitFeedback = async () => {
+    if (!feedbackSessionId) return;
+    try {
+      setFeedbackSubmitting(true);
+      const res = await submitSessionFeedback(feedbackSessionId, feedbackForm);
+      if (res?.success) {
+        setFeedbackOpen(false);
+        // Update session list in memory to reflect feedback
+        setSessions((prev) =>
+          prev.map((s: any) =>
+            s._id === feedbackSessionId ? { ...s, sessionFeedback: res.data } : s
+          )
+        );
+      }
+    } catch (e) {
+      console.error("Error submitting feedback:", e);
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
@@ -229,8 +271,7 @@ export default function StudentBookingsPage() {
 
                       {hasLink && (
                         <div className="mt-4 flex flex-wrap gap-3">
-
-                          {/* JOIN BUTTON */}
+                          {/* JOIN BUTTON (never hidden, just disabled when outside window) */}
                           {!joinState.isExpired && (
                             <Button
                               onClick={() =>
@@ -265,7 +306,7 @@ export default function StudentBookingsPage() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* SESSIONS MODAL */}
       <Dialog
         open={sessionsModalOpen}
         onClose={() => setSessionsModalOpen(false)}
@@ -292,7 +333,6 @@ export default function StudentBookingsPage() {
                   const joinOpenAt = startMs - 5 * 60 * 1000;
                   const joinCloseAt = startMs + 60 * 60 * 1000;
 
-                  const isFuture = nowMs < joinOpenAt;
                   const inJoinWindow = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
                   const isExpired = nowMs > joinCloseAt;
 
@@ -330,7 +370,7 @@ export default function StudentBookingsPage() {
                         )}
                       </div>
 
-                      {/* FILE DOWNLOADS */}
+                      {/* FILE DOWNLOADS + FEEDBACK */}
                       <div className="flex flex-wrap gap-2 pt-1">
                         {s.notesUrl && (
                           <Button
@@ -358,11 +398,123 @@ export default function StudentBookingsPage() {
                             🎥 Watch Recording
                           </Button>
                         )}
+
+                        {/* ✅ GIVE FEEDBACK BUTTON (ONLY FOR COMPLETED & NO FEEDBACK YET) */}
+                        {s.status === "completed" && !s.sessionFeedback && (
+                          <Button
+                            className="bg-white border text-gray-700 text-xs rounded-full px-4 py-2"
+                            onClick={() => openFeedback(s._id)}
+                          >
+                            ⭐ Give Feedback
+                          </Button>
+                        )}
                       </div>
                     </div>
                   );
                 })
               )}
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* FEEDBACK MODAL */}
+      <Dialog
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b">
+              <Dialog.Title className="text-lg font-semibold">
+                Session Feedback
+              </Dialog.Title>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm">Teaching</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={feedbackForm.teaching}
+                    onChange={(e) =>
+                      setFeedbackForm({
+                        ...feedbackForm,
+                        teaching: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 w-full border rounded px-2 py-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm">Communication</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={feedbackForm.communication}
+                    onChange={(e) =>
+                      setFeedbackForm({
+                        ...feedbackForm,
+                        communication: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 w-full border rounded px-2 py-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm">Understanding</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={feedbackForm.understanding}
+                    onChange={(e) =>
+                      setFeedbackForm({
+                        ...feedbackForm,
+                        understanding: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 w-full border rounded px-2 py-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm">Comment</label>
+                <textarea
+                  value={feedbackForm.comment}
+                  onChange={(e) =>
+                    setFeedbackForm({
+                      ...feedbackForm,
+                      comment: e.target.value,
+                    })
+                  }
+                  className="mt-1 w-full border rounded px-2 py-1"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={() => setFeedbackOpen(false)}
+                  variant="outline"
+                  className="border"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={submitFeedback}
+                  disabled={feedbackSubmitting}
+                  className="bg-[#FFD54F] text-black"
+                >
+                  {feedbackSubmitting ? "Submitting..." : "Submit"}
+                </Button>
+              </div>
             </div>
           </Dialog.Panel>
         </div>
