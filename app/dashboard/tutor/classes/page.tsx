@@ -444,7 +444,7 @@ export default function TutorRegularClasses() {
                             fileUrl={s.recordingUrl}
                             buttonId={`upload-recording-${s._id}`}
                             accept="video/*"
-                            buttonLabel="Upload Recording"
+                            buttonLabel="Upload"
                             uploadHandler={async (file) => {
                               await uploadSessionRecording(s._id, file);
                               const res = await getRegularClassSessions(selectedClassId!);
@@ -457,7 +457,7 @@ export default function TutorRegularClasses() {
                             fileUrl={s.notesUrl}
                             buttonId={`upload-notes-${s._id}`}
                             accept="application/pdf,.doc,.docx,.txt,image/*"
-                            buttonLabel="Upload Notes"
+                            buttonLabel="Upload"
                             uploadHandler={async (file) => {
                               await uploadSessionNotes(s._id, file);
                               const res = await getRegularClassSessions(selectedClassId!);
@@ -470,7 +470,7 @@ export default function TutorRegularClasses() {
                             fileUrl={s.assignmentUrl}
                             buttonId={`upload-assignment-${s._id}`}
                             accept="application/pdf,.doc,.docx,.txt,image/*"
-                            buttonLabel="Upload Assignment"
+                            buttonLabel="Upload"
                             uploadHandler={async (file) => {
                               await uploadSessionAssignment(s._id, file);
                               const res = await getRegularClassSessions(selectedClassId!);
