@@ -133,7 +133,10 @@ export default function GroupBatchesPage() {
                 <div className="text-sm">Type: {b.batchType}</div>
                 <div className="text-sm">Price: ₹{b.pricePerStudent}</div>
                 <div className="text-sm">Seats left: {b.liveSeats}</div>
-                <Button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="disabled:opacity-50">{loading ? "Processing..." : "Join"}</Button>
+                <div className="flex gap-2">
+                  <Button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="disabled:opacity-50">{loading ? "Processing..." : "Join"}</Button>
+                  <Button variant="outline" onClick={()=>router.push(`/dashboard/student/group-batches/${b._id}`)}>View Sessions</Button>
+                </div>
               </div>
             ))}
           </div>
