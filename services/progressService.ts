@@ -27,6 +27,24 @@ export const getTutorProgressSummary = async () => {
   }
 };
 
+export const getTutorWeeklySummary = async () => {
+  try {
+    const res = await api.get('/progress/tutor/weekly');
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getStudentWeeklySummary = async () => {
+  try {
+    const res = await api.get('/progress/student/weekly');
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const submitSessionFeedback = async (
   sessionId: string,
   payload: { teaching: number; communication: number; understanding: number; comment?: string }

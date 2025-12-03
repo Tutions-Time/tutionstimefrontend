@@ -49,6 +49,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/search', label: 'Find Students', icon: User },
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
   { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
+  { href: '/dashboard/tutor/weekly-summary', label: 'Weekly Summary', icon: TrendingUp },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
   { href: '/wallet', label: 'Earnings', icon: Wallet },

@@ -23,7 +23,7 @@ import {
   convertBookingToRegular,
   verifyBookingPayment,
   createSubscriptionCheckout,
-  verifySubscriptionPayment, // updated signature
+  verifySubscriptionPayment, 
 } from "@/services/razorpayService";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
@@ -52,7 +52,14 @@ export default function StudentSessions() {
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
-    return s.replace(/^`|`$/g, "");
+    if (!s) return "";
+    try {
+      if (s.startsWith("/uploads") || s.startsWith("uploads")) return s.startsWith("/") ? s : "/" + s;
+      const url = new URL(s);
+      return ["http:", "https:"].includes(url.protocol) ? s : "";
+    } catch {
+      return "";
+    }
   };
 
   const fetchAll = async () => {

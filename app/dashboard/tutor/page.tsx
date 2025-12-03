@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchUserProfile } from "@/store/slices/profileSlice";
 
 import KpiSection from "@/components/tutors/dashboard/KpiSection";
+import RatingsFeedbackWidget from "@/components/tutors/dashboard/RatingsFeedbackWidget";
 import MyClassesSection from "@/components/tutors/dashboard/MyClassesSection";
 import QuickActionsSection from "@/components/tutors/dashboard/QuickActionsSection";
 
@@ -158,6 +159,7 @@ export default function TutorDashboard() {
         {/* Body */}
         <main className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
           <KpiSection />
+          <RatingsFeedbackWidget />
 
           <div className="grid gap-6 lg:grid-cols-3">
            <MyClassesSection classes={classes.slice(0, 3)} />

@@ -41,13 +41,21 @@ function UploadCard({
   buttonLabel,
   uploadHandler,
 }: UploadCardProps) {
+  const safeUrl = (u?: string | null) => {
+    if (!u) return undefined;
+    try {
+      if (u.startsWith("/uploads") || u.startsWith("uploads")) return u.startsWith("/") ? u : "/" + u;
+      const url = new URL(u);
+      return ["http:", "https:"].includes(url.protocol) ? u : undefined;
+    } catch { return undefined; }
+  };
   return (
     <div className="rounded-xl border p-4 bg-white shadow-sm">
       <div className="text-sm font-semibold mb-2">{label}</div>
 
-      {fileUrl ? (
+      {safeUrl(fileUrl) ? (
         <a
-          href={fileUrl}
+          href={safeUrl(fileUrl)}
           target="_blank"
           rel="noreferrer"
           className="text-[#FFD54F] underline text-sm font-medium"
@@ -389,11 +397,10 @@ export default function TutorRegularClasses() {
 
             <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
 
-            {sessionsLoading ? (
-              <div className="text-center text-gray-500">Loading...</div>
-            ) : sessions.length === 0 ? (
-              <div className="text-center text-gray-500">No sessions found.</div>
-            ) : (
+            {(() => {
+              if (sessionsLoading) return <div className="text-center text-gray-500">Loading...</div>;
+              if (sessions.length === 0) return <div className="text-center text-gray-500">No sessions found.</div>;
+              return (
               <div className="space-y-3">
 
                 {sessions.map((s) => {
@@ -437,7 +444,27 @@ export default function TutorRegularClasses() {
 
                       {/* Uploads Section */}
                       {s.status === "completed" && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-4">
+                          {/* Ratings & Feedback */}
+                          {s.sessionFeedback && (
+                            <div className="rounded-xl border p-4 bg-white shadow-sm">
+                              <div className="text-sm font-semibold mb-2">Session Feedback</div>
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>Teaching: {s.sessionFeedback.teaching}/5</div>
+                                <div>Communication: {s.sessionFeedback.communication}/5</div>
+                                <div>Understanding: {s.sessionFeedback.understanding}/5</div>
+                                <div>Overall: {s.sessionFeedback.overall}/5</div>
+                              </div>
+                              {s.sessionFeedback.comment && (
+                                <div className="mt-2 text-sm text-gray-700">
+                                  {s.sessionFeedback.comment}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Materials */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                           <UploadCard
                             label="Recording"
@@ -477,14 +504,14 @@ export default function TutorRegularClasses() {
                               setSessions(res.success ? res.data : []);
                             }}
                           />
-
-                        </div>
-                      )}
+                          </div>
+                        )}
                     </div>
                   );
-                })}
+                })
               </div>
-            )}
+              );
+            })()}
           </Dialog.Panel>
         </div>
       </Dialog>
