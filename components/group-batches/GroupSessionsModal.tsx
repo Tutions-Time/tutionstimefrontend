@@ -9,9 +9,22 @@ type Props = {
   onJoin: (id: string) => void;
   getSessionJoinData: (dateStr: string) => { canJoin: boolean; isExpired: boolean };
   title?: string;
+  allowUpload?: boolean;
+  onUpload?: (sessionId: string, kind: "recording" | "notes" | "assignment", file: File) => Promise<void>;
 };
 
-export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions" }: Props) {
+export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload }: Props) {
+  const safeUrl = (u?: string) => {
+    const s = String(u || "").trim();
+    if (!s) return "";
+    try {
+      if (s.startsWith("/uploads") || s.startsWith("uploads")) return s.startsWith("/") ? s : "/" + s;
+      const url = new URL(s);
+      return ["http:", "https:"].includes(url.protocol) ? s : "";
+    } catch {
+      return "";
+    }
+  };
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/40" />
@@ -45,27 +58,116 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                       )}
                     </div>
                     {s.status === "completed" && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          {s.recordingUrl && (
-                            <a className="text-[#207EA9] underline text-sm" href={s.recordingUrl} target="_blank">
-                              Recording
-                            </a>
-                          )}
-                        </div>
-                        <div>
-                          {s.notesUrl && (
-                            <a className="text-[#207EA9] underline text-sm" href={s.notesUrl} target="_blank">
-                              Notes
-                            </a>
-                          )}
-                        </div>
-                        <div>
-                          {s.assignmentUrl && (
-                            <a className="text-[#207EA9] underline text-sm" href={s.assignmentUrl} target="_blank">
-                              Assignment
-                            </a>
-                          )}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="rounded-xl border p-4 bg-white shadow-sm">
+                            <div className="text-sm font-semibold mb-2">Recording</div>
+                            {safeUrl(s.recordingUrl) ? (
+                              <a
+                                href={safeUrl(s.recordingUrl)}
+                                download
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#FFD54F] underline text-sm font-medium"
+                              >
+                                Download Recording
+                              </a>
+                            ) : allowUpload && onUpload ? (
+                              <>
+                                <button
+                                  onClick={() => document.getElementById(`upload-recording-${s._id}`)?.click()}
+                                  className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition"
+                                >
+                                  Upload
+                                </button>
+                                <input
+                                  id={`upload-recording-${s._id}`}
+                                  type="file"
+                                  accept="video/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    await onUpload(s._id, "recording", file);
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="rounded-xl border p-4 bg-white shadow-sm">
+                            <div className="text-sm font-semibold mb-2">Notes</div>
+                            {safeUrl(s.notesUrl) ? (
+                              <a
+                                href={safeUrl(s.notesUrl)}
+                                download
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#FFD54F] underline text-sm font-medium"
+                              >
+                                Download Notes
+                              </a>
+                            ) : allowUpload && onUpload ? (
+                              <>
+                                <button
+                                  onClick={() => document.getElementById(`upload-notes-${s._id}`)?.click()}
+                                  className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition"
+                                >
+                                  Upload
+                                </button>
+                                <input
+                                  id={`upload-notes-${s._id}`}
+                                  type="file"
+                                  accept="application/pdf,.doc,.docx,.txt,image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    await onUpload(s._id, "notes", file);
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
+                          <div className="rounded-xl border p-4 bg-white shadow-sm">
+                            <div className="text-sm font-semibold mb-2">Assignment</div>
+                            {safeUrl(s.assignmentUrl) ? (
+                              <a
+                                href={safeUrl(s.assignmentUrl)}
+                                download
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#FFD54F] underline text-sm font-medium"
+                              >
+                                Download Assignment
+                              </a>
+                            ) : allowUpload && onUpload ? (
+                              <>
+                                <button
+                                  onClick={() => document.getElementById(`upload-assignment-${s._id}`)?.click()}
+                                  className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition"
+                                >
+                                  Upload
+                                </button>
+                                <input
+                                  id={`upload-assignment-${s._id}`}
+                                  type="file"
+                                  accept="application/pdf,.doc,.docx,.txt,image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    await onUpload(s._id, "assignment", file);
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-500">Not uploaded</div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -79,4 +181,3 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
     </Dialog>
   );
 }
-

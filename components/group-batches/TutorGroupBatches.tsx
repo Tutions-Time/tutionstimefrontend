@@ -170,6 +170,39 @@ export default function TutorGroupBatches() {
     } catch (e: any) { toast.error(e.message || "Generation failed"); }
   };
 
+  const onUpload = async (
+    sessionId: string,
+    kind: "recording" | "notes" | "assignment",
+    file: File
+  ) => {
+    try {
+      const form = new FormData();
+      form.append(kind, file);
+      const endpoint =
+        kind === "recording"
+          ? "upload-recording"
+          : kind === "notes"
+          ? "upload-notes"
+          : "upload-assignment";
+      const res = await api.post(
+        `/sessions/${sessionId}/${endpoint}`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      if (res.data?.success) {
+        if (selectedId) {
+          const s = await api.get(`/group-batches/${selectedId}/sessions`);
+          setSessions(s.data?.data || []);
+        }
+        toast.success("Uploaded");
+      } else {
+        toast.error("Upload failed");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Dialog open={open} onOpenChange={setOpen}>
@@ -268,6 +301,8 @@ export default function TutorGroupBatches() {
         onJoin={(id) => joinSession(id)}
         getSessionJoinData={getSessionJoinData}
         title="Sessions"
+        allowUpload
+        onUpload={onUpload}
       />
 
       {/* Helper: generate sessions when none */}
@@ -279,4 +314,3 @@ export default function TutorGroupBatches() {
     </div>
   );
 }
-

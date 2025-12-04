@@ -497,7 +497,7 @@ export default function StudentSessions() {
                           <div className="border rounded-lg p-2 text-sm">
                             <div className="font-medium">Recording</div>
                             {latest.recordingUrl ? (
-                              <a href={latest.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                              <a href={latest.recordingUrl} download target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
                             ) : (
                               <div className="text-xs text-gray-500">Not uploaded</div>
                             )}
@@ -505,7 +505,7 @@ export default function StudentSessions() {
                           <div className="border rounded-lg p-2 text-sm">
                             <div className="font-medium">Notes</div>
                             {latest.notesUrl ? (
-                              <a href={latest.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                              <a href={latest.notesUrl} download target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
                             ) : (
                               <div className="text-xs text-gray-500">Not uploaded</div>
                             )}
@@ -582,7 +582,7 @@ export default function StudentSessions() {
                           </Button>
 
                           {s.status === "completed" && s.notesUrl && (
-                            <a href={safeUrl(s.notesUrl)} target="_blank" rel="noreferrer">
+                            <a href={safeUrl(s.notesUrl)} download target="_blank" rel="noreferrer">
                               <Button
                                 variant="outline"
                                 className="px-3 py-2 rounded-full text-sm"
@@ -592,7 +592,7 @@ export default function StudentSessions() {
                             </a>
                           )}
                           {s.status === "completed" && s.recordingUrl && (
-                            <a href={safeUrl(s.recordingUrl)} target="_blank" rel="noreferrer">
+                            <a href={safeUrl(s.recordingUrl)} download target="_blank" rel="noreferrer">
                               <Button
                                 variant="outline"
                                 className="px-3 py-2 rounded-full text-sm"
@@ -602,7 +602,7 @@ export default function StudentSessions() {
                             </a>
                           )}
                           {s.status === "completed" && s.assignmentUrl && (
-                            <a href={safeUrl(s.assignmentUrl)} target="_blank" rel="noreferrer">
+                            <a href={safeUrl(s.assignmentUrl)} download target="_blank" rel="noreferrer">
                               <Button
                                 variant="outline"
                                 className="px-3 py-2 rounded-full text-sm"
@@ -619,7 +619,7 @@ export default function StudentSessions() {
                           <div className="border rounded-lg p-2 text-sm">
                             <div className="font-medium">Recording</div>
                             {s.recordingUrl ? (
-                              <a href={s.recordingUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                              <a href={s.recordingUrl} download target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
                             ) : (
                               <div className="text-xs text-gray-500">Not uploaded</div>
                             )}
@@ -627,7 +627,7 @@ export default function StudentSessions() {
                           <div className="border rounded-lg p-2 text-sm">
                             <div className="font-medium">Notes</div>
                             {s.notesUrl ? (
-                              <a href={s.notesUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">View</a>
+                              <a href={s.notesUrl} download target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
                             ) : (
                               <div className="text-xs text-gray-500">Not uploaded</div>
                             )}
@@ -635,7 +635,7 @@ export default function StudentSessions() {
                           <div className="border rounded-lg p-2 text-sm">
                             <div className="font-medium">Assignment</div>
                             {s.assignmentUrl ? (
-                              <a href={s.assignmentUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
+                              <a href={s.assignmentUrl} download target="_blank" rel="noreferrer" className="text-primary text-xs">Download</a>
                             ) : (
                               <div className="text-xs text-gray-500">Not uploaded</div>
                             )}
