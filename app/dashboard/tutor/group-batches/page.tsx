@@ -29,6 +29,7 @@ export default function TutorGroupBatchesPage() {
     level: "",
     batchType: "revision",
     fixedDates: [],
+    classStartTime: "18:00",
     seatCap: 10,
     pricePerStudent: 500,
     description: "",
@@ -129,6 +130,7 @@ export default function TutorGroupBatchesPage() {
           level: "",
           batchType: "revision",
           fixedDates: [],
+          classStartTime: "18:00",
           seatCap: 10,
           pricePerStudent: 500,
           description: "",
@@ -335,6 +337,17 @@ export default function TutorGroupBatchesPage() {
                       </div>
                     </div>
                   }
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Class Start Time</label>
+                    <input
+                      type="time"
+                      className="border p-2 rounded w-full"
+                      value={form.classStartTime}
+                      onChange={(e) =>
+                        setForm({ ...form, classStartTime: e.target.value })
+                      }
+                    />
+                  </div>
                   {/* Seat Cap */}
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">

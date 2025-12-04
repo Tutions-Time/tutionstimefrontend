@@ -17,6 +17,7 @@ export default function TutorGroupBatches() {
     level: "",
     batchType: "revision",
     fixedDates: [],
+    classStartTime: "18:00",
     seatCap: 10,
     pricePerStudent: 500,
     description: "",
@@ -97,7 +98,7 @@ export default function TutorGroupBatches() {
       const res = await api.post("/group-batches/create", form);
       if (res.data?.success) {
         toast.success("Batch created");
-        setForm({ subject: "", level: "", batchType: "revision", fixedDates: [], seatCap: 10, pricePerStudent: 500, description: "", published: true });
+        setForm({ subject: "", level: "", batchType: "revision", fixedDates: [], classStartTime: "18:00", seatCap: 10, pricePerStudent: 500, description: "", published: true });
         setOpen(false);
         load();
       } else {
@@ -236,6 +237,10 @@ export default function TutorGroupBatches() {
                 ))}
               </div>
               <div className="text-sm">Selected: {(form.fixedDates || []).length}</div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Class Start Time</label>
+              <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e)=> setForm({ ...form, classStartTime: e.target.value })} />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Seat Capacity</label>
