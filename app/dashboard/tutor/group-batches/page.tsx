@@ -62,6 +62,7 @@ export default function TutorGroupBatchesPage() {
     const expireAfterMin = batch?.accessWindow?.expireAfterMin ?? 5;
     const end = start + classDurationMin * 60 * 1000;
     const openAt = start - joinBeforeMin * 60 * 1000;
+    
     const closeAt = end + expireAfterMin * 60 * 1000;
     const now = Date.now();
     const canJoin = now >= openAt && now <= closeAt;
