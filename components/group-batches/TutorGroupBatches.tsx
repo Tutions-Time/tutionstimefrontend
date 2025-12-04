@@ -379,18 +379,7 @@ export default function TutorGroupBatches() {
                 {b.pricePerStudent}
               </div>
 
-              {b.meetingLink && (
-                <div className="flex items-center gap-2 truncate">
-                  <LinkIcon className="w-4 h-4" />
-                  <a
-                    className="text-blue-600 truncate"
-                    href={b.meetingLink}
-                    target="_blank"
-                  >
-                    {b.meetingLink}
-                  </a>
-                </div>
-              )}
+
             </div>
 
             {/* Responsive Buttons */}
@@ -410,13 +399,13 @@ export default function TutorGroupBatches() {
                 Sessions
               </Button>
 
-              <Button
+              {/* <Button
                 variant="secondary"
                 className="flex-1 sm:flex-none"
                 onClick={() => reschedule(b._id)}
               >
                 Reschedule
-              </Button>
+              </Button> */}
 
               <Button
                 variant="destructive"
