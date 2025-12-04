@@ -186,6 +186,24 @@ export default function TutorGroupBatchesPage() {
     }
   };
 
+  // Sessions auto-complete after 1 hour (backend cron). No manual button.
+
+  const generateSessions = async () => {
+    try {
+      if (!selectedId) return;
+      const res = await api.post(`/group-batches/${selectedId}/sessions/generate`);
+      if (res.data?.success) {
+        const s = await api.get(`/group-batches/${selectedId}/sessions`);
+        setSessions(s.data?.data || []);
+        toast.success("Sessions generated");
+      } else {
+        toast.error("Generation failed");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Generation failed");
+    }
+  };
+
   const uploadFile = async (sessionId: string, kind: "recording" | "notes" | "assignment", file: File | null) => {
     if (!file) { toast.error("Select file"); return; }
     try {
@@ -478,29 +496,43 @@ export default function TutorGroupBatchesPage() {
                       <div className="flex items-center justify-between">
                         <div>{new Date(s.startDateTime).toLocaleString()}</div>
                         <div className="flex gap-2">
-                          <Button size="sm" onClick={()=>joinSession(s._id)}>Join</Button>
+                          <button
+                            onClick={()=>joinSession(s._id)}
+                            className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black"
+                          >
+                            Join Now
+                          </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
-                        <div className="space-y-2">
-                          <input type="file" onChange={(e)=>uploadFile(s._id, "recording", e.target.files?.[0]||null)} />
-                          {s.recordingUrl && <a className="text-blue-600" href={s.recordingUrl} target="_blank">Recording</a>}
+                      {s.status === "completed" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                          <div className="space-y-2">
+                            <input type="file" onChange={(e)=>uploadFile(s._id, "recording", e.target.files?.[0]||null)} />
+                            {s.recordingUrl && <a className="text-blue-600" href={s.recordingUrl} target="_blank">Recording</a>}
+                          </div>
+                          <div className="space-y-2">
+                            <input type="file" onChange={(e)=>uploadFile(s._id, "notes", e.target.files?.[0]||null)} />
+                            {s.notesUrl && <a className="text-blue-600" href={s.notesUrl} target="_blank">Notes</a>}
+                          </div>
+                          <div className="space-y-2">
+                            <input type="file" onChange={(e)=>uploadFile(s._id, "assignment", e.target.files?.[0]||null)} />
+                            {s.assignmentUrl && <a className="text-blue-600" href={s.assignmentUrl} target="_blank">Assignment</a>}
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <input type="file" onChange={(e)=>uploadFile(s._id, "notes", e.target.files?.[0]||null)} />
-                          {s.notesUrl && <a className="text-blue-600" href={s.notesUrl} target="_blank">Notes</a>}
-                        </div>
-                        <div className="space-y-2">
-                          <input type="file" onChange={(e)=>uploadFile(s._id, "assignment", e.target.files?.[0]||null)} />
-                          {s.assignmentUrl && <a className="text-blue-600" href={s.assignmentUrl} target="_blank">Assignment</a>}
-                        </div>
-                      </div>
+                      )}
                       {uploading === `${s._id}:recording` || uploading === `${s._id}:notes` || uploading === `${s._id}:assignment` ? (
                         <div className="text-xs text-gray-500 mt-2">Uploading…</div>
                       ) : null}
                     </li>
                   ))}
-                  {sessions.length === 0 && <li className="text-gray-500 text-sm">No sessions</li>}
+                  {sessions.length === 0 && (
+                    <li className="text-gray-500 text-sm">
+                      No sessions
+                      <div className="mt-2">
+                        <Button size="sm" onClick={generateSessions}>Generate Sessions</Button>
+                      </div>
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>

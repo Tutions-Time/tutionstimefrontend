@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { listBatches, reserveSeat, createGroupOrder, verifyGroupPayment } from "@/services/groupBatchService";
+import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@headlessui/react";
 
 export default function GroupBatchesPage() {
   const enabled = String(process.env.NEXT_PUBLIC_FEATURE_GROUP_BATCHES || "false").toLowerCase() === "true";
@@ -15,6 +17,10 @@ export default function GroupBatchesPage() {
   const [items, setItems] = useState<any[]>([]);
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -56,7 +62,7 @@ export default function GroupBatchesPage() {
           });
           if (verifyRes?.success) {
             toast.success("Enrollment confirmed");
-            router.refresh();
+            await fetchData();
           } else {
             toast.error("Verification failed");
           }
@@ -110,6 +116,40 @@ export default function GroupBatchesPage() {
 
   const list = useMemo(() => items || [], [items]);
 
+  const getSessionJoinData = (dateStr: string) => {
+    const start = new Date(dateStr).getTime();
+    const classDurationMin = 60;
+    const joinBeforeMin = 5;
+    const expireAfterMin = 5;
+    const end = start + classDurationMin * 60 * 1000;
+    const openAt = start - joinBeforeMin * 60 * 1000;
+    const closeAt = end + expireAfterMin * 60 * 1000;
+    const now = Date.now();
+    const canJoin = now >= openAt && now <= closeAt;
+    const isExpired = now > closeAt;
+    return { canJoin, isExpired };
+  };
+
+  const openSessionsModal = async (batchId: string) => {
+    try {
+      setSelectedBatchId(batchId);
+      setSessionsModalOpen(true);
+      setSessionsLoading(true);
+      const res = await api.get(`/group-batches/${batchId}/sessions`);
+      setSessions(res.data?.data || []);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  const joinSession = async (sessionId: string) => {
+    try {
+      const res = await api.post(`/sessions/${sessionId}/join`);
+      const url = res.data?.url;
+      if (url) window.open(url, "_blank");
+    } catch (e: any) {}
+  };
+
   
 
   return (
@@ -134,14 +174,74 @@ export default function GroupBatchesPage() {
                 <div className="text-sm">Price: ₹{b.pricePerStudent}</div>
                 <div className="text-sm">Seats left: {b.liveSeats}</div>
                 <div className="flex gap-2">
-                  <Button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="disabled:opacity-50">{loading ? "Processing..." : "Join"}</Button>
-                  <Button variant="outline" onClick={()=>router.push(`/dashboard/student/group-batches/${b._id}`)}>View Sessions</Button>
+                  {!b.isEnrolledForCurrentUser && (
+                    <Button disabled={loading || b.liveSeats<=0} onClick={()=>reserveAndPay(b._id)} className="disabled:opacity-50">{loading ? "Processing..." : "Join"}</Button>
+                  )}
+                  {b.isEnrolledForCurrentUser && (
+                    <Button variant="outline" onClick={()=>openSessionsModal(b._id)}>View Sessions</Button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </main>
       </div>
+      <Dialog
+        open={sessionsModalOpen}
+        onClose={() => setSessionsModalOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
+          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4 max-h[90vh] overflow-y-auto">
+            <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
+            {sessionsLoading && <div className="text-center text-gray-500">Loading...</div>}
+            {!sessionsLoading && sessions.length === 0 && (
+              <div className="text-center text-gray-500">No sessions found.</div>
+            )}
+            {!sessionsLoading && sessions.length > 0 && (
+              <div className="space-y-3">
+                {sessions.map((s:any)=>{
+                  const { canJoin, isExpired } = getSessionJoinData(s.startDateTime);
+                  return (
+                    <div key={s._id} className="border rounded-lg p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <div>{new Date(s.startDateTime).toLocaleDateString("en-IN")}</div>
+                          <div>{new Date(s.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                          <div className="text-xs text-gray-500">{s.status}</div>
+                        </div>
+                        {!isExpired && (
+                          <button
+                            onClick={()=>joinSession(s._id)}
+                            disabled={!canJoin}
+                            className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
+                          >
+                            Join Now
+                          </button>
+                        )}
+                      </div>
+                      {s.status === "completed" && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            {s.recordingUrl && <a className="text-[#207EA9] underline text-sm" href={s.recordingUrl} target="_blank">Recording</a>}
+                          </div>
+                          <div>
+                            {s.notesUrl && <a className="text-[#207EA9] underline text-sm" href={s.notesUrl} target="_blank">Notes</a>}
+                          </div>
+                          <div>
+                            {s.assignmentUrl && <a className="text-[#207EA9] underline text-sm" href={s.assignmentUrl} target="_blank">Assignment</a>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }

@@ -149,6 +149,19 @@ export default function StudentDashboard() {
                   </Button>
                 </Link>
               </Card>
+
+              <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
+                <Calendar className="w-10 h-10 text-primary mb-4" />
+                <h3 className="font-semibold text-text mb-2">Group Batches</h3>
+                <p className="text-sm text-muted mb-4">
+                  Browse and join upcoming group classes
+                </p>
+                <Link href="/dashboard/student/group-batches">
+                  <Button variant="outline" className="w-full">
+                    Open Group Batches
+                  </Button>
+                </Link>
+              </Card>
             </div>
           </div>
         </main>
