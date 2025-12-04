@@ -107,20 +107,7 @@ export default function TutorGroupBatches() {
       const res = await api.post("/group-batches/create", form);
       if (res.data?.success) {
         toast.success("Batch created");
-<<<<<<< HEAD
         setForm({ subject: "", level: "", batchType: "revision", fixedDates: [], classStartTime: "18:00", seatCap: 10, pricePerStudent: 500, description: "", published: true });
-=======
-        setForm({
-          subject: "",
-          level: "",
-          batchType: "revision",
-          fixedDates: [],
-          seatCap: 10,
-          pricePerStudent: 500,
-          description: "",
-          published: true,
-        });
->>>>>>> 82462e6fd7af4bd3caa6c2bef1b299ea9c2aedd0
         setOpen(false);
         load();
       } else {
@@ -316,7 +303,6 @@ export default function TutorGroupBatches() {
                 ))}
               </div>
             </div>
-<<<<<<< HEAD
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
               <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e)=> setForm({ ...form, classStartTime: e.target.value })} />
@@ -330,40 +316,6 @@ export default function TutorGroupBatches() {
               <input type="number" className="border p-2 rounded w-full" placeholder="Enter price " value={form.pricePerStudent} onChange={(e)=> setForm({ ...form, pricePerStudent: e.target.value })} />
             </div>
             <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e)=> setForm({ ...form, description: e.target.value })} />
-=======
-
-            {/* Seat Cap */}
-            <input
-              type="number"
-              className="border p-2 rounded w-full"
-              placeholder="Seat Capacity"
-              value={form.seatCap}
-              onChange={(e) =>
-                setForm({ ...form, seatCap: e.target.value })
-              }
-            />
-
-            {/* Price */}
-            <input
-              type="number"
-              className="border p-2 rounded w-full"
-              placeholder="Price per Student"
-              value={form.pricePerStudent}
-              onChange={(e) =>
-                setForm({ ...form, pricePerStudent: e.target.value })
-              }
-            />
-
-            <textarea
-              className="border p-2 rounded w-full"
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-
->>>>>>> 82462e6fd7af4bd3caa6c2bef1b299ea9c2aedd0
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
