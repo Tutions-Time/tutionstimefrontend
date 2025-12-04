@@ -41,6 +41,7 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
     await submitSessionFeedback(id, f);
     if (onAfterFeedback) await onAfterFeedback();
   };
+  const [feedbackModalSessionId, setFeedbackModalSessionId] = useState<string | null>(null);
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/40" />
@@ -75,7 +76,7 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                     </div>
                     {s.status === "completed" && (
                       <div className="space-y-4">
-                        {/* Feedback display / form */}
+                        {/* Feedback display or trigger */}
                         {s.sessionFeedback ? (
                           <div className="rounded-xl border p-4 bg-white shadow-sm">
                             <div className="text-sm font-semibold mb-2">Session Feedback</div>
@@ -90,34 +91,8 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                             )}
                           </div>
                         ) : allowFeedback ? (
-                          <div className="rounded-xl border p-4 bg-white shadow-sm">
-                            <div className="text-sm font-semibold mb-2">Give Feedback</div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                              <label className="flex items-center justify-between gap-2">
-                                <span>Teaching</span>
-                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.teaching ?? 5)} onChange={(e)=>updateFeedback(s._id, "teaching", Number(e.target.value))}>
-                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
-                                </select>
-                              </label>
-                              <label className="flex items-center justify-between gap-2">
-                                <span>Communication</span>
-                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.communication ?? 5)} onChange={(e)=>updateFeedback(s._id, "communication", Number(e.target.value))}>
-                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
-                                </select>
-                              </label>
-                              <label className="flex items-center justify-between gap-2">
-                                <span>Understanding</span>
-                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.understanding ?? 5)} onChange={(e)=>updateFeedback(s._id, "understanding", Number(e.target.value))}>
-                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
-                                </select>
-                              </label>
-                              <div className="sm:col-span-2">
-                                <textarea className="w-full border rounded px-3 py-2" placeholder="Optional comment" value={(feedbackState[s._id]?.comment ?? "")} onChange={(e)=>updateFeedback(s._id, "comment", e.target.value)} />
-                              </div>
-                            </div>
-                            <div className="mt-3">
-                              <button onClick={()=>submitFeedback(s._id)} className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition">Submit Feedback</button>
-                            </div>
+                          <div>
+                            <button onClick={()=>{ setFeedbackModalSessionId(s._id); if (!feedbackState[s._id]) updateFeedback(s._id, "teaching", 5); }} className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition">Give Feedback</button>
                           </div>
                         ) : null}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -237,7 +212,42 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
               })}
             </div>
           )}
-        </Dialog.Panel>
+          {/* Feedback Modal */}
+          {allowFeedback && feedbackModalSessionId && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-10">
+              <div className="bg-white w-full max-w-md rounded-2xl p-4 sm:p-6 shadow-2xl space-y-3">
+                <div className="text-lg font-semibold">Submit Feedback</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Teaching</span>
+                    <select className="border rounded px-2 py-1" value={(feedbackState[feedbackModalSessionId]?.teaching ?? 5)} onChange={(e)=>updateFeedback(feedbackModalSessionId!, "teaching", Number(e.target.value))}>
+                      {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </label>
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Communication</span>
+                    <select className="border rounded px-2 py-1" value={(feedbackState[feedbackModalSessionId]?.communication ?? 5)} onChange={(e)=>updateFeedback(feedbackModalSessionId!, "communication", Number(e.target.value))}>
+                      {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </label>
+                  <label className="flex items-center justify-between gap-2">
+                    <span>Understanding</span>
+                    <select className="border rounded px-2 py-1" value={(feedbackState[feedbackModalSessionId]?.understanding ?? 5)} onChange={(e)=>updateFeedback(feedbackModalSessionId!, "understanding", Number(e.target.value))}>
+                      {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </label>
+                  <div className="sm:col-span-2">
+                    <textarea className="w-full border rounded px-3 py-2" placeholder="Optional comment" value={(feedbackState[feedbackModalSessionId]?.comment ?? "")} onChange={(e)=>updateFeedback(feedbackModalSessionId!, "comment", e.target.value)} />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={async ()=>{ await submitFeedback(feedbackModalSessionId!); setFeedbackModalSessionId(null); }} className="flex-1 py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition">Submit</button>
+                  <button onClick={()=>setFeedbackModalSessionId(null)} className="flex-1 py-2 px-4 rounded-xl border text-sm font-semibold">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+          </Dialog.Panel>
       </div>
     </Dialog>
   );
