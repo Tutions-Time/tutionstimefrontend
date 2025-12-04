@@ -28,9 +28,9 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/40" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
-          <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+      <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+        <Dialog.Panel className="bg-white p-4 sm:p-6 rounded-2xl shadow-2xl w-full max-w-[95vw] sm:max-w-md space-y-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+          <Dialog.Title className="text-lg font-semibold sticky top-0 bg-white/95 py-1">{title}</Dialog.Title>
           {loading && <div className="text-center text-gray-500">Loading...</div>}
           {!loading && sessions.length === 0 && (
             <div className="text-center text-gray-500">No sessions found.</div>
