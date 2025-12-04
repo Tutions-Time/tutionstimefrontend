@@ -1,5 +1,7 @@
 "use client";
 import { Dialog } from "@headlessui/react";
+import { useState } from "react";
+import { submitSessionFeedback } from "@/services/progressService";
 
 type Props = {
   open: boolean;
@@ -11,9 +13,11 @@ type Props = {
   title?: string;
   allowUpload?: boolean;
   onUpload?: (sessionId: string, kind: "recording" | "notes" | "assignment", file: File) => Promise<void>;
+  allowFeedback?: boolean;
+  onAfterFeedback?: () => void | Promise<void>;
 };
 
-export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload }: Props) {
+export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback }: Props) {
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
     if (!s) return "";
@@ -24,6 +28,18 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
     } catch {
       return "";
     }
+  };
+  const [feedbackState, setFeedbackState] = useState<Record<string, { teaching: number; communication: number; understanding: number; comment: string }>>({});
+  const updateFeedback = (id: string, key: "teaching" | "communication" | "understanding" | "comment", value: number | string) => {
+    setFeedbackState((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] || { teaching: 5, communication: 5, understanding: 5, comment: "" }), [key]: value as any },
+    }));
+  };
+  const submitFeedback = async (id: string) => {
+    const f = feedbackState[id] || { teaching: 5, communication: 5, understanding: 5, comment: "" };
+    await submitSessionFeedback(id, f);
+    if (onAfterFeedback) await onAfterFeedback();
   };
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
@@ -59,6 +75,51 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                     </div>
                     {s.status === "completed" && (
                       <div className="space-y-4">
+                        {/* Feedback display / form */}
+                        {s.sessionFeedback ? (
+                          <div className="rounded-xl border p-4 bg-white shadow-sm">
+                            <div className="text-sm font-semibold mb-2">Session Feedback</div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>Teaching: {s.sessionFeedback.teaching}/5</div>
+                              <div>Communication: {s.sessionFeedback.communication}/5</div>
+                              <div>Understanding: {s.sessionFeedback.understanding}/5</div>
+                              <div>Overall: {s.sessionFeedback.overall}/5</div>
+                            </div>
+                            {s.sessionFeedback.comment && (
+                              <div className="mt-2 text-sm text-gray-700">{s.sessionFeedback.comment}</div>
+                            )}
+                          </div>
+                        ) : allowFeedback ? (
+                          <div className="rounded-xl border p-4 bg-white shadow-sm">
+                            <div className="text-sm font-semibold mb-2">Give Feedback</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                              <label className="flex items-center justify-between gap-2">
+                                <span>Teaching</span>
+                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.teaching ?? 5)} onChange={(e)=>updateFeedback(s._id, "teaching", Number(e.target.value))}>
+                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                                </select>
+                              </label>
+                              <label className="flex items-center justify-between gap-2">
+                                <span>Communication</span>
+                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.communication ?? 5)} onChange={(e)=>updateFeedback(s._id, "communication", Number(e.target.value))}>
+                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                                </select>
+                              </label>
+                              <label className="flex items-center justify-between gap-2">
+                                <span>Understanding</span>
+                                <select className="border rounded px-2 py-1" value={(feedbackState[s._id]?.understanding ?? 5)} onChange={(e)=>updateFeedback(s._id, "understanding", Number(e.target.value))}>
+                                  {[1,2,3,4,5].map(n=> <option key={n} value={n}>{n}</option>)}
+                                </select>
+                              </label>
+                              <div className="sm:col-span-2">
+                                <textarea className="w-full border rounded px-3 py-2" placeholder="Optional comment" value={(feedbackState[s._id]?.comment ?? "")} onChange={(e)=>updateFeedback(s._id, "comment", e.target.value)} />
+                              </div>
+                            </div>
+                            <div className="mt-3">
+                              <button onClick={()=>submitFeedback(s._id)} className="w-full py-2 px-4 rounded-xl bg-[#FFD54F] text-black text-sm font-semibold shadow hover:opacity-90 transition">Submit Feedback</button>
+                            </div>
+                          </div>
+                        ) : null}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="rounded-xl border p-4 bg-white shadow-sm">
                             <div className="text-sm font-semibold mb-2">Recording</div>
