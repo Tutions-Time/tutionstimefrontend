@@ -314,20 +314,18 @@ export default function StudentSessions() {
               <motion.div
                 layout
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className={`absolute top-1 bottom-1 w-[125px] rounded-full bg-primary/10 border border-primary/30 shadow-sm ${
-                  activeTab === "demo" ? "left-1" : "left-[130px]"
-                }`}
+                className={`absolute top-1 bottom-1 w-[125px] rounded-full bg-primary/10 border border-primary/30 shadow-sm ${activeTab === "demo" ? "left-1" : "left-[130px]"
+                  }`}
               />
 
               {["demo", "regular"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
-                  className={`relative z-10 flex-1 text-sm font-medium rounded-full py-2 transition-colors duration-200 ${
-                    activeTab === tab
+                  className={`relative z-10 flex-1 text-sm font-medium rounded-full py-2 transition-colors duration-200 ${activeTab === tab
                       ? "text-primary font-semibold"
                       : "text-gray-500 hover:text-primary/80"
-                  }`}
+                    }`}
                 >
                   {tab === "demo" ? "Demo Classes" : "Regular Classes"}
                 </button>
@@ -376,10 +374,10 @@ export default function StudentSessions() {
                         s.status === "confirmed"
                           ? "bg-blue-100 text-blue-700 border-blue-200"
                           : s.status === "completed"
-                          ? "bg-green-100 text-green-700 border-green-200"
-                          : s.status === "cancelled"
-                          ? "bg-red-100 text-red-700 border-red-200"
-                          : "bg-gray-100 text-gray-700 border-gray-200"
+                            ? "bg-green-100 text-green-700 border-green-200"
+                            : s.status === "cancelled"
+                              ? "bg-red-100 text-red-700 border-red-200"
+                              : "bg-gray-100 text-gray-700 border-gray-200"
                       }
                     >
                       {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
@@ -388,8 +386,8 @@ export default function StudentSessions() {
                       {s.subscriptionId
                         ? "Subscription Class"
                         : s.type === "demo"
-                        ? "Demo"
-                        : "Regular"}
+                          ? "Demo"
+                          : "Regular"}
                     </p>
                   </div>
                 </div>
@@ -573,7 +571,7 @@ export default function StudentSessions() {
                               try {
                                 const res = await joinSession(s._id);
                                 if (res?.success && res?.url) window.open(res.url, "_blank");
-                              } catch {}
+                              } catch { }
                             }}
                             disabled={!canJoin}
                             className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}

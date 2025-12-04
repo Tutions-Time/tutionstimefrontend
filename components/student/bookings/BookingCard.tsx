@@ -27,7 +27,6 @@ type BookingType = {
   note?: string;
   requestedBy?: "student" | "tutor";
 
-  // IMPORTANT — ensure demoFeedback exists
   demoFeedback?: {
     likedTutor: boolean;
   };
@@ -40,8 +39,6 @@ export default function BookingCard({
   booking: BookingType;
   compact?: boolean;
 }) {
-
-  // Debug — verify booking object is correct
   console.log("BOOKING RECEIVED:", booking);
 
   const dispatch = useAppDispatch();
@@ -145,54 +142,85 @@ export default function BookingCard({
           {booking.type === "demo" ? "Demo Session" : "Regular Class"}
         </div>
 
-        {/* JOIN BUTTON */}
-        {booking.meetingLink ? (
-          <button
-            type="button"
-            disabled={!canJoin}
-            onClick={() => {
-              if (!canJoin) return;
+        {/* ---------------------------------------------------------------- */}
+        {/* JOIN BUTTON — hidden after (sessionStart + 15 mins)              */}
+        {/* ---------------------------------------------------------------- */}
+        {(() => {
+          const now = new Date();
 
-              dispatch(
-                markJoiningDemo({
-                  bookingId: booking._id,
-                  tutorId: booking.tutorId,
-                  tutorName: booking.tutorName,
-                })
+          // Hide join if session start time + 15 minutes is passed
+          const sessionEnd15 = new Date(
+            sessionStart.getTime() + 15 * 60 * 1000
+          );
+
+          const isPastWindow = now > sessionEnd15;
+
+          if (isPastWindow) return null; // 🔥 COMPLETELY HIDE JOIN BUTTON
+
+          // Normal join button conditions
+          if (booking.meetingLink) {
+            return (
+              <button
+                type="button"
+                disabled={!canJoin}
+                onClick={() => {
+                  if (!canJoin) return;
+
+                  dispatch(
+                    markJoiningDemo({
+                      bookingId: booking._id,
+                      tutorId: booking.tutorId,
+                      tutorName: booking.tutorName,
+                    })
+                  );
+
+                  window.open(
+                    booking.meetingLink,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }}
+                className={`inline-flex items-center gap-2 font-semibold text-sm
+                  px-4 py-2 rounded-full w-fit transition
+                  ${
+                    canJoin
+                      ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
+                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  }
+                `}
+              >
+                <Video className="w-4 h-4" />
+                {canJoin ? "Join Demo" : "Join (available soon)"}
+              </button>
+            );
+          }
+
+          // No meeting yet (no join)
+          if (booking.status !== "completed") {
+            if (booking.type === "demo" && booking.status === "pending") {
+              return (
+                <p className="text-xs text-gray-500 italic">
+                  {booking.requestedBy === "student"
+                    ? "Pending Tutor Approval"
+                    : "Pending Your Approval (see Demo Requests)"}
+                </p>
               );
+            }
 
-              window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
-            }}
-            className={`
-              inline-flex items-center gap-2 font-semibold text-sm
-              px-4 py-2 rounded-full w-fit transition
-              ${
-                canJoin
-                  ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }
-            `}
-          >
-            <Video className="w-4 h-4" />
-            {canJoin ? "Join Demo" : "Join (available soon)"}
-          </button>
-        ) : booking.status !== "completed" ? (
-          booking.type === "demo" && booking.status === "pending" ? (
-            <p className="text-xs text-gray-500 italic">
-              {booking.requestedBy === "student"
-                ? "Pending Tutor Approval"
-                : "Pending Your Approval (see Demo Requests)"}
-            </p>
-          ) : (
-            <p className="text-xs text-gray-400 italic">
-              Meeting link will appear after tutor confirmation.
-            </p>
-          )
-        ) : null}
+            return (
+              <p className="text-xs text-gray-400 italic">
+                Meeting link will appear after tutor confirmation.
+              </p>
+            );
+          }
+
+          return null;
+        })()}
 
         {/* ⭐ START REGULAR CLASSES BUTTON ⭐ */}
         {booking.type === "demo" &&
-          booking.status === "completed" && !canJoin && (
+          booking.status === "completed" &&
+          !canJoin && (
             <button
               onClick={() => setShowUpgradeModal(true)}
               className="mt-2 bg-[#FFD54F] text-black font-bold px-4 py-2 rounded-full text-sm hover:bg-[#FFD54F]"
