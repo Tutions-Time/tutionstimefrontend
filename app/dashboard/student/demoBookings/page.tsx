@@ -377,7 +377,7 @@ export default function StudentBookingsPage() {
                             className="bg-[#FFD54F] text-black text-xs rounded-full px-4 py-2 shadow-sm"
                             onClick={() => window.open(s.notesUrl, "_blank")}
                           >
-                            📘 Download Notes
+                            📘Notes
                           </Button>
                         )}
 
@@ -386,7 +386,7 @@ export default function StudentBookingsPage() {
                             className="bg-[#FFD54F] text-black text-xs rounded-full px-4 py-2 shadow-sm"
                             onClick={() => window.open(s.assignmentUrl, "_blank")}
                           >
-                            📝 Download Assignment
+                            📝Assignment
                           </Button>
                         )}
 
@@ -395,7 +395,7 @@ export default function StudentBookingsPage() {
                             className="bg-[#FFD54F] text-black text-xs rounded-full px-4 py-2 shadow-sm"
                             onClick={() => window.open(s.recordingUrl, "_blank")}
                           >
-                            🎥 Watch Recording
+                            🎥Recording
                           </Button>
                         )}
 
