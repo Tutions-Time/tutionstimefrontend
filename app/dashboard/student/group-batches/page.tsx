@@ -192,8 +192,8 @@ export default function GroupBatchesPage() {
         className="relative z-50"
       >
         <div className="fixed inset-0 bg-black/40" />
-        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4 max-h[90vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-4 max-h-[85vh] overflow-y-auto">
             <Dialog.Title className="text-lg font-semibold">Sessions</Dialog.Title>
             {sessionsLoading && <div className="text-center text-gray-500">Loading...</div>}
             {!sessionsLoading && sessions.length === 0 && (
@@ -211,7 +211,7 @@ export default function GroupBatchesPage() {
                           <div>{new Date(s.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>
-                        {!isExpired && (
+                        {!isExpired && s.status !== "completed" && (
                           <button
                             onClick={()=>joinSession(s._id)}
                             disabled={!canJoin}

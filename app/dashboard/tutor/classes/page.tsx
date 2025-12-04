@@ -437,8 +437,8 @@ const TutorRegularClasses = () => {
       >
         <div className="fixed inset-0 bg-black/40" />
 
-        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg space-y-4 max-h[90vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-xl space-y-4 max-h-[85vh] overflow-y-auto">
             <Dialog.Title className="text-lg font-semibold">
               Sessions
             </Dialog.Title>
@@ -488,7 +488,7 @@ const TutorRegularClasses = () => {
                         </div>
 
                         {/* Join Button */}
-                        {!isExpired && (
+                        {!isExpired && s.status !== "completed" && (
                           <button
                             onClick={async () => {
                               try {

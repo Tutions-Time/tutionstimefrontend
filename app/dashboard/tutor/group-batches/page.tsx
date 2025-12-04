@@ -52,6 +52,20 @@ export default function TutorGroupBatchesPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [uploading, setUploading] = useState<string | null>(null);
 
+  const getSessionJoinData = (dateStr: string) => {
+    const start = new Date(dateStr).getTime();
+    const classDurationMin = 60;
+    const joinBeforeMin = batch?.accessWindow?.joinBeforeMin ?? 5;
+    const expireAfterMin = batch?.accessWindow?.expireAfterMin ?? 5;
+    const end = start + classDurationMin * 60 * 1000;
+    const openAt = start - joinBeforeMin * 60 * 1000;
+    const closeAt = end + expireAfterMin * 60 * 1000;
+    const now = Date.now();
+    const canJoin = now >= openAt && now <= closeAt;
+    const isExpired = now > closeAt;
+    return { canJoin, isExpired };
+  };
+
   const load = async () => {
     try {
       const res = await api.get("/group-batches/list");
@@ -447,7 +461,7 @@ export default function TutorGroupBatchesPage() {
           </div>
         </main>
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-xl rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Batch Detail</DialogTitle>
             </DialogHeader>
@@ -496,12 +510,18 @@ export default function TutorGroupBatchesPage() {
                       <div className="flex items-center justify-between">
                         <div>{new Date(s.startDateTime).toLocaleString()}</div>
                         <div className="flex gap-2">
-                          <button
-                            onClick={()=>joinSession(s._id)}
-                            className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black"
-                          >
-                            Join Now
-                          </button>
+                          {(() => {
+                            const { canJoin, isExpired } = getSessionJoinData(s.startDateTime);
+                            return (!isExpired && s.status !== "completed") ? (
+                              <button
+                                onClick={()=>joinSession(s._id)}
+                                disabled={!canJoin}
+                                className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
+                              >
+                                Join Now
+                              </button>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                       {s.status === "completed" && (
