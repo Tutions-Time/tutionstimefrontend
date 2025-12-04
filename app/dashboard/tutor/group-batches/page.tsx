@@ -17,6 +17,7 @@ import { getCreateOptions } from "@/services/groupBatchService";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, IndianRupee, Link as LinkIcon } from "lucide-react";
+import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
 
 export default function TutorGroupBatchesPage() {
   const enabled =
@@ -397,68 +398,8 @@ export default function TutorGroupBatchesPage() {
             </Dialog>
           }
         />
-        <main className="p-4 lg:p-6 space-y-6">
-          <h2 className="font-medium">My Batches</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {list.map((b: any) => (
-              <Card
-                key={b._id}
-                className="p-4 bg-white shadow-sm hover:shadow-md transition"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold">{b.subject}</span>
-                      {b.level && <Badge variant="secondary">{b.level}</Badge>}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Batch • {b.batchType}
-                    </div>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700">
-                    {b.status}
-                  </Badge>
-                </div>
-                <div className="mt-3 space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />{" "}
-                    {Array.isArray(b.fixedDates)
-                      ? `${b.fixedDates.length} dates`
-                      : "0 dates"}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Seats {b.liveSeats}/
-                    {b.seatCap}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <IndianRupee className="w-4 h-4" /> {b.pricePerStudent}
-                  </div>
-                  {b.meetingLink && (
-                    <div className="flex items-center gap-2 truncate">
-                      <LinkIcon className="w-4 h-4" />{" "}
-                      <a
-                        className="text-blue-600 truncate"
-                        href={b.meetingLink}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {b.meetingLink}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button className="bg-blue-600 text-white" onClick={() => openDetail(b._id)}>View</Button>
-                  <Button variant="secondary" onClick={() => reschedule(b._id)}>
-                    Reschedule
-                  </Button>
-                  <Button variant="destructive" onClick={() => cancel(b._id)}>
-                    Cancel
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+        <main className="p-4 lg:p-6">
+          <TutorGroupBatches />
         </main>
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
           <DialogContent className="max-w-xl rounded-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
