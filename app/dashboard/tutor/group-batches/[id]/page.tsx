@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
 
 export default function TutorBatchDetailPage() {
-  const enabled = String(process.env.NEXT_PUBLIC_FEATURE_GROUP_BATCHES || "false").toLowerCase() === "true";
   const params = useParams() as any;
   const id = params?.id as string;
   const [roster, setRoster] = useState<any[]>([]);
@@ -23,7 +22,7 @@ export default function TutorBatchDetailPage() {
     } catch (e:any) {}
   };
 
-  useEffect(()=>{ if (enabled && id) load(); },[enabled, id]);
+  useEffect(()=>{ if (id) load(); },[id]);
 
   const broadcast = async () => {
     try {
@@ -67,7 +66,7 @@ export default function TutorBatchDetailPage() {
     }
   };
 
-  if (!enabled) return <div className="p-6">Feature disabled</div>;
+  // If backend feature is disabled, API will return 404; page still renders
 
   return (
     <div className="p-6 space-y-4">

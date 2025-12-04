@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
 
 export default function StudentBatchSessionsPage() {
-  const enabled = String(process.env.NEXT_PUBLIC_FEATURE_GROUP_BATCHES || "false").toLowerCase() === "true";
   const params = useParams() as any;
   const id = params?.id as string;
   const [sessions, setSessions] = useState<any[]>([]);
@@ -18,7 +17,7 @@ export default function StudentBatchSessionsPage() {
     } catch (e: any) {}
   };
 
-  useEffect(() => { if (enabled && id) load(); }, [enabled, id]);
+  useEffect(() => { if (id) load(); }, [id]);
 
   const join = async (sessionId: string) => {
     try {
@@ -37,7 +36,7 @@ export default function StudentBatchSessionsPage() {
     }
   };
 
-  if (!enabled) return <div className="p-6">Feature disabled</div>;
+  // Page renders always; if server feature is disabled, calls will 404
 
   const upcoming = sessions.filter((s: any) => s.status === "scheduled");
   const completed = sessions.filter((s: any) => s.status === "completed");
@@ -89,4 +88,3 @@ export default function StudentBatchSessionsPage() {
     </div>
   );
 }
-
