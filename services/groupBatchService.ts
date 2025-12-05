@@ -54,3 +54,12 @@ export const getCreateOptions = async () => {
   }
 };
 
+export const updateBatch = async (id: string, payload: any) => {
+  try {
+    const res = await api.patch(`/group-batches/${id}/edit`, payload);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+

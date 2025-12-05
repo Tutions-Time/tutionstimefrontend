@@ -16,6 +16,7 @@ import { Calendar, Users, IndianRupee, Link as LinkIcon } from "lucide-react";
 
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailModal";
+import EditBatchModal from "@/components/group-batches/EditBatchModal";
 
 export default function TutorGroupBatches() {
   const [form, setForm] = useState<any>({
@@ -51,6 +52,9 @@ export default function TutorGroupBatches() {
   // Sessions Modal
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editOptions, setEditOptions] = useState<any>({ subjects: [], levels: [], availabilityDates: [], batchTypes: ["revision", "exam"], scheduleTypes: ["fixed"] });
 
   // ----------------------------
   // Fetch List
@@ -155,6 +159,25 @@ export default function TutorGroupBatches() {
 
       setBatch(b.data?.data || null);
       setRoster(r.data?.data || []);
+    } catch {
+      toast.error("Unable to load batch");
+    }
+  };
+
+  const openEdit = async (id: string) => {
+    try {
+      setSelectedId(id);
+      const b = await api.get(`/group-batches/${id}`);
+      const opts = await getCreateOptions();
+      setBatch(b.data?.data || null);
+      setEditOptions({
+        subjects: opts?.subjects || [],
+        levels: opts?.levels || [],
+        availabilityDates: opts?.availabilityDates || [],
+        batchTypes: opts?.batchTypes || ["revision", "exam"],
+        scheduleTypes: opts?.scheduleTypes || ["fixed"],
+      });
+      setEditOpen(true);
     } catch {
       toast.error("Unable to load batch");
     }
@@ -399,6 +422,14 @@ export default function TutorGroupBatches() {
                 Sessions
               </Button>
 
+              <Button
+                variant="secondary"
+                className="flex-1 sm:flex-none"
+                onClick={() => openEdit(b._id)}
+              >
+                Edit
+              </Button>
+
               {/* <Button
                 variant="secondary"
                 className="flex-1 sm:flex-none"
@@ -427,6 +458,35 @@ export default function TutorGroupBatches() {
         onOpenChange={setDetailOpen}
         batch={batch}
         roster={roster}
+      />
+
+      <EditBatchModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        batch={batch}
+        options={editOptions}
+        onSubmit={async (payload) => {
+          if (!selectedId) return;
+          const classStart = String((payload as any).classStartTime || "");
+          const m = classStart.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+          if (m) {
+            const hh = Number(m[1]);
+            const mm = Number(m[2]);
+            payload.fixedDates = (payload.fixedDates || []).map((d: any) => {
+              const nd = new Date(d);
+              nd.setHours(hh, mm, 0, 0);
+              return nd.toISOString();
+            });
+          }
+          try {
+            await api.patch(`/group-batches/${selectedId}/edit`, payload);
+            toast.success("Batch updated");
+            setEditOpen(false);
+            await load();
+          } catch {
+            toast.error("Failed to update");
+          }
+        }}
       />
 
       {/* ============================= */}
