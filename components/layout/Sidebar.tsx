@@ -43,7 +43,7 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
   { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/student/progress', label: 'Progress', icon: FileText },
-  { href: '/wallet', label: 'Wallet', icon: Wallet },
+  // { href: '/wallet', label: 'Wallet', icon: Wallet },
 ];
 
 const tutorLinks: NavLink[] = [
@@ -55,7 +55,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/group-batches', label: 'Group Batches', icon: Calendar },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
-  { href: '/wallet', label: 'Earnings', icon: Wallet },
+  // { href: '/wallet', label: 'Earnings', icon: Wallet },
 ];
 
 const adminLinks: NavLink[] = [
