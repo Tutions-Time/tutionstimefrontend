@@ -253,7 +253,7 @@ export default function TutorGroupBatches() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Batch</DialogTitle>
+            <DialogTitle>Create Batchhh</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-2">
