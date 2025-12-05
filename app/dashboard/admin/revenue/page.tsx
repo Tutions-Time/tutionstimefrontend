@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
-import { getAdminPayouts, settleAdminPayout, getAdminPaymentHistory, getAdminNotePaymentHistory } from '@/services/razorpayService';
+import { getAdminPayouts, settleAdminPayout, getAdminAllPaymentHistory, getAdminNotePaymentHistory } from '@/services/razorpayService';
 
 /* Real UI */
 
@@ -121,10 +121,10 @@ export default function AdminRevenuePage() {
   async function refreshHistory() {
     setHistoryLoading(true);
     try {
-      const params: any = { status: 'paid' };
+      const params: any = {};
       if (historyFrom) params.from = historyFrom;
       if (historyTo) params.to = historyTo;
-      const rows = await getAdminPaymentHistory(params);
+      const rows = await getAdminAllPaymentHistory(params);
       setHistory(rows);
     } finally {
       setHistoryLoading(false);
