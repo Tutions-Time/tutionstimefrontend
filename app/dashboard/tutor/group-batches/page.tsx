@@ -29,6 +29,7 @@ export default function TutorGroupBatchesPage() {
     level: "",
     batchType: "revision",
     fixedDates: [],
+    classStartTime: "18:00",
     seatCap: 10,
     pricePerStudent: 500,
     description: "",
@@ -51,6 +52,7 @@ export default function TutorGroupBatchesPage() {
   const [batch, setBatch] = useState<any | null>(null);
   const [roster, setRoster] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [uploading, setUploading] = useState<string | null>(null);
 
   const getSessionJoinData = (dateStr: string) => {
@@ -129,6 +131,7 @@ export default function TutorGroupBatchesPage() {
           level: "",
           batchType: "revision",
           fixedDates: [],
+          classStartTime: "18:00",
           seatCap: 10,
           pricePerStudent: 500,
           description: "",
@@ -136,6 +139,7 @@ export default function TutorGroupBatchesPage() {
         });
         setOpen(false);
         load();
+        setRefreshKey((k) => k + 1);
       } else {
         const errs = res.data?.errors;
         if (Array.isArray(errs) && errs.length) toast.error(errs.join(", "));
@@ -427,7 +431,7 @@ export default function TutorGroupBatchesPage() {
         />
 
         <main className="p-4 lg:p-6">
-          <TutorGroupBatches />
+          <TutorGroupBatches key={refreshKey} />
         </main>
 
         <Dialog open={detailOpen} onOpenChange={setDetailOpen}>

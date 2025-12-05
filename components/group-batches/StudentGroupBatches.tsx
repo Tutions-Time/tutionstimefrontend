@@ -248,13 +248,6 @@ export default function StudentGroupBatches() {
         loading={sessionsLoading}
         onJoin={joinSession}
         getSessionJoinData={getSessionJoinData}
-        allowFeedback
-        onAfterFeedback={async () => {
-          if (selectedBatchId) {
-            const res = await api.get(`/group-batches/${selectedBatchId}/sessions`);
-            setSessions(res.data?.data || []);
-          }
-        }}
       />
     </>
   );
