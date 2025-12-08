@@ -45,14 +45,17 @@ export default function AdminSessionsPage() {
         if (p) {
           setTotal(p.total || 0);
           setPages(p.pages || 1);
-          setPage(p.page || 1);
-          setLimit(p.limit || limit);
         }
       })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { refresh(); }, [status]);
+  useEffect(() => { refresh(); }, [status, page, limit]);
+  useEffect(() => { setPage(1); }, [status]);
+  useEffect(() => {
+    const h = setTimeout(() => { setPage(1); refresh(); }, 400);
+    return () => clearTimeout(h);
+  }, [student, tutor]);
 
   return (
     <ProtectedRoute>
@@ -155,8 +158,8 @@ export default function AdminSessionsPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div className="text-xs text-muted">Total {total} • Page {page} of {pages}</div>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => { setPage((p) => Math.max(1, p - 1)); refresh(); }}>Previous</Button>
-                <Button size="sm" variant="outline" disabled={page >= pages} onClick={() => { setPage((p) => Math.min(pages, p + 1)); refresh(); }}>Next</Button>
+                <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => { setPage((p) => Math.max(1, p - 1)); }}>Previous</Button>
+                <Button size="sm" variant="outline" disabled={page >= pages} onClick={() => { setPage((p) => Math.min(pages, p + 1)); }}>Next</Button>
               </div>
             </div>
           </main>
