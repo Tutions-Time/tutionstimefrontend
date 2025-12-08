@@ -98,7 +98,7 @@ export default function ReviewModal() {
       key: order.razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: "TuitionTime",
+      name: "TuitionsTime",
       description: "Regular Class Payment",
       order_id: order.orderId,
       handler: async (response: any) => {

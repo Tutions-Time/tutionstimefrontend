@@ -141,7 +141,7 @@ export default function StudentSessions() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "TuitionTime",
+        name: "TuitionsTime",
         description: "Regular Class Payment",
         order_id: order.id,
         handler: async (response: any) => {

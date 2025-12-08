@@ -52,7 +52,7 @@ export default function StudentGroupBatches() {
       key: order.key,
       amount: order.amount,
       currency: order.currency,
-      name: "TuitionTime",
+      name: "TuitionsTime",
       description: "Batch Payment",
       order_id: order.orderId,
       handler: async (response: any) => {

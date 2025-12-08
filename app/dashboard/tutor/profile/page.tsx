@@ -34,27 +34,34 @@ export default function TutorProfilePage() {
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getUserProfile();
-        if (res.success && res.data.profile) {
-          const tutor = res.data.profile;
-          dispatch(setBulk(tutor));
-          setPhotoPreview(
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStltpfa69E9JTQOf5ZcyLGR8meBbxMFJxM0w&s"
-          );
-          setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
-          setResumeUrl(getImageUrl(tutor.resumeUrl));
-        } else toast.error("Profile not found");
-      } catch {
-        toast.error("Error loading tutor profile");
-      } finally {
-        setLoading(false);
+ useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const res = await getUserProfile();
+      if (res.success && res.data.profile) {
+        const tutor = res.data.profile;
+
+        dispatch(setBulk(tutor));
+
+        // ✅ Correct photo
+        setPhotoPreview(getImageUrl(tutor.photoUrl));
+
+        // ✅ Correct video + resume
+        setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
+        setResumeUrl(getImageUrl(tutor.resumeUrl));
+      } else {
+        toast.error("Profile not found");
       }
-    };
-    fetchProfile();
-  }, [dispatch]);
+    } catch {
+      toast.error("Error loading tutor profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, [dispatch]);
+
 
   const handleSave = async () => {
     try {
