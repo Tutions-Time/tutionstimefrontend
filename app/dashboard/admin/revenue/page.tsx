@@ -39,9 +39,9 @@ export default function AdminRevenuePage() {
   const [txTotal, setTxTotal] = useState<number>(0);
   const [revSeries, setRevSeries] = useState<{ date: string; subscriptionTotal: number; subscriptionCount: number; noteTotal: number; noteCount: number; commissionTotal: number }[]>([]);
   const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number } | null>(null);
-  const [rangeQuick, setRangeQuick] = useState<'7d'|'30d'|'90d'|'custom'>('30d');
-  const [viewMode, setViewMode] = useState<'classic'|'trading'>('classic');
-  const tradingData = useMemo(() => revSeries.map(d => ({...d, combinedTotal: (Number(d.subscriptionTotal||0)) + (Number(d.noteTotal||0)), volume: (Number(d.subscriptionCount||0)) + (Number(d.noteCount||0)) })), [revSeries]);
+  const [rangeQuick, setRangeQuick] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
+  const [viewMode, setViewMode] = useState<'classic' | 'trading'>('classic');
+  const tradingData = useMemo(() => revSeries.map(d => ({ ...d, combinedTotal: (Number(d.subscriptionTotal || 0)) + (Number(d.noteTotal || 0)), volume: (Number(d.subscriptionCount || 0)) + (Number(d.noteCount || 0)) })), [revSeries]);
   const txSummary = useMemo(() => {
     const total = txItems.reduce((sum, h) => sum + Number(h.amount || 0), 0);
     const count = txItems.length;
@@ -59,7 +59,7 @@ export default function AdminRevenuePage() {
   };
 
   function exportHistoryCsv() {
-    const header = ['Date','Student','Tutor','Amount','Currency','Plan','Classes','Gateway','OrderId','PaymentId','Status'];
+    const header = ['Date', 'Student', 'Tutor', 'Amount', 'Currency', 'Plan', 'Classes', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
     const rows = txItems.map((h: any) => [
       new Date(h.createdAt).toISOString(),
       h.studentName,
@@ -73,7 +73,7 @@ export default function AdminRevenuePage() {
       h.gatewayPaymentId || '',
       h.status || ''
     ]);
-    const csv = [header, ...rows].map((r: any[]) => r.map((v: any) => `${String(v).replace(/"/g,'""')}`).join(',')).join('\n');
+    const csv = [header, ...rows].map((r: any[]) => r.map((v: any) => `${String(v).replace(/"/g, '""')}`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -83,14 +83,14 @@ export default function AdminRevenuePage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  
+
 
   useEffect(() => {
     (async () => {
       try {
         const w = await getMyWallet();
         setAdminWallet(w);
-      } catch {}
+      } catch { }
     })();
   }, []);
 
@@ -133,17 +133,17 @@ export default function AdminRevenuePage() {
         const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
         setRevSeries(data?.series || []);
         setRevTotals(data?.totals || null);
-      } catch {}
+      } catch { }
     })();
   }, [txFrom, txTo]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const now = new Date();
-    const fmt = (d: Date) => d.toISOString().slice(0,10);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
     if (rangeQuick === 'custom') return;
     const setRange = (days: number) => {
       const to = fmt(now);
-      const from = fmt(new Date(now.getTime() - days*24*60*60*1000));
+      const from = fmt(new Date(now.getTime() - days * 24 * 60 * 60 * 1000));
       setTxFrom(from);
       setTxTo(to);
     };
@@ -152,7 +152,7 @@ export default function AdminRevenuePage() {
     if (rangeQuick === '90d') setRange(90);
   }, [rangeQuick]);
 
-  
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,21 +209,21 @@ export default function AdminRevenuePage() {
             </div>
           </Card>
 
-          
+
 
           {/* Transactions (Combined, paginated) */}
           <Card className="rounded-2xl bg-white shadow-sm">
             <div className="p-6 border-b">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-sm text-muted">Range</span>
-                <select className="h-8 rounded-md border px-2 text-xs" value={rangeQuick} onChange={(e)=> setRangeQuick(e.target.value as any)}>
+                <select className="h-8 rounded-md border px-2 text-xs" value={rangeQuick} onChange={(e) => setRangeQuick(e.target.value as any)}>
                   <option value="7d">Last 7 days</option>
                   <option value="30d">Last 30 days</option>
                   <option value="90d">Last 90 days</option>
                   <option value="custom">Custom</option>
                 </select>
                 <span className="ml-4 text-sm text-muted">View</span>
-                <select className="h-8 rounded-md border px-2 text-xs" value={viewMode} onChange={(e)=> setViewMode(e.target.value as any)}>
+                <select className="h-8 rounded-md border px-2 text-xs" value={viewMode} onChange={(e) => setViewMode(e.target.value as any)}>
                   <option value="classic">Classic</option>
                   <option value="trading">Trading</option>
                 </select>
@@ -242,42 +242,49 @@ export default function AdminRevenuePage() {
                   <div className="text-2xl font-bold">{inr(Number(revTotals?.commissionTotal || 0))}</div>
                 </div>
               </div>
-              <div className="mt-6 h-[260px]">
-                {viewMode === 'classic' ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revSeries}>
-                      <defs>
-                        <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366F1" stopOpacity={0.9} />
-                          <stop offset="100%" stopColor="#6366F1" stopOpacity={0.3} />
-                        </linearGradient>
-                        <linearGradient id="noteGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.9} />
-                          <stop offset="100%" stopColor="#10B981" stopOpacity={0.3} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
-                      <Legend />
-                      <Area type="monotone" dataKey="subscriptionTotal" name="Subscriptions" stroke="#6366F1" fill="url(#subGrad)" />
-                      <Area type="monotone" dataKey="noteTotal" name="Notes" stroke="#10B981" fill="url(#noteGrad)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={tradingData}>
-                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
-                      <Legend />
-                      <Area yAxisId="left" type="monotone" dataKey="combinedTotal" name="Revenue" stroke="#6366F1" fill="#6366F133" />
-                      <Bar yAxisId="right" dataKey="volume" name="Volume" fill="#11182722" />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                )}
+              <div className="mt-6">
+                {/* Scroll wrapper for mobile */}
+                <div className="w-full overflow-x-auto">
+                  {/* Ensure chart has a readable width */}
+                  <div className="min-w-[600px] h-[260px]">
+                    {viewMode === 'classic' ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={revSeries}>
+                          <defs>
+                            <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#6366F1" stopOpacity={0.9} />
+                              <stop offset="100%" stopColor="#6366F1" stopOpacity={0.3} />
+                            </linearGradient>
+                            <linearGradient id="noteGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#10B981" stopOpacity={0.9} />
+                              <stop offset="100%" stopColor="#10B981" stopOpacity={0.3} />
+                            </linearGradient>
+                          </defs>
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
+                          <Legend />
+                          <Area type="monotone" dataKey="subscriptionTotal" name="Subscriptions" stroke="#6366F1" fill="url(#subGrad)" />
+                          <Area type="monotone" dataKey="noteTotal" name="Notes" stroke="#10B981" fill="url(#noteGrad)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={tradingData}>
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                          <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
+                          <Legend />
+                          <Area yAxisId="left" type="monotone" dataKey="combinedTotal" name="Revenue" stroke="#6366F1" fill="#6366F133" />
+                          <Bar yAxisId="right" dataKey="volume" name="Volume" fill="#11182722" />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
               </div>
+
             </div>
             <div className="p-4 border-b flex items-center justify-between">
               {/* <h3 className="font-semibold">Transactions</h3> */}
@@ -317,7 +324,7 @@ export default function AdminRevenuePage() {
               <span>Paid: <span className="font-semibold">{txSummary.byStatus['paid'] || 0}</span></span>
               <span>Failed: <span className="font-semibold">{txSummary.byStatus['failed'] || 0}</span></span>
             </div> */}
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50">
@@ -348,16 +355,16 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3">
                         <Badge className={cn(
                           h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :
-                          h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
-                          h.status === 'settled' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                          'bg-gray-100 text-gray-700 border-gray-200'
+                            h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
+                              h.status === 'settled' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                                'bg-gray-100 text-gray-700 border-gray-200'
                         )}>
                           {h.status}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
                         {h.type === 'payout' && h.status === 'created' && (
-                          <Button size="sm" variant="outline" onClick={async () => { try { await settleAdminPayout(h._id); refreshTx(); } catch {} }}>
+                          <Button size="sm" variant="outline" onClick={async () => { try { await settleAdminPayout(h._id); refreshTx(); } catch { } }}>
                             <CheckCircle className="w-4 h-4 mr-2" /> Settle
                           </Button>
                         )}
