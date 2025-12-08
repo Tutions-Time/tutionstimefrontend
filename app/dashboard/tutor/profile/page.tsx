@@ -8,6 +8,9 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/tutorProfileSlice";
 import { getUserProfile, updateTutorProfile } from "@/services/profileService";
 import { getImageUrl } from "@/utils/getImageUrl";
+import { validateTutorProfile } from "@/utils/validators";
+
+
 
 // 🧩 Tutor sections
 import TutorPersonalInfoSection from "@/components/TutorCompleteProfile/TutorPersonalInfoSection";
@@ -33,6 +36,8 @@ export default function TutorProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [errors, setErrors] = useState({});
+
 
  useEffect(() => {
   const fetchProfile = async () => {
@@ -64,6 +69,13 @@ export default function TutorProfilePage() {
 
 
   const handleSave = async () => {
+     const validation = validateTutorProfile(profile);
+  setErrors(validation);
+
+  if (Object.keys(validation).length > 0) {
+    toast.error("Please fix highlighted errors");
+    return;
+  }
     try {
       setSaving(true);
       const fd = new FormData();
@@ -164,7 +176,7 @@ export default function TutorProfilePage() {
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
             photoPreview={photoPreview}
-            errors={{}}
+            errors={errors}
             disabled={!editMode}
           />
           <TutorAcademicSection disabled={!editMode} />

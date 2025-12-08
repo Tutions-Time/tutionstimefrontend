@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import ReduxProvider from "@/providers/ReduxProvider";
 import { Toaster } from '@/components/ui/toaster';
 import Script from "next/script";
+import NavigationLoader from "@/components/NavigationLoader";
+
 
 // ⭐ Add these
 import ReviewChecker from "@/components/ReviewChecker";
@@ -30,6 +32,7 @@ export default function RootLayout({
           <ReviewChecker />
           <ReviewModal />
 
+           <NavigationLoader />
           {/* MAIN PAGE CONTENT */}
           {children}
 
