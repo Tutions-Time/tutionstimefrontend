@@ -50,7 +50,9 @@ export default function AdminRevenuePage() {
       acc[s] = (acc[s] || 0) + 1;
       return acc;
     }, {});
-    return { total, count, byStatus };
+    const totalDiscounts = txItems.reduce((sum, h) => sum + Number(h.couponDiscount || 0), 0);
+    const totalReferralRewards = txItems.reduce((sum, h) => sum + Number(h.referralAmount || 0), 0);
+    return { total, count, byStatus, totalDiscounts, totalReferralRewards };
   }, [txItems]);
 
   const debounce = (fn: () => void, ms = 400) => {
@@ -206,6 +208,24 @@ export default function AdminRevenuePage() {
                   <p className="text-2xl font-bold text-text">{adminWallet?.currency || 'INR'}</p>
                 </div>
               </div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                  <IndianRupee className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted">Discounts (page)</p>
+                  <p className="text-2xl font-bold text-text">{inr(Number(txSummary?.totalDiscounts || 0))}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <IndianRupee className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted">Referral Rewards (page)</p>
+                  <p className="text-2xl font-bold text-text">{inr(Number(txSummary?.totalReferralRewards || 0))}</p>
+                </div>
+              </div>
             </div>
           </Card>
 
@@ -334,6 +354,9 @@ export default function AdminRevenuePage() {
                     <th className="px-4 py-3">Tutor</th>
                     <th className="px-4 py-3">Amount</th>
                     <th className="px-4 py-3">Class / Plan</th>
+                    <th className="px-4 py-3">Coupon</th>
+                    <th className="px-4 py-3">Discount</th>
+                    <th className="px-4 py-3">Referral</th>
                     <th className="px-4 py-3">Gateway</th>
                     <th className="px-4 py-3">Order ID</th>
                     <th className="px-4 py-3">Payment ID</th>
@@ -349,6 +372,9 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : '')}</td>
+                      <td className="px-4 py-3">{h.couponCode || '—'}</td>
+                      <td className="px-4 py-3">{h.couponDiscount ? `₹${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td>
+                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(₹${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
                       <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td>
                       <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
                       <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>

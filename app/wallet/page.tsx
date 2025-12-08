@@ -186,6 +186,7 @@ export default function WalletPage() {
                   <tr className="text-left text-xs uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Description</th>
+                    <th className="px-4 py-3">Source</th>
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Amount</th>
                     <th className="px-4 py-3">Status</th>
@@ -204,9 +205,8 @@ export default function WalletPage() {
                       <td className="px-4 py-3">
                         {t.description || '—'}
                       </td>
-                      <td className="px-4 py-3 capitalize text-gray-600">
-                        {t.type}
-                      </td>
+                      <td className="px-4 py-3 capitalize text-gray-600">{t.reference?.type || '—'}</td>
+                      <td className="px-4 py-3 capitalize text-gray-600">{t.type}</td>
                       <td
                         className={`px-4 py-3 font-medium ${
                           t.type === 'credit'
