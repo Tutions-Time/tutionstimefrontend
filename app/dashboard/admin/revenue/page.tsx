@@ -183,7 +183,7 @@ export default function AdminRevenuePage() {
           {/* Transactions (Combined, paginated) */}
           <Card className="rounded-2xl bg-white shadow-sm">
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold">Transactions</h3>
+              {/* <h3 className="font-semibold">Transactions</h3> */}
               <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap flex-nowrap">
                 <select className="h-8 rounded-md border px-2 text-xs" value={txType} onChange={(e) => setTxType(e.target.value as any)}>
                   <option value="">All Types</option>
@@ -202,26 +202,25 @@ export default function AdminRevenuePage() {
                 </select>
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txFrom} onChange={(e) => setTxFrom(e.target.value)} />
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txTo} onChange={(e) => setTxTo(e.target.value)} />
+                <Input className="h-8 text-xs w-32" placeholder="Student" value={txStudent} onChange={(e) => setTxStudent(e.target.value)} />
+                <Input className="h-8 text-xs w-32" placeholder="Tutor" value={txTutor} onChange={(e) => setTxTutor(e.target.value)} />
+                <select className="h-8 rounded-md border px-2 text-xs" value={txLimit} onChange={(e) => setTxLimit(Number(e.target.value))}>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
                 <Button variant="outline" size="sm" onClick={refreshTx}>Apply</Button>
                 <Button variant="outline" size="sm" onClick={exportHistoryCsv}>Export CSV</Button>
               </div>
             </div>
-            <div className="px-4 pb-2 text-xs text-muted flex flex-wrap items-center gap-3">
+            {/* <div className="px-4 pb-2 text-xs text-muted flex flex-wrap items-center gap-3">
               <span>Total Amount (page): <span className="font-semibold">{inr(txSummary.total)}</span></span>
               <span>Count (page): <span className="font-semibold">{txSummary.count}</span></span>
               <span>Paid: <span className="font-semibold">{txSummary.byStatus['paid'] || 0}</span></span>
               <span>Failed: <span className="font-semibold">{txSummary.byStatus['failed'] || 0}</span></span>
-            </div>
-            <div className="px-4 pb-2 flex flex-wrap gap-2">
-              <Input className="h-8 text-xs w-40" placeholder="Student" value={txStudent} onChange={(e) => setTxStudent(e.target.value)} />
-              <Input className="h-8 text-xs w-40" placeholder="Tutor" value={txTutor} onChange={(e) => setTxTutor(e.target.value)} />
-              <select className="h-8 rounded-md border px-2 text-xs" value={txLimit} onChange={(e) => setTxLimit(Number(e.target.value))}>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
+            </div> */}
+            
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50">
