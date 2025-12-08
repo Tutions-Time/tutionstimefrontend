@@ -18,7 +18,7 @@ export default function AdminTransactionsPage() {
   useEffect(() => {
     setLoading(true);
     getAdminAllPaymentHistory()
-      .then((data) => setItems(data || []))
+      .then((res) => setItems((res as any)?.data || []))
       .finally(() => setLoading(false));
   }, []);
 
