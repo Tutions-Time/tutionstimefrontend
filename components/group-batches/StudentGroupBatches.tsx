@@ -165,7 +165,7 @@ export default function StudentGroupBatches() {
     try {
       const res = await api.post(`/sessions/${sessionId}/join`);
       if (res.data?.url) window.open(res.data.url, "_blank");
-    } catch {}
+    } catch { }
   };
 
   // --------------------------
@@ -176,53 +176,53 @@ export default function StudentGroupBatches() {
   return (
     <>
       {/* ---------------- / BATCH LIST ---------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {list.map((b: any) => (
           <div
             key={b._id}
-            className="bg-white border rounded-2xl shadow-sm hover:shadow-md transition p-5 flex flex-col gap-4 w-full"
+            className="bg-white border rounded-lg shadow-sm hover:shadow-md transition p-3 flex flex-col gap-2 w-full"
           >
             {/* Header */}
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-lg font-semibold">{b.subject}</div>
-                <div className="text-xs text-gray-500">{b.level || "General"}</div>
+                <div className="text-sm font-semibold">{b.subject}</div>
+                <div className="text-[11px] text-gray-500">{b.level || "General"}</div>
               </div>
 
               {b.isEnrolledForCurrentUser ? (
-                <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                <span className="text-[10px] px-2 py-[2px] rounded-full bg-green-100 text-green-700">
                   Enrolled
                 </span>
               ) : (
-                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                <span className="text-[10px] px-2 py-[2px] rounded-full bg-blue-100 text-blue-700">
                   Available
                 </span>
               )}
             </div>
 
             {/* Info */}
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> {b.fixedDates?.length ?? 0} dates
+            <div className="space-y-1 text-[12px]">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> {b.fixedDates?.length ?? 0} dates
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" /> Seats Left: {b.liveSeats}
+              <div className="flex items-center gap-1">
+                <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
-              <div className="flex items-center gap-2">
-                <IndianRupee className="w-4 h-4" /> {b.pricePerStudent}
+              <div className="flex items-center gap-1">
+                <IndianRupee className="w-3 h-3" /> {b.pricePerStudent}
               </div>
-              <div className="flex items-center gap-2">
-                <Video className="w-4 h-4" /> Online Class
+              <div className="flex items-center gap-1">
+                <Video className="w-3 h-3" /> Online Class
               </div>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-2 mt-2">
+            {/* Small CTA Buttons */}
+            <div className="flex flex-wrap gap-1 mt-1">
               {!b.isEnrolledForCurrentUser ? (
                 <Button
                   disabled={loading || b.liveSeats <= 0}
                   onClick={() => reserveAndPay(b._id)}
-                  className="flex-1 bg-primary text-black"
+                  className="flex-1 h-8 px-3 text-xs bg-primary text-black"
                 >
                   {loading ? "Processing..." : "Join Now"}
                 </Button>
@@ -230,7 +230,7 @@ export default function StudentGroupBatches() {
                 <Button
                   variant="secondary"
                   onClick={() => openSessionsModal(b._id)}
-                  className="flex-1"
+                  className="flex-1 h-8 px-3 text-xs"
                 >
                   View Sessions
                 </Button>
@@ -239,6 +239,7 @@ export default function StudentGroupBatches() {
           </div>
         ))}
       </div>
+
 
       {/* ---------------- / SESSIONS MODAL ---------------- */}
       <GroupSessionsModal
