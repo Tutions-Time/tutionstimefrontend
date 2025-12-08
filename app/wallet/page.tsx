@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wallet as WalletIcon, Download } from 'lucide-react';
+import { Wallet as WalletIcon, Download, IndianRupee } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getMyWallet, getMyTransactions } from '@/services/walletService';
+import { requestPayout } from '@/services/tutorService';
 import { toast } from '@/hooks/use-toast';
 
 export default function WalletPage() {
@@ -15,6 +16,8 @@ export default function WalletPage() {
   const [wallet, setWallet] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+  const [withdrawing, setWithdrawing] = useState(false);
 
   // ✅ Fetch wallet + transactions on load
   useEffect(() => {
@@ -42,6 +45,48 @@ export default function WalletPage() {
 
   const balance = wallet?.balance ?? 0;
   const pendingBalance = wallet?.pendingBalance ?? 0;
+
+  async function refresh() {
+    const walletRes = await getMyWallet();
+    const txRes = await getMyTransactions();
+    setWallet(walletRes);
+    setTransactions(txRes);
+  }
+
+  async function handleWithdraw() {
+    try {
+      if (wallet?.role !== 'tutor') {
+        toast({ title: 'Only tutors can withdraw', variant: 'destructive' });
+        return;
+      }
+      const amt = Number(withdrawAmount);
+      if (!amt || isNaN(amt) || amt <= 0) {
+        toast({ title: 'Enter a valid amount', variant: 'destructive' });
+        return;
+      }
+      if (amt < 10) {
+        toast({ title: 'Minimum payout is ₹10', variant: 'destructive' });
+        return;
+      }
+      if (amt > Number(balance || 0)) {
+        toast({ title: 'Amount exceeds available balance', variant: 'destructive' });
+        return;
+      }
+      setWithdrawing(true);
+      const res = await requestPayout(amt);
+      if (res?.success) {
+        toast({ title: 'Payout requested successfully' });
+        setWithdrawAmount("");
+        await refresh();
+      } else {
+        toast({ title: res?.message || 'Payout request failed', variant: 'destructive' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Payout request failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setWithdrawing(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,6 +128,28 @@ export default function WalletPage() {
                 </div>
               </div>
             </div>
+
+            {wallet?.role === 'tutor' && (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label className="text-sm text-muted">Amount (₹)</label>
+                  <input
+                    className="mt-1 w-full border rounded-md px-3 py-2"
+                    type="number"
+                    min={10}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="Enter amount"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">Minimum ₹10</div>
+                </div>
+                <div className="flex">
+                  <Button className="ml-auto" onClick={handleWithdraw} disabled={withdrawing}>
+                    {withdrawing ? 'Requesting…' : 'Withdraw'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
 
           {/* Pending Balance for Tutors */}

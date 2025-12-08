@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -150,6 +150,17 @@ export default function TutorDashboard() {
                   <Plus className="w-4 h-4 mr-1.5" />
                   <span className="hidden sm:inline">Create Class</span>
                   <span className="sm:hidden">New</span>
+                </Button>
+              </Link>
+
+              <Link href="/wallet">
+                <Button
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary/10 font-semibold"
+                  size="sm"
+                >
+                  <Wallet className="w-4 h-4 mr-1.5" />
+                  Withdraw
                 </Button>
               </Link>
             </div>

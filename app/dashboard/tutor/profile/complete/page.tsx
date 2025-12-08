@@ -34,6 +34,11 @@ export default function TutorProfileCompletePage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [upiId, setUpiId] = useState("");
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [ifsc, setIfsc] = useState("");
+
   // Load saved data
   useEffect(() => {
     const cache = localStorage.getItem("tt_tutor_prefill");
@@ -164,6 +169,11 @@ export default function TutorProfileCompletePage() {
       if (resumeFile) fd.append("resume", resumeFile);
       if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
 
+      fd.append("upiId", upiId || "");
+      fd.append("accountHolderName", accountHolderName || "");
+      fd.append("bankAccountNumber", bankAccountNumber || "");
+      fd.append("ifsc", ifsc || "");
+
       // Call your existing API (single endpoint)
       await updateTutorProfile(fd);
 
@@ -222,10 +232,52 @@ export default function TutorProfileCompletePage() {
             errors={errors}
           />
 
-          <TutorResumeSection
-            resumeFile={resumeFile}
-            setResumeFile={setResumeFile}
-          />
+        <TutorResumeSection
+          resumeFile={resumeFile}
+          setResumeFile={setResumeFile}
+        />
+
+          <div className="space-y-4 border p-4 rounded-xl">
+            <div className="font-semibold">Payout Details</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-600">UPI ID</label>
+                <input
+                  className="mt-1 w-full border rounded-md px-3 py-2"
+                  placeholder="yourname@bank"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600">Account Holder Name</label>
+                <input
+                  className="mt-1 w-full border rounded-md px-3 py-2"
+                  placeholder="Name as per bank"
+                  value={accountHolderName}
+                  onChange={(e) => setAccountHolderName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600">Bank Account Number</label>
+                <input
+                  className="mt-1 w-full border rounded-md px-3 py-2"
+                  placeholder="0000 0000 0000"
+                  value={bankAccountNumber}
+                  onChange={(e) => setBankAccountNumber(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600">IFSC</label>
+                <input
+                  className="mt-1 w-full border rounded-md px-3 py-2"
+                  placeholder="XXXX0000000"
+                  value={ifsc}
+                  onChange={(e) => setIfsc(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
 
           <div className="flex justify-between border-t pt-4">
             <SecondaryButton onClick={() => router.back()}>
