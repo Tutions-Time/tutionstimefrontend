@@ -147,6 +147,15 @@ export const getAdminAllPaymentHistory = async (params?: { from?: string; to?: s
   }
 };
 
+export const getAdminRevenueTimeseries = async (params?: { from?: string; to?: string }) => {
+  try {
+    const res = await api.get(`/payments/admin/revenue-timeseries`, { params });
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const getTutorNoteHistory = async (params?: { from?: string; to?: string }) => {
   try {
     const res = await api.get(`/payments/tutor/note-history`, { params });

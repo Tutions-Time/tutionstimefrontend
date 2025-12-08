@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
-import { settleAdminPayout, getAdminAllPaymentHistory } from '@/services/razorpayService';
+import { settleAdminPayout, getAdminAllPaymentHistory, getAdminRevenueTimeseries } from '@/services/razorpayService';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ComposedChart, Bar } from 'recharts';
 
 /* Real UI */
 
@@ -36,6 +37,11 @@ export default function AdminRevenuePage() {
   const [txLimit, setTxLimit] = useState<number>(20);
   const [txPages, setTxPages] = useState<number>(1);
   const [txTotal, setTxTotal] = useState<number>(0);
+  const [revSeries, setRevSeries] = useState<{ date: string; subscriptionTotal: number; subscriptionCount: number; noteTotal: number; noteCount: number; commissionTotal: number }[]>([]);
+  const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number } | null>(null);
+  const [rangeQuick, setRangeQuick] = useState<'7d'|'30d'|'90d'|'custom'>('30d');
+  const [viewMode, setViewMode] = useState<'classic'|'trading'>('classic');
+  const tradingData = useMemo(() => revSeries.map(d => ({...d, combinedTotal: (Number(d.subscriptionTotal||0)) + (Number(d.noteTotal||0)), volume: (Number(d.subscriptionCount||0)) + (Number(d.noteCount||0)) })), [revSeries]);
   const txSummary = useMemo(() => {
     const total = txItems.reduce((sum, h) => sum + Number(h.amount || 0), 0);
     const count = txItems.length;
@@ -121,6 +127,31 @@ export default function AdminRevenuePage() {
   useEffect(() => { refreshTx(); }, [txPage, txLimit, txStatus, txType]);
   useEffect(() => { setTxPage(1); const c = debounce(refreshTx); return c; }, [txFrom, txTo, txTutor, txStudent]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
+        setRevSeries(data?.series || []);
+        setRevTotals(data?.totals || null);
+      } catch {}
+    })();
+  }, [txFrom, txTo]);
+
+  useEffect(()=>{
+    const now = new Date();
+    const fmt = (d: Date) => d.toISOString().slice(0,10);
+    if (rangeQuick === 'custom') return;
+    const setRange = (days: number) => {
+      const to = fmt(now);
+      const from = fmt(new Date(now.getTime() - days*24*60*60*1000));
+      setTxFrom(from);
+      setTxTo(to);
+    };
+    if (rangeQuick === '7d') setRange(7);
+    if (rangeQuick === '30d') setRange(30);
+    if (rangeQuick === '90d') setRange(90);
+  }, [rangeQuick]);
+
   
 
   return (
@@ -182,6 +213,72 @@ export default function AdminRevenuePage() {
 
           {/* Transactions (Combined, paginated) */}
           <Card className="rounded-2xl bg-white shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-sm text-muted">Range</span>
+                <select className="h-8 rounded-md border px-2 text-xs" value={rangeQuick} onChange={(e)=> setRangeQuick(e.target.value as any)}>
+                  <option value="7d">Last 7 days</option>
+                  <option value="30d">Last 30 days</option>
+                  <option value="90d">Last 90 days</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <span className="ml-4 text-sm text-muted">View</span>
+                <select className="h-8 rounded-md border px-2 text-xs" value={viewMode} onChange={(e)=> setViewMode(e.target.value as any)}>
+                  <option value="classic">Classic</option>
+                  <option value="trading">Trading</option>
+                </select>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm text-muted">Subscriptions (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Notes (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Commission (est.)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.commissionTotal || 0))}</div>
+                </div>
+              </div>
+              <div className="mt-6 h-[260px]">
+                {viewMode === 'classic' ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revSeries}>
+                      <defs>
+                        <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#6366F1" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#6366F1" stopOpacity={0.3} />
+                        </linearGradient>
+                        <linearGradient id="noteGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.9} />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
+                      <Legend />
+                      <Area type="monotone" dataKey="subscriptionTotal" name="Subscriptions" stroke="#6366F1" fill="url(#subGrad)" />
+                      <Area type="monotone" dataKey="noteTotal" name="Notes" stroke="#10B981" fill="url(#noteGrad)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={tradingData}>
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                      <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
+                      <Legend />
+                      <Area yAxisId="left" type="monotone" dataKey="combinedTotal" name="Revenue" stroke="#6366F1" fill="#6366F133" />
+                      <Bar yAxisId="right" dataKey="volume" name="Volume" fill="#11182722" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
             <div className="p-4 border-b flex items-center justify-between">
               {/* <h3 className="font-semibold">Transactions</h3> */}
               <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap flex-nowrap">

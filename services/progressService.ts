@@ -45,12 +45,39 @@ export const getStudentWeeklySummary = async () => {
   }
 };
 
+export const getStudentTimeSpent = async (params?: { days?: number }) => {
+  try {
+    const res = await api.get('/progress/student/time-spent', { params });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const submitSessionFeedback = async (
   sessionId: string,
   payload: { teaching: number; communication: number; understanding: number; comment?: string }
 ) => {
   try {
     const res = await api.post(`/progress/sessions/${sessionId}/feedback`, payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getTutorRatingTrend = async (params?: { weeks?: number }) => {
+  try {
+    const res = await api.get('/progress/tutor/rating-trend', { params });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getTutorRetention = async () => {
+  try {
+    const res = await api.get('/progress/tutor/retention');
     return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));

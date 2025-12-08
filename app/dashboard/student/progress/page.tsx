@@ -21,12 +21,15 @@ import {
 import {
   getStudentProgressSummary,
   getStudentProgressBySubject,
+  getStudentTimeSpent,
 } from "@/services/progressService";
 
 export default function ProgressPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [overall, setOverall] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [timeSpent, setTimeSpent] = useState<any>(null);
+  const [timeWindowDays, setTimeWindowDays] = useState<number>(7);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,9 +40,11 @@ export default function ProgressPage() {
     try {
       const summaryRes = await getStudentProgressSummary();
       const subjectsRes = await getStudentProgressBySubject();
+      const tsRes = await getStudentTimeSpent({ days: timeWindowDays });
 
       setOverall(summaryRes.data);
       setSubjects(subjectsRes.data);
+      setTimeSpent(tsRes.data);
     } catch (error) {
       console.error("Error loading progress:", error);
     } finally {
@@ -294,6 +299,31 @@ export default function ProgressPage() {
               </div>
             </div>
           </Card>
+
+          {timeSpent && (
+            <Card className="p-8 bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold">Time Spent by Subject</h2>
+                <select className="h-8 rounded-md border px-2 text-xs" value={timeWindowDays} onChange={(e)=> { setTimeWindowDays(Number(e.target.value)); setLoading(true); loadProgress(); }}>
+                  <option value={7}>Last 7 days</option>
+                  <option value={30}>Last 30 days</option>
+                </select>
+              </div>
+              <div className="w-full overflow-x-auto pb-4">
+                <div className="min-w-[650px] md:min-w-full h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={timeSpent.bySubject} barGap={8} barSize={28}>
+                      <XAxis dataKey="subject" tick={{ fontSize: 12, fill: "#4B5563" }} axisLine={{ stroke: "#E5E7EB" }} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: "#4B5563" }} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #eee", background: "white", padding: "10px 14px", boxShadow: "0 6px 20px rgba(0,0,0,0.1)" }} labelStyle={{ fontWeight: 600 }} />
+                      <Legend verticalAlign="top" height={40} formatter={(value) => (<span className="text-sm text-gray-700">{value}</span>)} />
+                    <Bar dataKey="minutes" name="Minutes" fill="#6366F1" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </Card>
+          )}
 
 
         </main>

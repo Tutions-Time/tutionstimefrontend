@@ -166,6 +166,15 @@ export const getTutorDemoRequests = async (params?: {
   }
 };
 
+export const getTutorEarningsSummary = async (params?: { startDate?: string; endDate?: string }) => {
+  try {
+    const res = await api.get('/tutors/earnings', { params });
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Regular classes for tutor dashboard
 // export const getTutorRegularClasses = async () => {
 //   try {
