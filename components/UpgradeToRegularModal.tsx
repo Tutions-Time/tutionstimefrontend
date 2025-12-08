@@ -67,7 +67,7 @@ export default function UpgradeToRegularModal({
             key: order.razorpayKey,
             amount: order.amount,
             currency: order.currency,
-            name: "TuitionTime",
+            name: "TuitionsTime",
             description: "Regular Class Payment",
             order_id: order.orderId, // MUST be fresh from backend
             handler: async (response: any) => {
@@ -91,7 +91,7 @@ export default function UpgradeToRegularModal({
 
                     if (verifyRes?.success) {
                         toast.success("Payment successful!");
-                        router.push(`/dashboard/student/sessions?tab=regular`);
+                        router.push(`/dashboard/student/demoBookings`);
                     } else {
                         toast.error(verifyRes?.message || "Verification failed");
                     }

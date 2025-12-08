@@ -98,7 +98,7 @@ export default function ReviewModal() {
       key: order.razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: "TuitionTime",
+      name: "TuitionsTime",
       description: "Regular Class Payment",
       order_id: order.orderId,
       handler: async (response: any) => {
@@ -118,7 +118,7 @@ export default function ReviewModal() {
           if (verifyRes?.success) {
             toast.success("Payment successful and verified!");
             dispatch(closeReviewModal());
-            router.push(`/dashboard/student/sessions?tab=regular`);
+            router.push(`/dashboard/student/demoBookings`);
           } else {
             toast.error(verifyRes?.message || "Verification failed");
           }

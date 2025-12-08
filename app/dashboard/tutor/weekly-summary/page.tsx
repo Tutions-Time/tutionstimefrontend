@@ -37,50 +37,50 @@ export default function TutorWeeklySummaryPage() {
           ) : (
             <>
               <div className="grid md:grid-cols-3 gap-4">
-                <Card className="p-6 rounded-2xl bg-white shadow-sm">
+                <Card className="p-6 rounded-2xl bg-primary shadow-sm">
                   <div className="text-sm text-muted">Sessions</div>
                   <div className="text-2xl font-bold">{data.sessions ?? 0}</div>
                 </Card>
-                <Card className="p-6 rounded-2xl bg-white shadow-sm">
+                <Card className="p-6 rounded-2xl bg-primary shadow-sm">
                   <div className="text-sm text-muted">Completed</div>
                   <div className="text-2xl font-bold">{data.completed ?? 0}</div>
                 </Card>
-                <Card className="p-6 rounded-2xl bg-white shadow-sm">
+                <Card className="p-6 rounded-2xl bg-primary shadow-sm">
                   <div className="text-sm text-muted">Attendance Consistency</div>
                   <div className="text-2xl font-bold">{data.attendanceConsistency ?? 0}%</div>
                 </Card>
               </div>
 
-              <Card className="p-6 rounded-2xl bg-white shadow-sm">
+              <Card className="p-6 rounded-2xl bg-primary shadow-sm">
                 <div className="text-sm font-semibold mb-2">Rubric Averages</div>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Teaching</div>
                     <div className="font-semibold">{r.teaching?.toFixed?.(1) ?? "-"}</div>
                   </div>
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Communication</div>
                     <div className="font-semibold">{r.communication?.toFixed?.(1) ?? "-"}</div>
                   </div>
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Understanding</div>
                     <div className="font-semibold">{r.understanding?.toFixed?.(1) ?? "-"}</div>
                   </div>
                 </div>
               </Card>
 
-              <Card className="p-6 rounded-2xl bg-white shadow-sm">
+              <Card className="p-6 rounded-2xl bg-primary shadow-sm">
                 <div className="text-sm font-semibold mb-2">Materials Uploaded</div>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Notes</div>
                     <div className="font-semibold">{m.notes ?? 0}</div>
                   </div>
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Assignments</div>
                     <div className="font-semibold">{m.assignments ?? 0}</div>
                   </div>
-                  <div>
+                  <div className="border border-black p-3 rounded-md">
                     <div className="text-muted">Recordings</div>
                     <div className="font-semibold">{m.recordings ?? 0}</div>
                   </div>
