@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 import OtherInline from "@/components/forms/OtherInline";
+import { validateTutorProfile } from "@/utils/validators";
+
 
 const GENDER = ["Male", "Female", "Other"];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
@@ -24,6 +26,8 @@ export default function TutorPersonalInfoSection({
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+  const runValidation = () => validateTutorProfile(profile);
+
 
   const Err = ({ msg }: { msg?: string }) =>
     msg ? <p className="text-xs text-red-600 mt-1">{msg}</p> : null;
