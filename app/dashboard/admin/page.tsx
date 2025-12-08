@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   BarChart3, Users, User, Wallet, Calendar, TrendingUp, TrendingDown, Search, ShieldCheck
@@ -16,11 +16,13 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 type Trend = 'up' | 'down' | 'flat';
 
-const kpis = [
-  { label: 'Total Users', value: '14,230', icon: Users, tone: 'primary' as const, delta: '+4.2%', trend: 'up' as Trend },
-  { label: 'Active Tutors', value: '1,128', icon: User, tone: 'success' as const, delta: '+2.1%', trend: 'up' as Trend },
-  { label: 'Monthly Revenue', value: '₹8.6L', icon: Wallet, tone: 'primary' as const, delta: '-1.3%', trend: 'down' as Trend },
-  { label: 'Sessions (30d)', value: '6,245', icon: Calendar, tone: 'warning' as const, delta: '+7.8%', trend: 'up' as Trend },
+import { getDashboardStats } from '@/services/adminService';
+
+const kpisDefault = [
+  { label: 'Total Users', value: '0', icon: Users, tone: 'primary' as const, delta: '0%', trend: 'flat' as Trend },
+  { label: 'Active Tutors', value: '0', icon: User, tone: 'success' as const, delta: '0%', trend: 'flat' as Trend },
+  { label: 'Monthly Revenue', value: '₹0', icon: Wallet, tone: 'primary' as const, delta: '0%', trend: 'flat' as Trend },
+  { label: 'Sessions (7d)', value: '0', icon: Calendar, tone: 'warning' as const, delta: '0%', trend: 'flat' as Trend },
 ];
 
 const recentEvents = [
@@ -32,7 +34,26 @@ const recentEvents = [
 
 function AdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const kpiCards = useMemo(() => kpis, []);
+  const [kpiCards, setKpiCards] = useState(kpisDefault);
+
+  useEffect(() => {
+    let mounted = true;
+    getDashboardStats().then((stats) => {
+      if (!mounted || !stats) return;
+      const totalUsers = String(stats?.users?.total || 0);
+      const activeTutors = String(stats?.users?.tutors || 0);
+      const monthlyRevenue = (stats?.payments?.subscriptions?.totalAmount || 0) + (stats?.payments?.notes?.totalAmount || 0);
+      const sessions7d = String(stats?.sessions?.upcoming7d || 0);
+      const cards = [
+        { label: 'Total Users', value: totalUsers, icon: Users, tone: 'primary' as const, delta: ' ', trend: 'flat' as Trend },
+        { label: 'Active Tutors', value: activeTutors, icon: User, tone: 'success' as const, delta: ' ', trend: 'flat' as Trend },
+        { label: 'Monthly Revenue', value: `₹${monthlyRevenue}`, icon: Wallet, tone: 'primary' as const, delta: ' ', trend: 'flat' as Trend },
+        { label: 'Sessions (7d)', value: sessions7d, icon: Calendar, tone: 'warning' as const, delta: ' ', trend: 'flat' as Trend },
+      ];
+      setKpiCards(cards);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

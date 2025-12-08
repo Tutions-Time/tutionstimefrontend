@@ -149,3 +149,30 @@ export const updateTutorStatus = async (id: string, status: 'active' | 'suspende
     throw new Error(handleApiError(error));
   }
 };
+
+export const createRefundRequest = async (payload: { paymentId: string; amount: number; reason?: string }) => {
+  try {
+    const res = await api.post('/payments/refunds/request', payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getAdminRefunds = async (params?: { status?: string; from?: string; to?: string }) => {
+  try {
+    const res = await api.get('/payments/admin/refunds', { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateRefundStatus = async (id: string, status: 'approved' | 'rejected' | 'processed') => {
+  try {
+    const res = await api.patch(`/payments/admin/refunds/${id}`, { status });
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
