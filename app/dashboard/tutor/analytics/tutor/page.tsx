@@ -8,8 +8,8 @@ import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { getTutorNoteRevenue } from '@/services/razorpayService';
 import { getTutorEarningsSummary } from '@/services/tutorService';
-import { getTutorRatingTrend, getTutorProgressSummary, getTutorRetention } from '@/services/progressService';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { getTutorRatingTrend, getTutorProgressSummary, getTutorRetention, getTutorWeeklySummary } from '@/services/progressService';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, BarChart, Bar } from 'recharts';
 
 type TrendPoint = { weekStart: string; avgOverall: number; count: number };
 
@@ -21,6 +21,7 @@ export default function TutorAnalyticsPage() {
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [trendWeeks, setTrendWeeks] = useState<number>(8);
   const [retention, setRetention] = useState<{ conversion30d: number; conversion90d: number; repeatStudents30d: number; retention30d: number } | null>(null);
+  const [weekly, setWeekly] = useState<any>(null);
   useEffect(() => {
     (async () => {
       try {
@@ -42,6 +43,10 @@ export default function TutorAnalyticsPage() {
       try {
         const r = await getTutorRetention();
         setRetention(r?.data || null);
+      } catch {}
+      try {
+        const w = await getTutorWeeklySummary();
+        setWeekly(w?.data || null);
       } catch {}
     })();
   }, [trendWeeks]);
@@ -124,6 +129,61 @@ export default function TutorAnalyticsPage() {
               </ResponsiveContainer>
             </div>
           </Card>
+          {weekly && (
+            <Card className="p-6 rounded-2xl bg-white shadow-sm">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm text-muted">Sessions (7d)</div>
+                  <div className="text-2xl font-bold">{weekly.sessions}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Completed (7d)</div>
+                  <div className="text-2xl font-bold">{weekly.completed}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Attendance Consistency</div>
+                  <div className="text-2xl font-bold">{weekly.attendanceConsistency}%</div>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 mt-6">
+                <div className="p-4 border rounded-xl">
+                  <div className="font-semibold mb-2">Rubric Averages</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Teaching</span><span className="text-sm font-semibold">{Math.round((weekly.rubricAverages?.teaching || 0)*100)/100}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Communication</span><span className="text-sm font-semibold">{Math.round((weekly.rubricAverages?.communication || 0)*100)/100}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Understanding</span><span className="text-sm font-semibold">{Math.round((weekly.rubricAverages?.understanding || 0)*100)/100}</span></div>
+                  </div>
+                </div>
+                <div className="p-4 border rounded-xl">
+                  <div className="font-semibold mb-2">Materials Uploaded</div>
+                  <div className="w-full h-[180px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={[{ name: 'Counts', notes: weekly.materials?.notes || 0, assignments: weekly.materials?.assignments || 0, recordings: weekly.materials?.recordings || 0 }]}
+                        barGap={8} barSize={28}>
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={{ stroke: '#E5E7EB' }} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #eee' }} />
+                        <Legend />
+                        <Bar dataKey="notes" name="Notes" fill="#6366F1" radius={[6,6,0,0]} />
+                        <Bar dataKey="assignments" name="Assignments" fill="#F59E0B" radius={[6,6,0,0]} />
+                        <Bar dataKey="recordings" name="Recordings" fill="#10B981" radius={[6,6,0,0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+              {weekly.topComments?.length ? (
+                <div className="mt-6">
+                  <div className="font-semibold mb-2">Recent Feedback</div>
+                  <ul className="space-y-2">
+                    {weekly.topComments.map((c: string, i: number)=> (
+                      <li key={i} className="text-sm text-muted">{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </Card>
+          )}
           {retention && (
             <div className="grid md:grid-cols-4 gap-4">
               <Card className="p-6 rounded-2xl bg-white shadow-sm"><div className="text-sm text-muted">Demo→Regular (30d)</div><div className="text-2xl font-bold">{retention.conversion30d}</div></Card>
