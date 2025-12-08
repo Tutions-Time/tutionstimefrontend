@@ -25,6 +25,7 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
   useEffect(() => {
     if (!batch) return;
     const startTime = "18:00";
+
     setForm({
       fixedDates: batch.fixedDates || [],
       classStartTime: startTime,
@@ -40,10 +41,16 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
   }, [batch]);
 
   const toggleDate = (iso: string) => {
-    const exists = form.fixedDates.some((d: string | Date) => new Date(d).toISOString() === new Date(iso).toISOString());
+    const exists = form.fixedDates.some(
+      (d: string | Date) => new Date(d).toISOString() === new Date(iso).toISOString()
+    );
+
     const next = exists
-      ? form.fixedDates.filter((d: string | Date) => new Date(d).toISOString() !== new Date(iso).toISOString())
+      ? form.fixedDates.filter(
+          (d: string | Date) => new Date(d).toISOString() !== new Date(iso).toISOString()
+        )
       : [...form.fixedDates, new Date(iso).toISOString()];
+
     setForm({ ...form, fixedDates: next });
   };
 
@@ -64,11 +71,21 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl rounded-2xl">
+      <DialogContent
+        className="
+          max-w-2xl w-full 
+          rounded-2xl
+          max-h-[90vh] 
+          overflow-hidden
+        "
+      >
         <DialogHeader>
           <DialogTitle>Edit Batch</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+
+        {/* Scrollable wrapper */}
+        <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+
           <div className="space-y-2">
             <label className="text-sm">Class start time</label>
             <input
@@ -83,7 +100,11 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
             <div className="text-sm">Select dates from availability</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto border p-2 rounded">
               {(options.availabilityDates || []).map((d: string) => {
-                const checked = form.fixedDates.some((x: string | Date) => new Date(x).toDateString() === new Date(d).toDateString());
+                const checked = form.fixedDates.some(
+                  (x: string | Date) =>
+                    new Date(x).toDateString() === new Date(d).toDateString()
+                );
+
                 return (
                   <label key={d} className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={checked} onChange={() => toggleDate(d)} />
@@ -106,12 +127,15 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
                 max={200}
               />
             </div>
+
             <div className="space-y-2">
               <label className="text-sm">Price per student</label>
               <input
                 type="number"
                 value={form.pricePerStudent}
-                onChange={(e) => setForm({ ...form, pricePerStudent: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, pricePerStudent: Number(e.target.value) })
+                }
                 className="border rounded p-2 w-full"
                 min={1}
               />
@@ -167,10 +191,11 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
             <span className="text-sm">Published</span>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 pb-2">
             <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
             <Button onClick={onSave}>Save</Button>
           </div>
+
         </div>
       </DialogContent>
     </Dialog>

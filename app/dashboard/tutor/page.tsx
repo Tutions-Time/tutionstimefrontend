@@ -132,16 +132,6 @@ export default function TutorDashboard() {
           greeting
           action={
             <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/dashboard/tutor/availability">
-                <Button
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary/10 font-semibold"
-                  size="sm"
-                >
-                  Availability
-                </Button>
-              </Link>
-
               <Link href="/dashboard/tutor/book">
                 <Button
                   className="bg-primary hover:bg-primary/90 text-text font-semibold"

@@ -141,7 +141,7 @@ export default function StudentSessions() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "TuitionTime",
+        name: "TuitionsTime",
         description: "Regular Class Payment",
         order_id: order.id,
         handler: async (response: any) => {
@@ -149,7 +149,7 @@ export default function StudentSessions() {
             await verifyBookingPayment(bookingId, response);
             toast({ title: "✅ Regular class confirmed!" });
             fetchAll();
-            router.push("/dashboard/student/sessions?tab=regular");
+            router.push("/dashboard/student/demoBookings");
           } catch {
             toast({ title: "Verification failed", variant: "destructive" });
           }

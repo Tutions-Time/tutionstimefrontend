@@ -99,7 +99,7 @@ export default function NotesPage() {
         key: orderRes.key || orderRes.razorpayKey,
         amount: orderRes.amount,
         currency: "INR",
-        name: "TuitionTime",
+        name: "TuitionsTime",
         description: "Paid Note",
         order_id: orderRes.orderId,
 

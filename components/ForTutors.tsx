@@ -23,7 +23,7 @@ export default function ForTutors() {
       stars: 5,
       subject: "Maths Tutor (8+ Years)",
       review:
-        "Teaching on TuitionTime has been amazing. The flexible schedule and great tools help me teach more effectively.",
+        "Teaching on TuitionsTime has been amazing. The flexible schedule and great tools help me teach more effectively.",
     },
     {
       initials: "RS",
