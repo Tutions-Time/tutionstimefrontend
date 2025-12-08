@@ -133,14 +133,14 @@ export default function TutorDashboard() {
           action={
             <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/dashboard/tutor/book">
-                <Button
+                {/* <Button
                   className="bg-primary hover:bg-primary/90 text-text font-semibold"
                   size="sm"
                 >
                   <Plus className="w-4 h-4 mr-1.5" />
                   <span className="hidden sm:inline">Create Class</span>
                   <span className="sm:hidden">New</span>
-                </Button>
+                </Button> */}
               </Link>
 
               <Link href="/wallet">

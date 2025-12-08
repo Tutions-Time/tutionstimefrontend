@@ -19,7 +19,7 @@ export default function QuickActionsSection() {
         <p className="text-sm text-muted mb-3 sm:mb-4">
           Plan your next session with your students
         </p>
-        <Link href="/dashboard/tutor#sessions">
+        <Link href="/dashboard/tutor/classes">
           <Button className="w-full bg-primary hover:bg-primary/90 text-text">
             Schedule Now
           </Button>
@@ -51,7 +51,7 @@ export default function QuickActionsSection() {
         <p className="text-sm text-muted mb-3 sm:mb-4">
           Complete your verification to get more bookings
         </p>
-        <Link href="/tutor/kyc">
+        <Link href="/dashboard/tutor/kyc">
           <Button variant="outline" className="w-full">
             Start Verification
           </Button>
