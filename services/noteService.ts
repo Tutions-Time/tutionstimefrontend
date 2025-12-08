@@ -63,9 +63,9 @@ export const getDownloadUrl = async (noteId: string) => {
   }
 };
 
-export const createNoteOrder = async (noteId: string) => {
+export const createNoteOrder = async (noteId: string, couponCode?: string) => {
   try {
-    const res = await api.post(`/payments/notes/create-order`, { noteId });
+    const res = await api.post(`/payments/notes/create-order`, { noteId, couponCode });
     return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));

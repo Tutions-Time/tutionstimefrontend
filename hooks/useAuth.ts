@@ -118,7 +118,8 @@ export const useAuth = () => {
       phone: string,
       otp: string,
       requestId: string,
-      role: "student" | "tutor"
+      role: "student" | "tutor",
+      referralCode?: string
     ) => {
       // Reset any existing profile data
       if (role === "student") {
@@ -128,7 +129,7 @@ export const useAuth = () => {
       }
 
       const result = await dispatch(
-        signupAsync({ phone, otp, requestId, role })
+        signupAsync({ phone, otp, requestId, role, referralCode })
       );
 
       if (signupAsync.fulfilled.match(result)) {

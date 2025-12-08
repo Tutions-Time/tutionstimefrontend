@@ -23,6 +23,7 @@ export default function SignupPage() {
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   
   const { sendOtp, signup, isLoading, error } = useAuth();
   const { toast } = useToast();
@@ -95,6 +96,15 @@ export default function SignupPage() {
     try {
       // Don't trim the requestId as it might contain characters that look like whitespace
       await signup(phone.trim(), otpValue.trim(), requestId, role);
+      if (referralCode.trim()) {
+        try {
+          await fetch('/api/marketing/referrals/apply-at-signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone.trim(), referralCode: referralCode.trim() })
+          });
+        } catch {}
+      }
       toast({
         title: 'Signup Successful',
         description: 'Your account has been created successfully',
@@ -174,6 +184,17 @@ export default function SignupPage() {
                   maxLength={10}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referral">Referral Code (optional)</Label>
+              <Input
+                id="referral"
+                type="text"
+                placeholder="Enter referral code if you have one"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+              />
             </div>
 
             <Button

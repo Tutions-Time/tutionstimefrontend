@@ -20,6 +20,7 @@ export default function StudentGroupBatches() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [couponMap, setCouponMap] = useState<Record<string, string>>({});
 
   // --------------------------
   // Razorpay Loader
@@ -114,6 +115,7 @@ export default function StudentGroupBatches() {
       const order = await createGroupOrder({
         batchId,
         reservationId: res.reservationId,
+        couponCode: couponMap[batchId]?.trim(),
       });
 
       if (!order?.success) {
@@ -217,8 +219,15 @@ export default function StudentGroupBatches() {
             </div>
 
             {/* Small CTA Buttons */}
-            <div className="flex flex-wrap gap-1 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1">
               {!b.isEnrolledForCurrentUser ? (
+                <>
+                <input
+                  placeholder="Coupon"
+                  value={couponMap[b._id] || ""}
+                  onChange={(e) => setCouponMap((m) => ({ ...m, [b._id]: e.target.value }))}
+                  className="h-8 px-2 text-xs border rounded"
+                />
                 <Button
                   disabled={loading || b.liveSeats <= 0}
                   onClick={() => reserveAndPay(b._id)}
@@ -226,6 +235,7 @@ export default function StudentGroupBatches() {
                 >
                   {loading ? "Processing..." : "Join Now"}
                 </Button>
+                </>
               ) : (
                 <Button
                   variant="secondary"

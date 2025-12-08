@@ -68,6 +68,8 @@ const adminLinks: NavLink[] = [
   { href: '/dashboard/admin/transactions', label: 'Transactions', icon: ClipboardList },
   { href: '/dashboard/admin/refunds', label: 'Refunds', icon: ClipboardList },
   { href: '/dashboard/admin/sessions', label: 'Sessions', icon: Calendar },
+  { href: '/dashboard/admin/marketing/coupons', label: 'Coupons', icon: FileText },
+  { href: '/dashboard/admin/marketing/referrals', label: 'Referrals', icon: TrendingUp },
 ];
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {
