@@ -100,6 +100,20 @@ export const verifyGenericPayment = async (
   }
 };
 
+export const createSubscriptionOrder = async (payload: {
+  regularClassId: string;
+  billingType: "hourly" | "monthly";
+  numberOfClasses: number;
+  couponCode?: string;
+}) => {
+  try {
+    const res = await api.post(`/payments/create-subscription-order`, payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // ----- Admin payouts -----
 export const getAdminPayouts = async (params?: { status?: 'created' | 'settled'; from?: string; to?: string }) => {
   try {

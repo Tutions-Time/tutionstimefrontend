@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { startRegularFromDemo } from "@/services/bookingService";
-import { verifyGenericPayment } from "@/services/razorpayService";
+import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,7 @@ export default function UpgradeToRegularModal({
     const [billingType, setBillingType] = useState<"hourly" | "monthly">("hourly");
     const [numberOfClasses, setNumberOfClasses] = useState(4);
     const [loading, setLoading] = useState(false);
+    const [couponCode, setCouponCode] = useState("");
 
     const router = useRouter();
 
@@ -44,7 +45,7 @@ export default function UpgradeToRegularModal({
     /* -----------------------------------------
      * FINAL FIXED Razorpay Handler
      * --------------------------------------- */
-    const openRazorpay = async (order: any) => {
+    const openRazorpay = async (order: any, regularClassId: string) => {
         // 1️⃣ Remove any previous Razorpay instance
         if ((window as any).rzp_instance) {
             (window as any).rzp_instance.close();
@@ -64,12 +65,12 @@ export default function UpgradeToRegularModal({
 
         // 4️⃣ Fresh options every time
         const options = {
-            key: order.razorpayKey,
+            key: order.razorpayKey || order.key,
             amount: order.amount,
             currency: order.currency,
             name: "TuitionsTime",
             description: "Regular Class Payment",
-            order_id: order.orderId, // MUST be fresh from backend
+            order_id: order.orderId,
             handler: async (response: any) => {
                 try {
                     const verifyRes = await verifyGenericPayment(
@@ -85,7 +86,7 @@ export default function UpgradeToRegularModal({
                                 billingType === "hourly"
                                     ? Number(numberOfClasses)
                                     : undefined,
-                            regularClassId: order.regularClassId,
+                            regularClassId,
                         }
                     );
 
@@ -132,8 +133,16 @@ export default function UpgradeToRegularModal({
                 return;
             }
 
-            // IMPORTANT: res.data MUST contain a NEW orderId
-            openRazorpay(res.data);
+            const regularClassId = res?.data?.regularClassId;
+            const classes = billingType === "hourly" ? Number(numberOfClasses) : 1;
+            const orderRes = await createSubscriptionOrder({
+                regularClassId,
+                billingType,
+                numberOfClasses: classes,
+                couponCode: couponCode.trim() || undefined,
+            });
+
+            openRazorpay(orderRes, regularClassId);
 
         } catch (err: any) {
             toast.error(err.message || "Something went wrong");
@@ -186,6 +195,15 @@ export default function UpgradeToRegularModal({
                         />
                     </>
                 )}
+
+                <label className="font-medium text-sm mt-4">Coupon Code</label>
+                <input
+                    type="text"
+                    className="border p-2 rounded w-full mt-1"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder="Optional"
+                />
 
                 {/* BUTTON */}
                 <button

@@ -7,7 +7,7 @@ import { closeReviewModal } from "@/store/slices/reviewSlice";
 import { submitReview } from "@/services/reviewService";
 import { Star, X } from "lucide-react";
 import { startRegularFromDemo } from "@/services/bookingService";
-import { verifyGenericPayment } from "@/services/razorpayService";
+import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +26,7 @@ export default function ReviewModal() {
   const [step, setStep] = useState(1);
   const [tutorRates, setTutorRates] = useState<any>(null);
   const [loadingPay, setLoadingPay] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
   const router = useRouter();
 
   if (!shouldShowReview) return null;
@@ -86,16 +87,27 @@ export default function ReviewModal() {
       >
         <span className="font-semibold">Monthly</span> – ₹{tutorRates?.monthlyRate}
       </button>
+
+      <div>
+        <label className="font-medium text-sm">Coupon Code (optional)</label>
+        <input
+          type="text"
+          className="border p-2 rounded w-full mt-1"
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+          placeholder="Enter coupon if you have one"
+        />
+      </div>
     </div>
   );
 
-  const openRazorpay = (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number }) => {
+  const openRazorpay = (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
     if (!(window as any).Razorpay) {
       toast.error("Razorpay SDK not loaded");
       return;
     }
     const options = {
-      key: order.razorpayKey,
+      key: order.razorpayKey || order.key,
       amount: order.amount,
       currency: order.currency,
       name: "TuitionsTime",
@@ -112,7 +124,7 @@ export default function ReviewModal() {
             {
               billingType: meta.billingType,
               numberOfClasses: meta.numberOfClasses,
-              regularClassId: order.regularClassId,
+              regularClassId: meta.regularClassId,
             }
           );
           if (verifyRes?.success) {
@@ -148,7 +160,15 @@ export default function ReviewModal() {
         toast.error(res?.message || "Checkout failed");
         return;
       }
-      openRazorpay(res.data, { billingType: type, numberOfClasses: payload.numberOfClasses });
+      const rcId = res?.data?.regularClassId;
+      const classes = type === "hourly" ? Number(payload.numberOfClasses) : 1;
+      const orderRes = await createSubscriptionOrder({
+        regularClassId: rcId,
+        billingType: type,
+        numberOfClasses: classes,
+        couponCode: couponCode.trim() || undefined,
+      });
+      openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
     } catch (err: any) {
       toast.error(err.message || "Payment init failed");
     } finally {

@@ -28,6 +28,7 @@ import {
 import { getStudentRegularClasses } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Dialog } from "@headlessui/react";
+import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 
 export default function StudentSessions() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,6 +50,8 @@ export default function StudentSessions() {
   const [regularClassSessions, setRegularClassSessions] = useState<any[]>([]);
   const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
   const [regularSessionsByClass, setRegularSessionsByClass] = useState<Record<string, any[]>>({});
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -397,12 +400,14 @@ export default function StudentSessions() {
                   {s.type === "demo" && (
                     <Button
                       variant="outline"
-                      onClick={() =>
-                        handleStartSubscription({
-                          tutorId: s.tutorId?._id || s.tutorId,
-                          subject: s.subject,
-                        })
-                      }
+                      onClick={() => {
+                        if (s.status !== "completed") {
+                          toast({ title: "Complete the demo first", variant: "destructive" });
+                          return;
+                        }
+                        setUpgradeBooking(s);
+                        setUpgradeModalOpen(true);
+                      }}
                     >
                       Subscribe Monthly
                     </Button>
@@ -648,6 +653,9 @@ export default function StudentSessions() {
           </Dialog.Panel>
         </div>
       </Dialog>
+      {upgradeModalOpen && upgradeBooking && (
+        <UpgradeToRegularModal booking={upgradeBooking} onClose={() => { setUpgradeModalOpen(false); setUpgradeBooking(null); }} />
+      )}
     </div>
   );
 }
