@@ -118,7 +118,7 @@ export default function ReviewModal() {
           if (verifyRes?.success) {
             toast.success("Payment successful and verified!");
             dispatch(closeReviewModal());
-            router.push(`/dashboard/student/sessions?tab=regular`);
+            router.push(`/dashboard/student/demoBookings`);
           } else {
             toast.error(verifyRes?.message || "Verification failed");
           }
