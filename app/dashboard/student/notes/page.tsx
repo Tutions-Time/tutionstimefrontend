@@ -74,6 +74,11 @@ export default function NotesPage() {
         return;
       }
 
+      if ((orderRes as any)?.walletPaid) {
+        toast({ title: "Purchased via wallet" });
+        fetchPurchased();
+        return;
+      }
       if (!orderRes?.orderId || !(orderRes?.key || orderRes?.razorpayKey)) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;

@@ -168,7 +168,13 @@ export default function ReviewModal() {
         numberOfClasses: classes,
         couponCode: couponCode.trim() || undefined,
       });
-      openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
+      if ((orderRes as any)?.walletPaid) {
+        toast.success("Payment successful via wallet!");
+        dispatch(closeReviewModal());
+        router.push(`/dashboard/student/demoBookings`);
+      } else {
+        openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
+      }
     } catch (err: any) {
       toast.error(err.message || "Payment init failed");
     } finally {

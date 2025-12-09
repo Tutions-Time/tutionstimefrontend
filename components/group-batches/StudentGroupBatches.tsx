@@ -118,6 +118,12 @@ export default function StudentGroupBatches() {
         couponCode: couponMap[batchId]?.trim(),
       });
 
+      if ((order as any)?.walletPaid) {
+        toast.success("Enrollment confirmed via wallet");
+        await fetchData();
+        return;
+      }
+
       if (!order?.success) {
         toast.error("Order creation failed");
         return;

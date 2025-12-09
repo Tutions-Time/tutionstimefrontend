@@ -136,13 +136,17 @@ export default function UpgradeToRegularModal({
             const regularClassId = res?.data?.regularClassId;
             const classes = billingType === "hourly" ? Number(numberOfClasses) : 1;
             const orderRes = await createSubscriptionOrder({
-                regularClassId,
-                billingType,
-                numberOfClasses: classes,
-                couponCode: couponCode.trim() || undefined,
+              regularClassId,
+              billingType,
+              numberOfClasses: classes,
+              couponCode: couponCode.trim() || undefined,
             });
-
-            openRazorpay(orderRes, regularClassId);
+            if (orderRes?.walletPaid) {
+                toast.success("Payment successful via wallet");
+                router.push(`/dashboard/student/demoBookings`);
+            } else {
+                openRazorpay(orderRes, regularClassId);
+            }
 
         } catch (err: any) {
             toast.error(err.message || "Something went wrong");

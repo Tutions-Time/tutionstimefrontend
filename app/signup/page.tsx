@@ -95,16 +95,7 @@ export default function SignupPage() {
 
     try {
       // Don't trim the requestId as it might contain characters that look like whitespace
-      await signup(phone.trim(), otpValue.trim(), requestId, role);
-      if (referralCode.trim()) {
-        try {
-          await fetch('/api/marketing/referrals/apply-at-signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: phone.trim(), referralCode: referralCode.trim() })
-          });
-        } catch {}
-      }
+      await signup(phone.trim(), otpValue.trim(), requestId, role, referralCode.trim() || undefined);
       toast({
         title: 'Signup Successful',
         description: 'Your account has been created successfully',
