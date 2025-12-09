@@ -24,6 +24,7 @@ import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSec
 export default function TutorProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+  const [referralCode, setReferralCode] = useState<string>("");
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function TutorProfilePage() {
         const tutor = res.data.profile;
 
         dispatch(setBulk(tutor));
+        setReferralCode(res.data?.referralCode || "");
 
         // ✅ Correct photo
         setPhotoPreview(getImageUrl(tutor.photoUrl));
@@ -168,6 +170,21 @@ export default function TutorProfilePage() {
 
       {/* ===== Main Form ===== */}
       <main className="flex-grow">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
+            <div>
+              <div className="text-sm text-muted">Your Referral Code</div>
+              <div className="text-2xl font-bold">{referralCode || '—'}</div>
+            </div>
+            <button
+              className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
+              onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
+            >
+              Copy
+            </button>
+          </div>
+          <p className="text-xs text-muted mt-2">Share privately. You earn rewards after your referral’s first payment.</p>
+        </div>
         <form
           id="tutor-profile-form"
           className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10"

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { listReferralCodes, createReferralCode, updateReferralCode } from "@/services/marketingService";
+import { listReferralCodes, createReferralCode, updateReferralCode, getReferralSettings, updateReferralSettings } from "@/services/marketingService";
 
 type Referral = any;
 
@@ -18,6 +18,7 @@ export default function AdminReferralsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [items, setItems] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<any>({ studentRewardAmount: 100, tutorRewardAmount: 100, status: 'active' });
   const [form, setForm] = useState<any>({
     code: "",
     rewardType: "fixed",
@@ -34,6 +35,8 @@ export default function AdminReferralsPage() {
       setLoading(true);
       const list = await listReferralCodes();
       setItems(list);
+      const s = await getReferralSettings();
+      if (s) setSettings(s);
     } catch (e: any) {
       toast({ title: e.message || "Failed" });
     } finally {
@@ -81,6 +84,30 @@ export default function AdminReferralsPage() {
         <Topbar title="Referrals" subtitle="Create and manage referral codes" />
         <main className="p-4 lg:p-8">
           <div className="grid grid-cols-1 gap-6 max-w-5xl">
+            <Card className="p-6 rounded-2xl bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold">Referral Settings</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Input type="number" placeholder="Student Reward" value={settings.studentRewardAmount}
+                  onChange={(e) => setSettings({ ...settings, studentRewardAmount: Number(e.target.value) })} />
+                <Input type="number" placeholder="Tutor Reward" value={settings.tutorRewardAmount}
+                  onChange={(e) => setSettings({ ...settings, tutorRewardAmount: Number(e.target.value) })} />
+                <Input type="number" placeholder="Referred User Bonus" value={settings.referredUserBonusAmount ?? 0}
+                  onChange={(e) => setSettings({ ...settings, referredUserBonusAmount: Number(e.target.value) })} />
+                <select className="border rounded p-2" value={settings.status}
+                  onChange={(e) => setSettings({ ...settings, status: e.target.value })}>
+                  <option value="active">active</option>
+                  <option value="paused">paused</option>
+                </select>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button onClick={async () => {
+                  try { await updateReferralSettings(settings); toast({ title: 'Settings saved' }); }
+                  catch (e: any) { toast({ title: e.message || 'Save failed' }); }
+                }}>Save</Button>
+              </div>
+            </Card>
             <Card className="p-6 rounded-2xl bg-white">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input placeholder="Code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />

@@ -21,6 +21,7 @@ import PaymentPreferenceSection from "@/components/CompleteProfile/PaymentPrefer
 export default function StudentProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
+  const [referralCode, setReferralCode] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -34,6 +35,7 @@ export default function StudentProfilePage() {
         const res = await getUserProfile();
         if (res.success && res.data.profile) {
           dispatch(setBulk(res.data.profile));
+          setReferralCode(res.data?.referralCode || "");
         } else toast.error("Profile not found");
       } catch {
         toast.error("Error loading profile");
@@ -127,6 +129,21 @@ export default function StudentProfilePage() {
 
       {/* —— Main —— */}
       <main className="flex-grow">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
+            <div>
+              <div className="text-sm text-muted">Your Referral Code</div>
+              <div className="text-2xl font-bold">{referralCode || '—'}</div>
+            </div>
+            <button
+              className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
+              onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
+            >
+              Copy
+            </button>
+          </div>
+          <p className="text-xs text-muted mt-2">Share this code at signup. You earn rewards after their first payment.</p>
+        </div>
         <form
           id="student-profile-form"
           className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10"

@@ -9,7 +9,8 @@ import { Topbar } from '@/components/layout/Topbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
+import { getUserProfile } from "@/services/profileService";
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { fetchUserProfile } from '@/store/slices/profileSlice';
 import UpcomingSessions from '@/components/student/UpcomingSessions';
@@ -41,9 +42,17 @@ export default function StudentDashboard() {
   const { user, logout } = useAuth();
   const dispatch = useAppDispatch();
   const studentProfile = useAppSelector((s) => s.profile.studentProfile);
+  const [referralCode, setReferralCode] = useState<string>("");
 
   useEffect(() => {
     dispatch(fetchUserProfile() as any);
+    (async () => {
+      try {
+        const res = await getUserProfile();
+        const code = res?.data?.referralCode || "";
+        setReferralCode(code || "");
+      } catch {}
+    })();
   }, [dispatch]);
 
   const displayName = studentProfile?.name || 'Student';
@@ -112,6 +121,22 @@ export default function StudentDashboard() {
                   <p className="text-sm text-muted">Progress Score</p>
                 </div>
               </div>
+            </Card>
+
+            <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base md:col-span-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted">Your Referral Code</p>
+                  <p className="text-2xl font-bold text-text">{referralCode || '—'}</p>
+                </div>
+                <button
+                  className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
+                  onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-xs text-muted mt-2">Share this code at signup. You earn rewards after their first payment.</p>
             </Card>
           </div>
 

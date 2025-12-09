@@ -18,6 +18,7 @@ import MyClassesSection from "@/components/tutors/dashboard/MyClassesSection";
 import QuickActionsSection from "@/components/tutors/dashboard/QuickActionsSection";
 
 import { getTutorRegularClasses } from "@/services/tutorService";
+import api from "@/lib/api";
 
 /* ---------------------------------------------  
    Tutor Class Type  
@@ -105,6 +106,17 @@ export default function TutorDashboard() {
     loadClasses();
   }, []);
 
+  const [referralCode, setReferralCode] = useState<string>("");
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get('/users/profile');
+        const code = res?.data?.data?.referralCode || res?.data?.referralCode || "";
+        setReferralCode(code || "");
+      } catch {}
+    })();
+  }, []);
+
   const displayName = tutorProfile?.name || "Tutor";
 
   return (
@@ -159,6 +171,18 @@ export default function TutorDashboard() {
 
         {/* Body */}
         <main className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
+          <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
+            <div>
+              <div className="text-sm text-muted">Your Referral Code</div>
+              <div className="text-2xl font-bold">{referralCode || '—'}</div>
+            </div>
+            <button
+              className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
+              onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
+            >
+              Copy
+            </button>
+          </div>
           <KpiSection />
           <RatingsFeedbackWidget />
 

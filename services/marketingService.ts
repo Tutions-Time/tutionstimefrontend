@@ -62,3 +62,21 @@ export const validateCoupon = async (code: string, type: string, amount: number)
     throw new Error(handleApiError(error));
   }
 };
+
+export const getReferralSettings = async () => {
+  try {
+    const res = await api.get(`/marketing/referral-settings`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateReferralSettings = async (payload: any) => {
+  try {
+    const res = await api.put(`/marketing/referral-settings`, payload);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
