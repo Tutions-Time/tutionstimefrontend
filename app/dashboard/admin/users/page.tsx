@@ -35,6 +35,11 @@ type UserRow = {
   createdAt: string;
   lastLogin: string;
   profilePhoto?: string;
+  referralCode?: string | null;
+  referralCodeUsed?: string | null;
+  referrerUserId?: string | null;
+  referrerName?: string | null;
+  referrerRole?: Role | null;
 };
 
 export default function AdminUsersPage() {
@@ -51,19 +56,30 @@ export default function AdminUsersPage() {
   // Data
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const pages = useMemo(() => (total && limit ? Math.ceil(total / limit) : 1), [total, limit]);
 
-  // Fetch users from backend
+  // Fetch users from backend (server-side filters/pagination)
   useEffect(() => {
-    const fetchUsers = async () => {
+    const t = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await getAllUsers();
+        const res = await getAllUsers({
+          page,
+          limit,
+          role: role === 'all' ? undefined : (role as Role),
+          status: status === 'all' ? undefined : (status as Status),
+          q: query,
+          sort,
+        });
 
         const users = res?.users || [];
-
+        const pag = res?.pagination || {} as any;
         if (res.success && Array.isArray(users)) {
           setRows(users);
-          toast({ title: 'Users loaded successfully ' });
+          setTotal(Number(pag.total || users.length));
         } else {
           toast({
             title: 'Failed to load users',
@@ -80,36 +96,17 @@ export default function AdminUsersPage() {
       } finally {
         setLoading(false);
       }
-    };
-    fetchUsers();
-  }, []);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [page, limit, role, status, query, sort]);
 
-  // Filter + sort logic
-  const filtered = useMemo(() => {
-    let data = [...rows];
-
-    const q = query.trim().toLowerCase();
-    if (q) {
-      data = data.filter(
-        (r) =>
-          r.name?.toLowerCase().includes(q) ||
-          r.email?.toLowerCase().includes(q) ||
-          r.phone?.toLowerCase().includes(q)
-      );
-    }
-
-    if (role !== 'all') data = data.filter((r) => r.role === role);
-    if (status !== 'all') data = data.filter((r) => r.status === status);
-
-    data.sort((a, b) => {
-      const dA = sort.startsWith('createdAt') ? a.createdAt : a.lastLogin;
-      const dB = sort.startsWith('createdAt') ? b.createdAt : b.lastLogin;
-      const cmp = new Date(dA).getTime() - new Date(dB).getTime();
-      return sort.endsWith('_asc') ? cmp : -cmp;
-    });
-
-    return data;
-  }, [rows, query, role, status, sort]);
+  // Image URL helper
+  const imgSrc = (url?: string) => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '';
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
 
   // ✅ Toggle active/inactive status
   async function handleToggleStatus(id: string, currentStatus: Status) {
@@ -224,25 +221,25 @@ export default function AdminUsersPage() {
                   <tr className="text-left text-xs uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">User</th>
                     <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Profile</th>
+                    <th className="px-4 py-3 hidden md:table-cell">Role</th>
+                    <th className="px-4 py-3 hidden md:table-cell">Profile</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">Referral</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">Referral Used</th>
+                    <th className="px-4 py-3 hidden lg:table-cell">Referrer</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Sign Up</th>
-                    <th className="px-4 py-3">Last Login</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                    {/* <th className="px-4 py-3 hidden md:table-cell">Sign Up</th>
+                    <th className="px-4 py-3 hidden md:table-cell">Last Login</th> */}
+                    <th className="px-4 py-3 hidden sm:table-cell text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((u) => (
+                  {rows.map((u) => (
                     <tr key={u._id} className="border-t">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           {u.profilePhoto ? (
                             <img
-                              src={`${process.env.NEXT_PUBLIC_API_URL?.replace(
-                                '/api',
-                                ''
-                              )}/${u.profilePhoto}`}
+                              src={imgSrc(u.profilePhoto)}
                               alt={u.name || 'User'}
                               className="w-9 h-9 rounded-full object-cover"
                             />
@@ -264,8 +261,8 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-4">{u.phone || '—'}</td>
-                      <td className="px-4 py-4 capitalize">{u.role}</td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 capitalize hidden md:table-cell">{u.role}</td>
+                      <td className="px-4 py-4 hidden md:table-cell">
                         {u.isProfileComplete ? (
                           <Badge className="bg-success/10 text-success border-success/20 border">
                             Complete
@@ -276,6 +273,9 @@ export default function AdminUsersPage() {
                           </Badge>
                         )}
                       </td>
+                      <td className="px-4 py-4 hidden lg:table-cell">{u.referralCode || '—'}</td>
+                      <td className="px-4 py-4 hidden lg:table-cell">{u.referralCodeUsed || '—'}</td>
+                      <td className="px-4 py-4 hidden lg:table-cell">{u.referrerName ? `${u.referrerName} (${u.referrerRole})` : '—'}</td>
                       <td className="px-4 py-4">
                         <Badge
                           className={cn(
@@ -288,13 +288,13 @@ export default function AdminUsersPage() {
                           {u.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-4">
+                      {/* <td className="px-4 py-4 hidden md:table-cell">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 hidden md:table-cell">
                         {new Date(u.lastLogin).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-4">
+                      </td> */}
+                      <td className="px-4 py-4 hidden sm:table-cell">
                         <div className="flex justify-end gap-2">
                           {/* <Link href={`/dashboard/admin/users/${u._id}`}>
                             <Button variant="outline" size="sm">
@@ -319,10 +319,10 @@ export default function AdminUsersPage() {
                       </td>
                     </tr>
                   ))}
-                  {filtered.length === 0 && (
+                  {rows.length === 0 && (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={11}
                         className="px-4 py-12 text-center text-muted"
                       >
                         No users found.
@@ -333,6 +333,21 @@ export default function AdminUsersPage() {
               </table>
             )}
           </Card>
+
+          {/* Pagination */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-muted">Page {page} of {pages} • {total} users</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+              <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>Next</Button>
+              <select className="h-9 rounded-md border px-2 text-sm" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
         </main>
       </div>
     </div>

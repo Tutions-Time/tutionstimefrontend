@@ -4,9 +4,11 @@ import api, { handleApiError } from '../lib/api';
 // ✅ Corrected version
 export const getAllUsers = async (params?: { 
   role?: 'student' | 'tutor' | 'admin';
-  status?: 'active' | 'inactive' | 'pending';
+  status?: 'active' | 'inactive' | 'suspended';
   page?: number;
   limit?: number;
+  q?: string;
+  sort?: 'createdAt_desc' | 'createdAt_asc' | 'lastActive_desc' | 'lastActive_asc';
 }) => {
   try {
     const response = await api.get('admin/users', { params });
