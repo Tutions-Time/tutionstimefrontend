@@ -61,7 +61,7 @@ export default function AdminRevenuePage() {
   };
 
   function exportHistoryCsv() {
-    const header = ['Date', 'Student', 'Tutor', 'Amount', 'Currency', 'Plan', 'Classes', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
+    const header = ['Date', 'Student', 'Tutor', 'Amount', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
     const rows = txItems.map((h: any) => [
       new Date(h.createdAt).toISOString(),
       h.studentName,
@@ -70,6 +70,10 @@ export default function AdminRevenuePage() {
       h.currency || 'INR',
       h.planType || h.noteTitle || '',
       String(h.classCount ?? ''),
+      h.couponCode || '',
+      String(h.couponDiscount || 0),
+      h.referralCode || '',
+      String(h.referralAmount || 0),
       (h.gateway || '').toUpperCase(),
       h.gatewayOrderId || '',
       h.gatewayPaymentId || '',

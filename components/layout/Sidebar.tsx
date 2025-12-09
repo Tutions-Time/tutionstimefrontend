@@ -133,7 +133,7 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
           })}
         </nav>
 
-        <div className="absolute bottom-4 left-4 right-4">
+        {/* <div className="absolute bottom-4 left-4 right-4">
           <Link
             href="/profile/setup"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:bg-primaryWeak hover:text-text transition-base"
@@ -141,7 +141,7 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
             <Settings className="h-5 w-5" />
             Settings
           </Link>
-        </div>
+        </div> */}
       </aside>
     </>
   );

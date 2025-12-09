@@ -106,6 +106,39 @@ export default function TutorAnalyticsPage() {
               </div>
             </Card>
           </div>
+          {earnings && (
+            <Card className="p-6 rounded-2xl bg-white shadow-sm">
+              <div className="font-semibold mb-3">Earnings by Source</div>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm text-muted">Available Balance</div>
+                  <div className="text-2xl font-bold">₹{(earnings.availableBalance || 0).toLocaleString('en-IN')}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Pending Balance</div>
+                  <div className="text-2xl font-bold">₹{(earnings.pendingBalance || 0).toLocaleString('en-IN')}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Credits (30d)</div>
+                  <div className="text-2xl font-bold">₹{(earnings.totalCredits || 0).toLocaleString('en-IN')}</div>
+                </div>
+              </div>
+              <div className="mt-4 grid md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-xl">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Bookings</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.booking || 0).toLocaleString('en-IN')}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Notes</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.note || 0).toLocaleString('en-IN')}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Groups</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.group || 0).toLocaleString('en-IN')}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Referral</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.referral || 0).toLocaleString('en-IN')}</span></div>
+                  </div>
+                </div>
+                <div className="p-4 border rounded-xl">
+                  <div className="text-sm text-muted mb-2">Notes</div>
+                  <div className="text-xs text-muted">Referral shows rewards credited to your wallet for students you referred.</div>
+                </div>
+              </div>
+            </Card>
+          )}
           <Card className="p-6 rounded-2xl bg-white shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-semibold"><TrendingUp className="w-5 h-5 text-primary"/> Weekly rating trend</div>
