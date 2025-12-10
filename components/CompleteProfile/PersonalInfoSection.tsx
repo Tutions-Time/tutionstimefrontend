@@ -8,6 +8,7 @@ import { User } from "lucide-react";
 import OtherInline from "@/components/forms/OtherInline";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { cn } from "@/lib/utils";
+import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
 
 import type { StudentProfileErrors } from "@/utils/validators";
 
@@ -24,15 +25,19 @@ export default function PersonalInfoSection({
   setPhotoFile: (f: File | null) => void;
   errors: StudentProfileErrors;
   disabled?: boolean;
-  onValidate?: () => void; // ⭐ added
+  onValidate?: () => void;
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
+  const selectedStateObj = STATESDISTRICTS.states.find(
+    (s) => s.state === profile.state
+  );
+
   const onGenderChange = (val: string) => {
     if (disabled) return;
     dispatch(setField({ key: "gender", value: val }));
-    onValidate?.(); // ⭐ validate on gender select
+    onValidate?.();
   };
 
   const handlePhoneChange = (value: string) => {
@@ -57,7 +62,6 @@ export default function PersonalInfoSection({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-10">
-        
         {/* PHOTO */}
         <div className="flex justify-center md:justify-start">
           <label
@@ -96,7 +100,6 @@ export default function PersonalInfoSection({
 
         {/* FORM FIELDS */}
         <div className="space-y-6">
-
           {/* Name */}
           <div>
             <Label>Full Name</Label>
@@ -157,32 +160,55 @@ export default function PersonalInfoSection({
 
           {/* City / State / Pincode */}
           <div className="grid md:grid-cols-3 gap-4">
+            {/* City (district dropdown) */}
             <div>
               <Label>City</Label>
-              <Input
+              <select
+                disabled={disabled || !profile.state}
                 value={profile.city}
-                onChange={(e) =>
-                  dispatch(setField({ key: "city", value: e.target.value }))
-                }
-                onBlur={onValidate}
-                disabled={disabled}
-              />
+                onChange={(e) => {
+                  dispatch(setField({ key: "city", value: e.target.value }));
+                  onValidate?.();
+                }}
+                className="border rounded px-3 py-2 w-full"
+              >
+                <option value="">Select City</option>
+
+                {selectedStateObj?.districts.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+
               {errors.city && <p className="text-red-600 text-xs">{errors.city}</p>}
             </div>
 
+            {/* State */}
             <div>
               <Label>State</Label>
-              <Input
-                value={profile.state}
-                onChange={(e) =>
-                  dispatch(setField({ key: "state", value: e.target.value }))
-                }
-                onBlur={onValidate}
+              <select
                 disabled={disabled}
-              />
+                value={profile.state}
+                onChange={(e) => {
+                  dispatch(setField({ key: "state", value: e.target.value }));
+                  dispatch(setField({ key: "city", value: "" })); // reset city
+                  onValidate?.();
+                }}
+                className="border rounded px-3 py-2 w-full"
+              >
+                <option value="">Select State</option>
+                {STATESDISTRICTS.states.map((s) => (
+                  <option key={s.state} value={s.state}>
+                    {s.state}
+                  </option>
+                ))}
+              </select>
+
               {errors.state && <p className="text-red-600 text-xs">{errors.state}</p>}
             </div>
 
+            {/* Pincode */}
             <div>
               <Label>Pincode</Label>
               <Input
@@ -193,7 +219,9 @@ export default function PersonalInfoSection({
                 onBlur={onValidate}
                 disabled={disabled}
               />
-              {errors.pincode && <p className="text-red-600 text-xs">{errors.pincode}</p>}
+              {errors.pincode && (
+                <p className="text-red-600 text-xs">{errors.pincode}</p>
+              )}
             </div>
           </div>
 
@@ -206,9 +234,10 @@ export default function PersonalInfoSection({
               onChange={onGenderChange}
               disabled={disabled}
             />
-            {errors.gender && <p className="text-red-600 text-xs">{errors.gender}</p>}
+            {errors.gender && (
+              <p className="text-red-600 text-xs">{errors.gender}</p>
+            )}
           </div>
-
         </div>
       </div>
     </section>

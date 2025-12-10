@@ -1,19 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 import OtherInline from "@/components/forms/OtherInline";
+import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
 
 const GENDER = ["Male", "Female", "Other"];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
 const toOptions = (arr: string[]) => arr.map((v) => ({ value: v, label: v }));
-
-// 🔗 API URLs
-const STATES_API = "https://api.instantpay.in/fi/remit/out/india/stateDistrict/";
-const DISTRICTS_API = "https://india-state-district-api.onrender.com/districts";
 
 export default function TutorPersonalInfoSection({
   photoFile,
@@ -40,47 +36,10 @@ export default function TutorPersonalInfoSection({
     ? URL.createObjectURL(photoFile)
     : photoPreview;
 
-  // 🌍 States & Districts
-  const [states, setStates] = useState<string[]>([]);
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
+ const selectedStateObj = STATESDISTRICTS?.states?.find(
+  (s) => s.state === profile.state
+) ?? null;
 
-  // ⬇️ Load states on mount
-  useEffect(() => {
-    async function loadStates() {
-      try {
-        const res = await fetch(STATES_API);
-        const data = await res.json();
-        setStates(data.states || []);
-      } catch (err) {
-        console.error("Failed loading states", err);
-      }
-    }
-    loadStates();
-  }, []);
-
-  // ⬇️ Load districts when state changes
-  useEffect(() => {
-    async function loadDistricts() {
-      if (!profile.state) {
-        setDistricts([]);
-        return;
-      }
-
-      setLoadingDistricts(true);
-      try {
-        const res = await fetch(`${DISTRICTS_API}/${profile.state}`);
-        const data = await res.json();
-        setDistricts(data.districts || []);
-      } catch (err) {
-        console.error("Failed loading districts", err);
-      } finally {
-        setLoadingDistricts(false);
-      }
-    }
-
-    loadDistricts();
-  }, [profile.state]);
 
   return (
     <section className="bg-white rounded-2xl shadow p-8">
@@ -90,7 +49,6 @@ export default function TutorPersonalInfoSection({
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
-
         {/* PHOTO */}
         <div className="flex justify-center md:justify-start">
           <div
@@ -116,13 +74,14 @@ export default function TutorPersonalInfoSection({
             accept="image/*"
             className="hidden"
             disabled={disabled}
-            onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+            onChange={(e) => {
+              setPhotoFile(e.target.files?.[0] || null);
+            }}
           />
         </div>
 
         {/* INFO FIELDS */}
         <div className="md:col-span-2 space-y-5">
-
           {/* NAME */}
           <div>
             <Input
@@ -154,7 +113,6 @@ export default function TutorPersonalInfoSection({
 
           {/* GENDER + TEACHING MODE */}
           <div className="grid md:grid-cols-2 gap-4">
-
             {/* GENDER */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Gender</label>
@@ -225,32 +183,23 @@ export default function TutorPersonalInfoSection({
             />
           </div>
 
-          {/* CITY / STATE / PINCODE */}
+          {/* CITY / STATE / DISTRICT / PINCODE */}
           <div className="grid md:grid-cols-3 gap-4">
-
-            {/* CITY / DISTRICT */}
-            <div>
-              <select
-                disabled={disabled || !profile.state}
+            {/* CITY */}
+            {/* <div>
+              <Input
+                disabled={disabled}
                 value={profile.city || ""}
                 onChange={(e) =>
                   dispatch(setField({ key: "city", value: e.target.value }))
                 }
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="">
-                  {loadingDistricts ? "Loading districts..." : "Select District"}
-                </option>
-                {districts.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+                onBlur={onValidate}
+                placeholder="City"
+              />
               <Err msg={errors?.city} />
-            </div>
+            </div> */}
 
-            {/* STATE */}
+            {/* STATE DROPDOWN */}
             <div>
               <select
                 disabled={disabled}
@@ -258,34 +207,56 @@ export default function TutorPersonalInfoSection({
                 onChange={(e) => {
                   dispatch(setField({ key: "state", value: e.target.value }));
                   dispatch(setField({ key: "city", value: "" })); // reset district
+                  onValidate?.();
                 }}
-                className="w-full border rounded-md px-3 py-2"
+                className="border rounded px-3 py-2 w-full"
               >
                 <option value="">Select State</option>
-                {states.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                {STATESDISTRICTS.states.map((s) => (
+                  <option key={s.state} value={s.state}>
+                    {s.state}
                   </option>
                 ))}
               </select>
               <Err msg={errors?.state} />
             </div>
 
-            {/* PINCODE */}
+            {/* DISTRICT DROPDOWN */}
             <div>
-              <Input
-                disabled={disabled}
-                value={profile.pincode || ""}
-                onChange={(e) =>
-                  dispatch(setField({ key: "pincode", value: e.target.value }))
-                }
-                onBlur={onValidate}
-                placeholder="Pincode"
-                inputMode="numeric"
-              />
-              <Err msg={errors?.pincode} />
-            </div>
+              <select
+                disabled={disabled || !profile.state}
+                value={profile.city || ""}
+                onChange={(e) => {
+                  dispatch(setField({ key: "city", value: e.target.value }));
+                  onValidate?.();
+                }}
+                className="border rounded px-3 py-2 w-full"
+              >
+                <option value="">Select District</option>
 
+                {selectedStateObj?.districts.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+              <Err msg={errors?.district} />
+            </div>
+          </div>
+
+          {/* PINCODE */}
+          <div>
+            <Input
+              disabled={disabled}
+              value={profile.pincode || ""}
+              onChange={(e) =>
+                dispatch(setField({ key: "pincode", value: e.target.value }))
+              }
+              onBlur={onValidate}
+              placeholder="Pincode"
+              inputMode="numeric"
+            />
+            <Err msg={errors?.pincode} />
           </div>
         </div>
       </div>
