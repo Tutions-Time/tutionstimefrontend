@@ -9,6 +9,8 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/studentProfileSlice";
 import { getUserProfile, updateStudentProfile } from "@/services/profileService";
 
+import { validateStudentProfileFields } from "@/utils/validators";
+
 // Sections
 import HeaderSection from "@/components/CompleteProfile/HeaderSection";
 import PersonalInfoSection from "@/components/CompleteProfile/PersonalInfoSection";
@@ -17,16 +19,17 @@ import PreferredSubjectsSection from "@/components/CompleteProfile/PreferredSubj
 import TutorPreferencesSection from "@/components/CompleteProfile/TutorPreferencesSection";
 import PaymentPreferenceSection from "@/components/CompleteProfile/PaymentPreferenceSection";
 
-
 export default function StudentProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
-  const [referralCode, setReferralCode] = useState<string>("");
 
+  const [referralCode, setReferralCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  const [errors, setErrors] = useState({}); // ⭐ ADDED
 
   // -------- Fetch Profile --------
   useEffect(() => {
@@ -46,12 +49,26 @@ export default function StudentProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
+  // -------- VALIDATION ON BLUR --------
+  const updateFieldValidation = () => {
+    const v = validateStudentProfileFields(profile);
+    setErrors(v);
+  };
+
   // -------- Save Handler --------
   const handleSave = async () => {
+    const validation = validateStudentProfileFields(profile);
+    setErrors(validation);
+
+    if (Object.keys(validation).length > 0) {
+      toast.error("Please correct the highlighted fields");
+      return;
+    }
+
     try {
       setSaving(true);
-      const fd = new FormData();
 
+      const fd = new FormData();
       Object.entries(profile || {}).forEach(([k, v]) => {
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else if (v !== undefined && v !== null) fd.append(k, v);
@@ -78,18 +95,14 @@ export default function StudentProfilePage() {
       </div>
     );
 
-  // -------- UI --------
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(35,165,213,0.12),transparent),radial-gradient(900px_500px_at_-10%_20%,rgba(0,0,0,0.06),transparent)]">
-       <HeaderSection/>
-      {/* —— Header —— */}
+      <HeaderSection/>
+
+      {/* Header */}
       <header className="border-b bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto flex justify-between items-center h-16 px-6">
-          <div>
-            <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-              Student Profile
-            </h1>
-          </div>
+          <h1 className="text-xl md:text-2xl font-semibold">Student Profile</h1>
 
           <div className="flex items-center gap-3">
             {!editMode ? (
@@ -98,11 +111,7 @@ export default function StudentProfilePage() {
               </Button>
             ) : (
               <>
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditMode(false)}
-                  disabled={saving}
-                >
+                <Button variant="secondary" onClick={() => setEditMode(false)} disabled={saving}>
                   Cancel
                 </Button>
                 <Button
@@ -125,15 +134,14 @@ export default function StudentProfilePage() {
           </div>
         </div>
       </header>
-     
 
-      {/* —— Main —— */}
+      {/* Main */}
       <main className="flex-grow">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="max-w-5xl mx-auto px-4 pt-6">
           <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
             <div>
               <div className="text-sm text-muted">Your Referral Code</div>
-              <div className="text-2xl font-bold">{referralCode || '—'}</div>
+              <div className="text-2xl font-bold">{referralCode || "—"}</div>
             </div>
             <button
               className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
@@ -142,31 +150,27 @@ export default function StudentProfilePage() {
               Copy
             </button>
           </div>
-          <p className="text-xs text-muted mt-2">Share this code at signup. You earn rewards after their first payment.</p>
         </div>
-        <form
-          id="student-profile-form"
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10"
-        >
-          {/* 👤 Personal Info */}
+
+        <form className="max-w-5xl mx-auto px-4 py-10 space-y-10">
+
+          {/* PERSONAL INFO */}
           <PersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
-            errors={{}}
+            errors={errors}
             disabled={!editMode}
+            onValidate={updateFieldValidation} // ⭐ ADDED
           />
 
-          {/* 🎓 Academic */}
-          <AcademicDetailsSection errors={{}} disabled={!editMode} />
+          <AcademicDetailsSection disabled={!editMode} errors={{}} />
 
-          {/* 📚 Preferred Subjects */}
-          <PreferredSubjectsSection errors={{}} disabled={!editMode} />
-
+          <PreferredSubjectsSection disabled={!editMode} errors={{}} />
 
           <PaymentPreferenceSection disabled={!editMode} />
 
-          {/* 👨‍🏫 Tutor Preferences */}
           <TutorPreferencesSection disabled={!editMode} />
+
         </form>
       </main>
     </div>

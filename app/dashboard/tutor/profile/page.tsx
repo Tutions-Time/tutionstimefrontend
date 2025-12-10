@@ -10,9 +10,7 @@ import { getUserProfile, updateTutorProfile } from "@/services/profileService";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { validateTutorProfile } from "@/utils/validators";
 
-
-
-// 🧩 Tutor sections
+// Tutor Sections
 import TutorPersonalInfoSection from "@/components/TutorCompleteProfile/TutorPersonalInfoSection";
 import TutorAcademicSection from "@/components/TutorCompleteProfile/TutorAcademicSection";
 import TutorSubjectsSection from "@/components/TutorCompleteProfile/TutorSubjectsSection";
@@ -24,6 +22,7 @@ import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSec
 export default function TutorProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+
   const [referralCode, setReferralCode] = useState<string>("");
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -39,21 +38,16 @@ export default function TutorProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [errors, setErrors] = useState({});
 
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await getUserProfile();
         if (res.success && res.data.profile) {
           const tutor = res.data.profile;
-
           dispatch(setBulk(tutor));
           setReferralCode(res.data?.referralCode || "");
 
-          // ✅ Correct photo
           setPhotoPreview(getImageUrl(tutor.photoUrl));
-
-          // ✅ Correct video + resume
           setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
           setResumeUrl(getImageUrl(tutor.resumeUrl));
         } else {
@@ -69,70 +63,53 @@ export default function TutorProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
+  // ⭐ VALIDATION TRIGGER ON BLUR
+  const updateFieldValidation = () => {
+    let v = validateTutorProfile(profile);
+
+    if (!profile.phone) delete v.phone;
+
+    setErrors(v);
+  };
 
   const handleSave = async () => {
-    console.log("🚀 handleSave STARTED");
-
     let validation = validateTutorProfile(profile);
 
-    // ❌ Tutor Profile should not require phone
-    if (!profile.phone) {
-      delete validation.phone;
-    }
-
-
-    console.log("📌 validation result:", validation);
+    if (!profile.phone) delete validation.phone;
 
     setErrors(validation);
 
     if (Object.keys(validation).length > 0) {
-      console.log("❌ validation failed — not saving");
       toast.error("Please fix highlighted errors");
       return;
     }
 
     try {
-      console.log("⏳ Saving… building FormData…");
       setSaving(true);
 
       const fd = new FormData();
-
       Object.entries(profile || {}).forEach(([k, v]) => {
-        console.log("Appending key:", k, "value:", v);
-
-        if (
-          ["photo", "resume", "demoVideo", "photoUrl", "resumeUrl", "demoVideoUrl"].includes(k)
-        )
+        if (["photo", "resume", "demoVideo", "photoUrl", "resumeUrl", "demoVideoUrl"].includes(k))
           return;
 
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else fd.append(k, v ?? "");
       });
 
-      if (photoFile) console.log("📸 Adding photo file:", photoFile);
-      if (resumeFile) console.log("📄 Adding resume file:", resumeFile);
-      if (demoVideoFile) console.log("🎥 Adding video file:", demoVideoFile);
-
       const res = await updateTutorProfile(fd);
-      console.log("📡 API RESPONSE:", res);
 
       if (res.success && res.data) {
-        console.log("✅ Profile Updated Successfully");
         toast.success("Tutor profile updated!");
         setEditMode(false);
       } else {
-        console.log("❌ Update failed", res.message);
         toast.error(res.message || "Update failed");
       }
     } catch (err: any) {
-      console.log("🔥 ERROR in handleSave:", err);
       toast.error(err.message || "Error saving profile");
     } finally {
-      console.log("🏁 handleSave FINISHED");
       setSaving(false);
     }
   };
-
 
   if (loading)
     return (
@@ -143,52 +120,40 @@ export default function TutorProfilePage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_80%_-10%,rgba(35,165,213,0.12),transparent),radial-gradient(900px_500px_at_-10%_20%,rgba(0,0,0,0.06),transparent)]">
-      {/* ===== Header ===== */}
+
+      {/* Header */}
       <header className="border-b bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-6">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
+            <div className="h-8 w-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold">
               T
             </div>
             <span className="font-semibold text-xl">Tutor Profile</span>
           </div>
 
-          {/* ===== Header Actions ===== */}
           <div className="flex items-center gap-3">
             {!editMode ? (
-              <Button variant="outline" onClick={() => {
-                console.log("📝 Edit mode enabled");
-                setEditMode(true);
-              }}>
-                <Pencil className="w-4 h-4 mr-2" /> Edit
+              <Button variant="outline" onClick={() => setEditMode(true)}>
+                <Pencil className="h-4 w-4 mr-2" /> Edit
               </Button>
-
             ) : (
               <>
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditMode(false)}
-                  disabled={saving}
-                >
+                <Button variant="secondary" onClick={() => setEditMode(false)} disabled={saving}>
                   Cancel
                 </Button>
+
                 <Button
-                  type="button"
-                  onClick={() => {
-                    console.log("🔥 SAVE BUTTON CLICKED");
-                    handleSave();
-                  }}
+                  onClick={handleSave}
                   disabled={saving}
                   className="bg-primary text-white hover:bg-primary/90"
                 >
-
                   {saving ? (
                     <>
                       <Loader2 className="animate-spin w-4 h-4 mr-2" /> Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4 mr-2" /> Save Changes
+                      <Save className="h-4 w-4 mr-2" /> Save Changes
                     </>
                   )}
                 </Button>
@@ -198,51 +163,39 @@ export default function TutorProfilePage() {
         </div>
       </header>
 
-      {/* ===== Main Form ===== */}
+      {/* Main */}
       <main className="flex-grow">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted">Your Referral Code</div>
-              <div className="text-2xl font-bold">{referralCode || '—'}</div>
-            </div>
-            <button
-              className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
-              onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
-            >
-              Copy
-            </button>
-          </div>
-          <p className="text-xs text-muted mt-2">Share privately. You earn rewards after your referral’s first payment.</p>
-        </div>
-        <form
-          id="tutor-profile-form"
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10"
-        >
+        <form className="max-w-5xl mx-auto px-6 py-10 space-y-10">
+          
           <TutorPersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
             photoPreview={photoPreview}
             errors={errors}
             disabled={!editMode}
+            onValidate={updateFieldValidation}   // ⭐ added
           />
+
           <TutorAcademicSection disabled={!editMode} />
           <TutorSubjectsSection disabled={!editMode} />
-          <TutorRatesAvailabilitySection errors={{}} disabled={!editMode} />
-          <TutorAboutSection errors={{}} disabled={!editMode} />
+          <TutorRatesAvailabilitySection disabled={!editMode} errors={{}} />
+          <TutorAboutSection disabled={!editMode} errors={{}} />
+
           <TutorDemoVideoSection
             demoVideoFile={demoVideoFile}
             setDemoVideoFile={setDemoVideoFile}
             demoVideoUrl={demoVideoUrl}
-            errors={{}}
             disabled={!editMode}
+            errors={{}}
           />
+
           <TutorResumeSection
             resumeFile={resumeFile}
             setResumeFile={setResumeFile}
             resumeUrl={resumeUrl}
             disabled={!editMode}
           />
+
         </form>
       </main>
     </div>
