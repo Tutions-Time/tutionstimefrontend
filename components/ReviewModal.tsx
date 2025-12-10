@@ -225,25 +225,35 @@ export default function ReviewModal() {
               placeholder="Write your feedback..."
             />
 
-            <div className="flex gap-4 mt-2">
-              <button
-                onClick={() => setLikedTutor(true)}
-                className={`px-4 py-2 rounded-lg border ${
-                  likedTutor === true ? "bg-green-500 text-white" : ""
-                }`}
-              >
-                Yes 👍
-              </button>
+          {/* Liked Tutor Question */}
+<div className="mt-4">
+  <p className="font-medium text-gray-900 mb-2">Did you like the tutor?</p>
 
-              <button
-                onClick={() => setLikedTutor(false)}
-                className={`px-4 py-2 rounded-lg border ${
-                  likedTutor === false ? "bg-red-500 text-white" : ""
-                }`}
-              >
-                No 👎
-              </button>
-            </div>
+  <div className="grid grid-cols-2 gap-3">
+    <button
+      onClick={() => setLikedTutor(true)}
+      className={`py-3 rounded-lg border font-semibold transition ${
+        likedTutor === true
+          ? "bg-green-500 text-white border-green-600"
+          : "bg-white text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      Yes 👍
+    </button>
+
+    <button
+      onClick={() => setLikedTutor(false)}
+      className={`py-3 rounded-lg border font-semibold transition ${
+        likedTutor === false
+          ? "bg-red-500 text-white border-red-600"
+          : "bg-white text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      No 👎
+    </button>
+  </div>
+</div>
+
 
             <button
               onClick={sendReview}
@@ -262,7 +272,7 @@ export default function ReviewModal() {
             </h2>
 
             <button
-              className="w-full bg-green-500 text-white py-3 rounded-lg"
+              className="w-full bg-primary text-black font-bold py-3 rounded-lg"
               onClick={() => setStep(3)}
             >
               Continue Regular Classes
