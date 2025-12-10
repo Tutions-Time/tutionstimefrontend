@@ -87,7 +87,7 @@ export default function StudentDashboard() {
 
         <main className="p-4 lg:p-6 space-y-6">
           <div className="grid md:grid-cols-3 gap-4">
-            <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
+            {/* <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Calendar className="w-6 h-6 text-primary" />
@@ -121,7 +121,7 @@ export default function StudentDashboard() {
                   <p className="text-sm text-muted">Progress Score</p>
                 </div>
               </div>
-            </Card>
+            </Card> */}
 
             <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base md:col-span-2">
               <div className="flex items-center justify-between">
