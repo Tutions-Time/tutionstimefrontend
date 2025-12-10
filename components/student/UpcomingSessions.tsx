@@ -15,14 +15,27 @@ export default function UpcomingSessions() {
     async function load() {
       try {
         const data = await getStudentBookings();
-        const upcoming = data.filter((b: any) => b.status !== "cancelled");
-        setSessions(upcoming.slice(0, 3)); // show first 3 sessions
+
+        // ✅ FIXED FILTERING LOGIC
+        const upcoming = data.filter((b: any) => {
+          // remove cancelled
+          if (b.status === "cancelled") return false;
+
+          // ✅ include completed demo → so Start Regular Classes shows
+          if (b.type === "demo" && b.status === "completed") return true;
+
+          // include all other upcoming sessions
+          return true;
+        });
+
+        setSessions(upcoming.slice(0, 3)); // Show only first 3 entries
       } catch (err) {
         console.error("Error loading sessions:", err);
       } finally {
         setLoading(false);
       }
     }
+
     load();
   }, []);
 
@@ -52,10 +65,11 @@ export default function UpcomingSessions() {
         </Card>
       )}
 
-      {/* SESSIONS */}
+      {/* SESSIONS LIST */}
       {!loading &&
         sessions.map((session) => (
           <div key={session._id}>
+            {/* compact mode still supports UpgradeToRegularModal */}
             <BookingCard booking={session} compact />
           </div>
         ))}
