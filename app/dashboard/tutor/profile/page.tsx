@@ -40,78 +40,99 @@ export default function TutorProfilePage() {
   const [errors, setErrors] = useState({});
 
 
- useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await getUserProfile();
-      if (res.success && res.data.profile) {
-        const tutor = res.data.profile;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        if (res.success && res.data.profile) {
+          const tutor = res.data.profile;
 
-        dispatch(setBulk(tutor));
-        setReferralCode(res.data?.referralCode || "");
+          dispatch(setBulk(tutor));
+          setReferralCode(res.data?.referralCode || "");
 
-        // ✅ Correct photo
-        setPhotoPreview(getImageUrl(tutor.photoUrl));
+          // ✅ Correct photo
+          setPhotoPreview(getImageUrl(tutor.photoUrl));
 
-        // ✅ Correct video + resume
-        setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
-        setResumeUrl(getImageUrl(tutor.resumeUrl));
-      } else {
-        toast.error("Profile not found");
+          // ✅ Correct video + resume
+          setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
+          setResumeUrl(getImageUrl(tutor.resumeUrl));
+        } else {
+          toast.error("Profile not found");
+        }
+      } catch {
+        toast.error("Error loading tutor profile");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      toast.error("Error loading tutor profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchProfile();
-}, [dispatch]);
+    fetchProfile();
+  }, [dispatch]);
 
 
   const handleSave = async () => {
-     const validation = validateTutorProfile(profile);
-  setErrors(validation);
+    console.log("🚀 handleSave STARTED");
 
-  if (Object.keys(validation).length > 0) {
-    toast.error("Please fix highlighted errors");
-    return;
-  }
+    let validation = validateTutorProfile(profile);
+
+    // ❌ Tutor Profile should not require phone
+    if (!profile.phone) {
+      delete validation.phone;
+    }
+
+
+    console.log("📌 validation result:", validation);
+
+    setErrors(validation);
+
+    if (Object.keys(validation).length > 0) {
+      console.log("❌ validation failed — not saving");
+      toast.error("Please fix highlighted errors");
+      return;
+    }
+
     try {
+      console.log("⏳ Saving… building FormData…");
       setSaving(true);
+
       const fd = new FormData();
 
       Object.entries(profile || {}).forEach(([k, v]) => {
+        console.log("Appending key:", k, "value:", v);
+
         if (
           ["photo", "resume", "demoVideo", "photoUrl", "resumeUrl", "demoVideoUrl"].includes(k)
         )
           return;
+
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else fd.append(k, v ?? "");
       });
 
-      if (photoFile) fd.append("photo", photoFile);
-      if (resumeFile) fd.append("resume", resumeFile);
-      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      if (photoFile) console.log("📸 Adding photo file:", photoFile);
+      if (resumeFile) console.log("📄 Adding resume file:", resumeFile);
+      if (demoVideoFile) console.log("🎥 Adding video file:", demoVideoFile);
 
       const res = await updateTutorProfile(fd);
+      console.log("📡 API RESPONSE:", res);
+
       if (res.success && res.data) {
+        console.log("✅ Profile Updated Successfully");
         toast.success("Tutor profile updated!");
         setEditMode(false);
-        const { photoUrl, resumeUrl, demoVideoUrl } = res.data;
-        setPhotoPreview(getImageUrl(photoUrl));
-        setDemoVideoUrl(getImageUrl(demoVideoUrl));
-        setResumeUrl(getImageUrl(resumeUrl));
       } else {
+        console.log("❌ Update failed", res.message);
         toast.error(res.message || "Update failed");
       }
     } catch (err: any) {
+      console.log("🔥 ERROR in handleSave:", err);
       toast.error(err.message || "Error saving profile");
     } finally {
+      console.log("🏁 handleSave FINISHED");
       setSaving(false);
     }
   };
+
 
   if (loading)
     return (
@@ -135,9 +156,13 @@ export default function TutorProfilePage() {
           {/* ===== Header Actions ===== */}
           <div className="flex items-center gap-3">
             {!editMode ? (
-              <Button variant="outline" onClick={() => setEditMode(true)}>
+              <Button variant="outline" onClick={() => {
+                console.log("📝 Edit mode enabled");
+                setEditMode(true);
+              }}>
                 <Pencil className="w-4 h-4 mr-2" /> Edit
               </Button>
+
             ) : (
               <>
                 <Button
@@ -148,10 +173,15 @@ export default function TutorProfilePage() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleSave}
+                  type="button"
+                  onClick={() => {
+                    console.log("🔥 SAVE BUTTON CLICKED");
+                    handleSave();
+                  }}
                   disabled={saving}
                   className="bg-primary text-white hover:bg-primary/90"
                 >
+
                   {saving ? (
                     <>
                       <Loader2 className="animate-spin w-4 h-4 mr-2" /> Saving...
