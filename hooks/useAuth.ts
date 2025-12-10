@@ -104,6 +104,14 @@ export const useAuth = () => {
           }
         }
 
+        try {
+          const token = typeof window !== "undefined" ? (localStorage.getItem("push_token") || "") : "";
+          if (token) {
+            const { registerDeviceToken } = await import("../services/notificationService");
+            await registerDeviceToken(token, "web", undefined, { ua: navigator.userAgent });
+          }
+        } catch {}
+
         return result.payload;
       } else {
         throw new Error(result.payload as string);

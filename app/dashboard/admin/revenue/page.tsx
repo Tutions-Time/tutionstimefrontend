@@ -30,7 +30,7 @@ export default function AdminRevenuePage() {
   const [txFrom, setTxFrom] = useState<string>('');
   const [txTo, setTxTo] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
-  const [txType, setTxType] = useState<'subscription' | 'note' | 'group' | 'payout' | ''>('');
+  const [txType, setTxType] = useState<'subscription' | 'note' | 'group' | 'payout' | 'referral' | ''>('');
   const [txTutor, setTxTutor] = useState<string>('');
   const [txStudent, setTxStudent] = useState<string>('');
   const [txPage, setTxPage] = useState<number>(1);
@@ -252,20 +252,28 @@ export default function AdminRevenuePage() {
                   <option value="trading">Trading</option>
                 </select>
               </div>
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-sm text-muted">Subscriptions (sum)</div>
+                    <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted">Notes (sum)</div>
+                    <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted">Referrals (sum)</div>
+                    <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
+                  </div>
                 <div>
-                  <div className="text-sm text-muted">Subscriptions (sum)</div>
-                  <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted">Notes (sum)</div>
-                  <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
+                  <div className="text-sm text-muted">Referrals (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted">Commission (est.)</div>
                   <div className="text-2xl font-bold">{inr(Number(revTotals?.commissionTotal || 0))}</div>
                 </div>
-              </div>
+                </div>
               <div className="mt-6">
                 {/* Scroll wrapper for mobile */}
                 <div className="w-full overflow-x-auto">
@@ -290,6 +298,8 @@ export default function AdminRevenuePage() {
                           <Legend />
                           <Area type="monotone" dataKey="subscriptionTotal" name="Subscriptions" stroke="#6366F1" fill="url(#subGrad)" />
                           <Area type="monotone" dataKey="noteTotal" name="Notes" stroke="#10B981" fill="url(#noteGrad)" />
+                          <Area type="monotone" dataKey="referralTotal" name="Referrals" stroke="#0EA5E9" fill="#0EA5E933" />
+                          <Area type="monotone" dataKey="referralTotal" name="Referrals" stroke="#0EA5E9" fill="#0EA5E933" />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
@@ -319,6 +329,7 @@ export default function AdminRevenuePage() {
                   <option value="note">Note</option>
                   <option value="group">Group</option>
                   <option value="payout">Payout</option>
+                  <option value="referral">Referral</option>
                 </select>
                 <select className="h-8 rounded-md border px-2 text-xs" value={txStatus} onChange={(e) => setTxStatus(e.target.value)}>
                   <option value="">All Status</option>
@@ -375,7 +386,7 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3">{h.studentName || h.studentId || '—'}</td>
                       <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : '')}</td>
+                      <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
                       <td className="px-4 py-3">{h.couponCode || '—'}</td>
                       <td className="px-4 py-3">{h.couponDiscount ? `₹${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td>
                       <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(₹${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>

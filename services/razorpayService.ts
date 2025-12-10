@@ -152,7 +152,7 @@ export const getAdminNotePaymentHistory = async (params?: { status?: 'paid' | 'f
   }
 };
 
-export const getAdminAllPaymentHistory = async (params?: { from?: string; to?: string; status?: string; type?: 'subscription' | 'note' | 'group' | 'payout' | ''; page?: number; limit?: number; student?: string; tutor?: string; }) => {
+export const getAdminAllPaymentHistory = async (params?: { from?: string; to?: string; status?: string; type?: 'subscription' | 'note' | 'group' | 'payout' | 'referral' | ''; page?: number; limit?: number; student?: string; tutor?: string; }) => {
   try {
     const res = await api.get(`/payments/admin/all-history`, { params });
     return { data: res.data?.data || [], pagination: res.data?.pagination || { total: 0, page: 1, limit: params?.limit || 50, pages: 1 } };

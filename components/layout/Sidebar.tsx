@@ -17,6 +17,7 @@ import {
   ClipboardList,
   TrendingUp,
   Layers,
+  Bell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/student/progress', label: 'Progress', icon: FileText },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
 const tutorLinks: NavLink[] = [
@@ -56,6 +58,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
 const adminLinks: NavLink[] = [
@@ -70,6 +73,7 @@ const adminLinks: NavLink[] = [
   { href: '/dashboard/admin/sessions', label: 'Sessions', icon: Calendar },
   { href: '/dashboard/admin/marketing/coupons', label: 'Coupons', icon: FileText },
   { href: '/dashboard/admin/marketing/referrals', label: 'Referrals', icon: TrendingUp },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {
