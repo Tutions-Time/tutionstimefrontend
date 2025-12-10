@@ -13,6 +13,7 @@ import TutorRatesAvailabilitySection from "@/components/TutorCompleteProfile/Tut
 import TutorAboutSection from "@/components/TutorCompleteProfile/TutorAboutSection";
 import TutorDemoVideoSection from "@/components/TutorCompleteProfile/TutorDemoVideoSection";
 import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSection";
+import { toast } from "@/hooks/use-toast";
 
 import {
   startSubmitting,
@@ -61,23 +62,39 @@ export default function TutorProfileCompletePage() {
   }, [profile]);
 
   // ---------- VALIDATION ----------
-  const validate = () => {
-    const e: Record<string, string> = {};
+ const validate = () => {
+  const e: Record<string, string> = {};
 
-    if (!profile.name?.trim()) e.name = "Name is required";
-    if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
-      e.email = "Valid email required";
-    if (!profile.pincode?.trim()) e.pincode = "Pincode required";
-    if (!profile.qualification) e.qualification = "Qualification required";
-    if (!profile.experience) e.experience = "Experience required";
-    if (!profile.subjects?.length) e.subjects = "Select at least one subject";
-    if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
-    if (!profile.bio?.trim()) e.bio = "Bio is required";
-    if (!demoVideoFile) e.demoVideo = "Upload a demo video";
+  if (!profile.name?.trim()) e.name = "Name is required";
+  if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
+    e.email = "Valid email required";
+  if (!profile.pincode?.trim()) e.pincode = "Pincode required";
+  if (!profile.qualification) e.qualification = "Qualification required";
+  if (!profile.experience) e.experience = "Experience required";
+  if (!profile.subjects?.length) e.subjects = "Select at least one subject";
+  if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
+  if (!profile.bio?.trim()) e.bio = "Bio is required";
+  if (!demoVideoFile) e.demoVideo = "Upload a demo video";
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  setErrors(e);
+
+  const msgs = Object.values(e).filter(Boolean) as string[];
+
+  if (msgs.length > 0) {
+    msgs.forEach((msg) =>
+      toast({
+        title: "Validation Error",
+        description: msg,
+        variant: "destructive",
+      })
+    );
+
+    return false;
+  }
+
+  return true;
+};
+
 
   const clearAllStateAndCache = () => {
     // Clear file states

@@ -9,9 +9,9 @@ import OtherInline from "@/components/forms/OtherInline";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { cn } from "@/lib/utils";
 
+import type { StudentProfileErrors } from "@/utils/validators";
+
 const GENDER = ["Male", "Female", "Other"] as const;
-const toOptions = (arr: readonly string[]) =>
-  arr.map((v) => ({ value: v, label: v }));
 
 export default function PersonalInfoSection({
   photoFile,
@@ -21,7 +21,7 @@ export default function PersonalInfoSection({
 }: {
   photoFile: File | null;
   setPhotoFile: (f: File | null) => void;
-  errors: Record<string, string>;
+  errors: StudentProfileErrors;
   disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
@@ -31,6 +31,13 @@ export default function PersonalInfoSection({
     if (disabled) return;
     dispatch(setField({ key: "gender", value: val }));
     dispatch(setField({ key: "genderOther", value: "" }));
+  };
+
+  // ---------- PHONE INPUT FILTER ----------
+  const handlePhoneChange = (value: string) => {
+    let v = value.replace(/\D/g, ""); // keep only digits
+    if (v.length > 10) v = v.slice(0, 10);
+    dispatch(setField({ key: "altPhone", value: v }));
   };
 
   return (
@@ -50,7 +57,6 @@ export default function PersonalInfoSection({
         </h2>
       </div>
 
-      {/* Avatar + Form */}
       <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-10">
         {/* -------- Profile Photo -------- */}
         <div className="flex justify-center md:justify-start">
@@ -95,96 +101,79 @@ export default function PersonalInfoSection({
           </label>
         </div>
 
-        {/* -------- Form Fields -------- */}
+        {/* -------- Fields -------- */}
         <div className="space-y-6">
+
           {/* Full Name */}
           <div>
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
               value={profile.name}
+              placeholder="e.g., Aditi Sharma"
               onChange={(e) =>
                 dispatch(setField({ key: "name", value: e.target.value }))
               }
-              placeholder="e.g., Aditi Sharma"
-              className="h-10"
               disabled={disabled}
+              className="h-10"
             />
             {errors.name && (
               <p className="text-rose-600 text-xs mt-1">{errors.name}</p>
             )}
           </div>
 
-          {/* Email + Alternate */}
+          {/* Email + Alt Phone */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 value={profile.email}
+                placeholder="you@example.com"
                 onChange={(e) =>
                   dispatch(setField({ key: "email", value: e.target.value }))
                 }
-                placeholder="you@example.com"
-                className="h-10"
                 disabled={disabled}
+                className="h-10"
               />
               {errors.email && (
                 <p className="text-rose-600 text-xs mt-1">{errors.email}</p>
               )}
             </div>
+
             <div>
               <Label htmlFor="altPhone">Alternate Number (optional)</Label>
               <Input
                 id="altPhone"
                 value={profile.altPhone}
-                onChange={(e) =>
-                  dispatch(setField({ key: "altPhone", value: e.target.value }))
-                }
                 placeholder="Alternate contact number"
-                className="h-10"
+                maxLength={10}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 disabled={disabled}
+                className="h-10"
               />
+              {errors.phone && (
+                <p className="text-rose-600 text-xs mt-1">{errors.phone}</p>
+              )}
             </div>
           </div>
 
-          {/* Address Lines */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="addressLine1">Address Line 1</Label>
-              <Input
-                id="addressLine1"
-                value={profile.addressLine1}
-                onChange={(e) =>
-                  dispatch(
-                    setField({ key: "addressLine1", value: e.target.value })
-                  )
-                }
-                placeholder="House / Street"
-                className="h-10"
-                disabled={disabled}
-              />
-              {errors.addressLine1 && (
-                <p className="text-rose-600 text-xs mt-1">
-                  {errors.addressLine1}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="addressLine2">Address Line 2 (optional)</Label>
-              <Input
-                id="addressLine2"
-                value={profile.addressLine2}
-                onChange={(e) =>
-                  dispatch(
-                    setField({ key: "addressLine2", value: e.target.value })
-                  )
-                }
-                placeholder="Area / Landmark"
-                className="h-10"
-                disabled={disabled}
-              />
-            </div>
+          {/* Address Line 1 */}
+          <div>
+            <Label htmlFor="addressLine1">Address Line 1</Label>
+            <Input
+              id="addressLine1"
+              value={profile.addressLine1}
+              placeholder="House / Street"
+              onChange={(e) =>
+                dispatch(setField({ key: "addressLine1", value: e.target.value }))
+              }
+              disabled={disabled}
+              className="h-10"
+            />
+            {errors.addressLine1 && (
+              <p className="text-rose-600 text-xs mt-1">{errors.addressLine1}</p>
+            )}
           </div>
 
           {/* City / State / Pincode */}
@@ -197,13 +186,14 @@ export default function PersonalInfoSection({
                 onChange={(e) =>
                   dispatch(setField({ key: "city", value: e.target.value }))
                 }
-                className="h-10"
                 disabled={disabled}
+                className="h-10"
               />
               {errors.city && (
                 <p className="text-rose-600 text-xs mt-1">{errors.city}</p>
               )}
             </div>
+
             <div>
               <Label htmlFor="state">State</Label>
               <Input
@@ -212,24 +202,25 @@ export default function PersonalInfoSection({
                 onChange={(e) =>
                   dispatch(setField({ key: "state", value: e.target.value }))
                 }
-                className="h-10"
                 disabled={disabled}
+                className="h-10"
               />
               {errors.state && (
                 <p className="text-rose-600 text-xs mt-1">{errors.state}</p>
               )}
             </div>
+
             <div>
               <Label htmlFor="pincode">Pincode</Label>
               <Input
                 id="pincode"
                 value={profile.pincode}
+                placeholder="e.g., 110001"
                 onChange={(e) =>
                   dispatch(setField({ key: "pincode", value: e.target.value }))
                 }
-                placeholder="e.g., 110001"
-                className="h-10"
                 disabled={disabled}
+                className="h-10"
               />
               {errors.pincode && (
                 <p className="text-rose-600 text-xs mt-1">{errors.pincode}</p>
@@ -242,13 +233,17 @@ export default function PersonalInfoSection({
             <OtherInline
               label="Gender"
               value={profile.gender}
-              options={toOptions(GENDER)}
+              options={GENDER.map((v) => ({ value: v, label: v }))}
               placeholder="Select"
               onChange={onGenderChange}
               hideOtherInput
               disabled={disabled}
             />
+            {errors.gender && (
+              <p className="text-rose-600 text-xs mt-1">{errors.gender}</p>
+            )}
           </div>
+
         </div>
       </div>
     </section>
