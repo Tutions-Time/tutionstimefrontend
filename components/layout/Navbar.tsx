@@ -127,11 +127,11 @@ export function Navbar({ onMenuClick, unreadCount = 0, userName, userRole, onLog
               )}
 
               {/* Admin-only options */}
-              {user?.role === 'admin' && (
+              {/* {user?.role === 'admin' && (
                 <DropdownMenuItem asChild>
                   <Link href="/admin/analytics">Admin Panel</Link>
                 </DropdownMenuItem>
-              )}
+              )} */}
 
               <DropdownMenuSeparator />
 
