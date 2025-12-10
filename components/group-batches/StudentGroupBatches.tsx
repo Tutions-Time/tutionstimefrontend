@@ -115,7 +115,7 @@ export default function StudentGroupBatches() {
       const order = await createGroupOrder({
         batchId,
         reservationId: res.reservationId,
-        couponCode: couponMap[batchId]?.trim(),
+        // couponCode: couponMap[batchId]?.trim(),
       });
 
       if ((order as any)?.walletPaid) {
@@ -228,12 +228,7 @@ export default function StudentGroupBatches() {
             <div className="flex flex-wrap gap-2 mt-1">
               {!b.isEnrolledForCurrentUser ? (
                 <>
-                <input
-                  placeholder="Coupon"
-                  value={couponMap[b._id] || ""}
-                  onChange={(e) => setCouponMap((m) => ({ ...m, [b._id]: e.target.value }))}
-                  className="h-8 px-2 text-xs border rounded"
-                />
+                {/* Coupon UI disabled */}
                 <Button
                   disabled={loading || b.liveSeats <= 0}
                   onClick={() => reserveAndPay(b._id)}

@@ -95,7 +95,13 @@ export default function SignupPage() {
 
     try {
       // Don't trim the requestId as it might contain characters that look like whitespace
-      await signup(phone.trim(), otpValue.trim(), requestId, role, referralCode.trim() || undefined);
+      await signup(
+        phone.trim(),
+        otpValue.trim(),
+        requestId,
+        role,
+        role === 'student' ? referralCode.trim() || undefined : undefined
+      );
       toast({
         title: 'Signup Successful',
         description: 'Your account has been created successfully',
@@ -177,16 +183,22 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="referral">Referral Code (optional)</Label>
-              <Input
-                id="referral"
-                type="text"
-                placeholder="Enter referral code if you have one"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
-              />
-            </div>
+            {role === 'student' ? (
+              <div className="space-y-2">
+                <Label htmlFor="referral">Referral Code (optional)</Label>
+                <Input
+                  id="referral"
+                  type="text"
+                  placeholder="Enter referral code if you have one"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                />
+              </div>
+            ) : (
+              <>
+                {/* Referral field hidden for tutor signup */}
+              </>
+            )}
 
             <Button
               type="submit"

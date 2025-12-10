@@ -139,7 +139,7 @@ export default function UpgradeToRegularModal({
               regularClassId,
               billingType,
               numberOfClasses: classes,
-              couponCode: couponCode.trim() || undefined,
+              // couponCode: couponCode.trim() || undefined,
             });
             if (orderRes?.walletPaid) {
                 toast.success("Payment successful via wallet");
@@ -200,14 +200,7 @@ export default function UpgradeToRegularModal({
                     </>
                 )}
 
-                <label className="font-medium text-sm mt-4">Coupon Code</label>
-                <input
-                    type="text"
-                    className="border p-2 rounded w-full mt-1"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Optional"
-                />
+                {/* Coupon UI disabled */}
 
                 {/* BUTTON */}
                 <button

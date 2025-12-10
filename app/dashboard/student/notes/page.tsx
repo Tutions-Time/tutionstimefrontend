@@ -66,7 +66,7 @@ export default function NotesPage() {
     try {
       if (paymentInProgress.current) return; // 🛑 stop duplicate opens
 
-      const orderRes = await createNoteOrder(String(note._id), couponMap[String(note._id)]?.trim());
+      const orderRes = await createNoteOrder(String(note._id));
 
       if (orderRes?.free) {
         toast({ title: "Purchased" });
@@ -310,12 +310,7 @@ export default function NotesPage() {
                       </Button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <Input
-                          placeholder="Coupon code"
-                          value={couponMap[String(n._id)] || ""}
-                          onChange={(e) => setCouponMap((m) => ({ ...m, [String(n._id)]: e.target.value }))}
-                          className="h-10 w-36"
-                        />
+                        {/* Coupon UI disabled */}
                         <Button
                         size="lg"
                         className="text-sm px-5 py-2 rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 font-medium"

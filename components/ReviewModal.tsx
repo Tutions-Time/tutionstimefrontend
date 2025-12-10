@@ -88,16 +88,7 @@ export default function ReviewModal() {
         <span className="font-semibold">Monthly</span> – ₹{tutorRates?.monthlyRate}
       </button>
 
-      <div>
-        <label className="font-medium text-sm">Coupon Code (optional)</label>
-        <input
-          type="text"
-          className="border p-2 rounded w-full mt-1"
-          value={couponCode}
-          onChange={(e) => setCouponCode(e.target.value)}
-          placeholder="Enter coupon if you have one"
-        />
-      </div>
+      {/* Coupon UI disabled */}
     </div>
   );
 
@@ -166,7 +157,7 @@ export default function ReviewModal() {
         regularClassId: rcId,
         billingType: type,
         numberOfClasses: classes,
-        couponCode: couponCode.trim() || undefined,
+        // couponCode: couponCode.trim() || undefined,
       });
       if ((orderRes as any)?.walletPaid) {
         toast.success("Payment successful via wallet!");
