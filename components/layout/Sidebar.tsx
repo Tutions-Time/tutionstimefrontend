@@ -73,7 +73,7 @@ const adminLinks: NavLink[] = [
   { href: '/dashboard/admin/sessions', label: 'Sessions', icon: Calendar },
   { href: '/dashboard/admin/marketing/coupons', label: 'Coupons', icon: FileText },
   { href: '/dashboard/admin/marketing/referrals', label: 'Referrals', icon: TrendingUp },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
+  // { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {
