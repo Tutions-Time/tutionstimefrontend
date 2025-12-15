@@ -17,6 +17,7 @@ import { Dialog } from "@headlessui/react";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { submitSessionFeedback } from "@/services/progressService";
+import { getRegularPaymentByClass, requestRefund, getStudentRefunds } from "@/services/studentService";
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,6 +41,8 @@ export default function StudentBookingsPage() {
     understanding: 5,
     comment: "",
   });
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; amount: number; reason: string }>({ amount: 0, reason: "" });
 
   const themePrimary = "#FFD54F";
 
@@ -295,6 +298,26 @@ export default function StudentBookingsPage() {
                           >
                             View Sessions
                           </Button>
+
+                          {/* REQUEST REFUND */}
+                          <Button
+                            onClick={async () => {
+                              try {
+                                const p = await getRegularPaymentByClass(rc.regularClassId);
+                                if (!p?._id) {
+                                  alert("No payment found for this class");
+                                  return;
+                                }
+                                setRefundForm({ regularClassId: rc.regularClassId, paymentId: p._id, amount: Number(p.amount || 0), reason: "" });
+                                setRefundModalOpen(true);
+                              } catch {
+                                alert("Unable to load payment");
+                              }
+                            }}
+                            className="bg-white text-gray-700 border rounded-full px-5"
+                          >
+                            Request Refund
+                          </Button>
                         </div>
                       )}
                     </Card>
@@ -513,6 +536,76 @@ export default function StudentBookingsPage() {
                   className="bg-[#FFD54F] text-black"
                 >
                   {feedbackSubmitting ? "Submitting..." : "Submit"}
+                </Button>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* REFUND MODAL */}
+      <Dialog
+        open={refundModalOpen}
+        onClose={() => setRefundModalOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 border-b">
+              <Dialog.Title className="text-lg font-semibold">
+                Request Refund
+              </Dialog.Title>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600">Amount</label>
+                <input
+                  type="number"
+                  value={refundForm.amount}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, amount: Number(e.target.value || 0) }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  min={0}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600">Reason (optional)</label>
+                <textarea
+                  value={refundForm.reason}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  className="bg-white text-gray-700 border rounded-full px-5"
+                  onClick={() => setRefundModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-[#FFD54F] text-black font-semibold rounded-full px-5"
+                  onClick={async () => {
+                    try {
+                      if (!refundForm.paymentId || !refundForm.amount) return;
+                      const res = await requestRefund({ paymentId: refundForm.paymentId, amount: Number(refundForm.amount), reason: refundForm.reason });
+                      if (res?.success) {
+                        alert("Refund requested");
+                        try {
+                          await getStudentRefunds(); // optional refresh
+                        } catch {}
+                        setRefundModalOpen(false);
+                        setRefundForm({ amount: 0, reason: "" });
+                      } else {
+                        alert(res?.message || "Refund request failed");
+                      }
+                    } catch {
+                      alert("Refund request failed");
+                    }
+                  }}
+                >
+                  Submit
                 </Button>
               </div>
             </div>

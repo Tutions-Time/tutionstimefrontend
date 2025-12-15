@@ -18,6 +18,8 @@ import {
   verifyNotePayment,
   getDownloadUrl,
 } from "@/services/noteService";
+import { getStudentRefunds, requestRefund } from "@/services/studentService";
+import { Dialog } from "@headlessui/react";
 
 export default function NotesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,7 +27,16 @@ export default function NotesPage() {
 
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [purchased, setPurchased] = useState<any[]>([]);
+  const [refunds, setRefunds] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refundModal, setRefundModal] = useState<{
+    open: boolean;
+    paymentId: string | null;
+    amount: number;
+    reason: string;
+    submitting: boolean;
+  }>({ open: false, paymentId: null, amount: 0, reason: "", submitting: false });
+  const [lastPaymentId, setLastPaymentId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] =
     useState<"purchased" | "all">("purchased");
@@ -38,6 +49,10 @@ export default function NotesPage() {
     try {
       const res = await getPurchasedNotes();
       setPurchased(res.data || []);
+      try {
+        const rf = await getStudentRefunds();
+        setRefunds(rf || []);
+      } catch {}
     } catch {}
   };
 
@@ -76,6 +91,8 @@ export default function NotesPage() {
 
       if ((orderRes as any)?.walletPaid) {
         toast({ title: "Purchased via wallet" });
+        if (orderRes?.paymentId) setLastPaymentId(orderRes.paymentId);
+        setRefundModal({ open: true, paymentId: orderRes?.paymentId || null, amount: Number(note.price || 0), reason: "", submitting: false });
         fetchPurchased();
         return;
       }
@@ -83,6 +100,7 @@ export default function NotesPage() {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
+      if (orderRes?.paymentId) setLastPaymentId(orderRes.paymentId);
 
       const ensureRazorpay = async () => {
         if ((window as any).Razorpay) return true;
@@ -131,6 +149,7 @@ export default function NotesPage() {
           if (verify?.success) {
             toast({ title: "Purchased" });
             fetchPurchased();
+            setRefundModal({ open: true, paymentId: lastPaymentId, amount: Number(orderRes?.amount || 0) / 100 || Number(note.price || 0), reason: "", submitting: false });
           } else {
             toast({ title: "Verification failed", variant: "destructive" });
           }
@@ -161,6 +180,21 @@ export default function NotesPage() {
       if (res?.url) window.open(res.url, "_blank");
     } catch {
       toast({ title: "Download failed", variant: "destructive" });
+    }
+  };
+
+  const submitRefund = async () => {
+    if (!refundModal.paymentId || refundModal.amount <= 0) return;
+    try {
+      setRefundModal((s) => ({ ...s, submitting: true }));
+      await requestRefund({ paymentId: refundModal.paymentId, amount: refundModal.amount, reason: refundModal.reason });
+      toast({ title: "Refund requested" });
+      setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false });
+      const rf = await getStudentRefunds();
+      setRefunds(rf || []);
+    } catch {
+      toast({ title: "Refund request failed", variant: "destructive" });
+      setRefundModal((s) => ({ ...s, submitting: false }));
     }
   };
 
@@ -324,9 +358,72 @@ export default function NotesPage() {
                 ))}
               </>
             )}
+            <div className="mt-10 space-y-3">
+              <div className="text-xl font-semibold">My Refund Requests</div>
+              <Card className="p-6 bg-white/90 rounded-3xl border shadow">
+                {!refunds?.length ? (
+                  <div className="text-sm text-gray-600">No refund requests</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-muted">
+                          <th className="p-2">Amount</th>
+                          <th className="p-2">Status</th>
+                          <th className="p-2">Reason</th>
+                          <th className="p-2">Created</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {refunds.map((x: any) => (
+                          <tr key={x._id} className="border-t">
+                            <td className="p-2">₹{x.amount}</td>
+                            <td className="p-2 capitalize">{x.status}</td>
+                            <td className="p-2">{x.reason || ""}</td>
+                            <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
+            </div>
           </div>
         </main>
       </div>
+      <Dialog open={refundModal.open} onClose={() => setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false })} className="relative z-50">
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 space-y-4">
+              <Dialog.Title className="text-lg font-semibold">Request Refund</Dialog.Title>
+              <div className="space-y-3">
+                <input
+                  type="number"
+                  min={1}
+                  value={refundModal.amount}
+                  onChange={(e) => setRefundModal((s) => ({ ...s, amount: Number(e.target.value || 0) }))}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Amount"
+                />
+                <textarea
+                  value={refundModal.reason}
+                  onChange={(e) => setRefundModal((s) => ({ ...s, reason: e.target.value }))}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="Reason (optional)"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false })}>Cancel</Button>
+                  <Button onClick={submitRefund} disabled={refundModal.submitting || !refundModal.paymentId || refundModal.amount <= 0}>
+                    {refundModal.submitting ? "Submitting..." : "Submit"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </div>
   );
 }

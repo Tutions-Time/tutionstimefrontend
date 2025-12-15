@@ -118,6 +118,33 @@ export const getStudentRegularClasses = async () => {
   }
 };
 
+export const getStudentRefunds = async () => {
+  try {
+    const res = await api.get('/payments/student/refunds');
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const getRegularPaymentByClass = async (regularClassId: string) => {
+  try {
+    const res = await api.get(`/payments/student/regular/${regularClassId}/payment`);
+    return res.data?.data || null;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const requestRefund = async (payload: { paymentId: string; amount: number; reason?: string }) => {
+  try {
+    const res = await api.post('/payments/refunds/request', payload);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Get all subjects
 export const getAllSubjects = async () => {
   try {

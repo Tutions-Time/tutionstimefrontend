@@ -26,15 +26,18 @@ import {
   verifySubscriptionPayment, 
 } from "@/services/razorpayService";
 import { getStudentRegularClasses } from "@/services/studentService";
+import { getRegularPaymentByClass, requestRefund } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Dialog } from "@headlessui/react";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
+import { getStudentRefunds } from "@/services/studentService";
 
 export default function StudentSessions() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [subs, setSubs] = useState<any[]>([]);
   const [regularClasses, setRegularClasses] = useState<any[]>([]);
+  const [refunds, setRefunds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,6 +55,8 @@ export default function StudentSessions() {
   const [regularSessionsByClass, setRegularSessionsByClass] = useState<Record<string, any[]>>({});
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; amount: number; reason: string }>({ amount: 0, reason: "" });
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -67,10 +72,11 @@ export default function StudentSessions() {
 
   const fetchAll = async () => {
     try {
-      const [b, s, rc] = await Promise.all([getMyBookings(), getMySubscriptions(), getStudentRegularClasses()]);
+      const [b, s, rc, rf] = await Promise.all([getMyBookings(), getMySubscriptions(), getStudentRegularClasses(), getStudentRefunds()]);
       setSessions(b);
       setSubs(s);
       setRegularClasses(rc || []);
+      setRefunds(rf || []);
     } catch (err) {
       console.error(err);
       toast({ title: "Error loading sessions", variant: "destructive" });
@@ -90,6 +96,38 @@ export default function StudentSessions() {
       setRegularClassSessions([]);
     } finally {
       setSessionsLoading(false);
+    }
+  };
+
+  const openRefundModal = async (regularClassId: string) => {
+    try {
+      const p = await getRegularPaymentByClass(regularClassId);
+      if (!p?._id) {
+        toast({ title: "No payment found for this class", variant: "destructive" });
+        return;
+      }
+      setRefundForm({ regularClassId, paymentId: p._id, amount: Number(p.amount || 0), reason: "" });
+      setRefundModalOpen(true);
+    } catch {
+      toast({ title: "Unable to load payment", variant: "destructive" });
+    }
+  };
+
+  const submitRefund = async () => {
+    try {
+      if (!refundForm.paymentId || !refundForm.amount) return;
+      const res = await requestRefund({ paymentId: refundForm.paymentId, amount: Number(refundForm.amount), reason: refundForm.reason });
+      if (res?.success) {
+        toast({ title: "Refund requested" });
+        const rf = await getStudentRefunds();
+        setRefunds(rf || []);
+        setRefundModalOpen(false);
+        setRefundForm({ amount: 0, reason: "" });
+      } else {
+        toast({ title: res?.message || "Refund request failed", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Refund request failed", variant: "destructive" });
     }
   };
 
@@ -467,6 +505,14 @@ export default function StudentSessions() {
                       View Sessions
                     </Button>
                   )}
+                  {s.type === "regular" && s.regularClassId && (
+                    <Button
+                      variant="outline"
+                      onClick={() => openRefundModal(s.regularClassId)}
+                    >
+                      Request Refund
+                    </Button>
+                  )}
                 </div>
 
                 {s.type === "regular" && s.regularClassId && (() => {
@@ -535,6 +581,37 @@ export default function StudentSessions() {
                 })()}
               </Card>
             ))}
+          </div>
+          <div className="mt-6">
+            <Card className="p-6">
+              <div className="text-lg font-semibold mb-3">My Refund Requests</div>
+              {!refunds?.length ? (
+                <div className="text-sm text-gray-600">No refund requests</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-muted">
+                        <th className="p-2">Amount</th>
+                        <th className="p-2">Status</th>
+                        <th className="p-2">Reason</th>
+                        <th className="p-2">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {refunds.map((x: any) => (
+                        <tr key={x._id} className="border-t">
+                          <td className="p-2">₹{x.amount}</td>
+                          <td className="p-2 capitalize">{x.status}</td>
+                          <td className="p-2">{x.reason || ""}</td>
+                          <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
           </div>
         </main>
       </div>
@@ -649,6 +726,41 @@ export default function StudentSessions() {
                   );
                 })
               )}
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+      <Dialog open={refundModalOpen} onClose={() => setRefundModalOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6 pb-3 border-b">
+              <Dialog.Title className="text-lg font-semibold">Request Refund</Dialog.Title>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600">Amount</label>
+                <input
+                  type="number"
+                  value={refundForm.amount}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, amount: Number(e.target.value || 0) }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  min={0}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600">Reason (optional)</label>
+                <textarea
+                  value={refundForm.reason}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={() => setRefundModalOpen(false)}>Cancel</Button>
+                <Button onClick={submitRefund} className="bg-primary text-white">Submit</Button>
+              </div>
             </div>
           </Dialog.Panel>
         </div>
