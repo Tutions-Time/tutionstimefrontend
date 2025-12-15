@@ -210,7 +210,7 @@ export default function PersonalInfoSection({
 
             {/* Pincode */}
             <div>
-              <Label>Pincode</Label>
+              <Label>Pincode</Label> 
               <Input
                 value={profile.pincode}
                 onChange={(e) =>
