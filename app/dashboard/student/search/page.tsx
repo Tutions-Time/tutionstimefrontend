@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { toast } from "react-hot-toast";
 import { fetchTutors } from "@/services/studentService";
+import { getUserProfile } from "@/services/bookingService";
 
 import TutorFilters from "@/components/student/TutorFilters";
 import TutorList from "@/components/student/TutorList";
@@ -145,6 +146,24 @@ export default function SearchTutors() {
 
   useUrlSync(filter, (next) => setFilter(next));
 
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        if (filter.classLevel) return;
+        const up = await getUserProfile();
+        const classLevel = up?.profile?.classLevel;
+        if (alive && classLevel) {
+          setFilter((f) => ({ ...f, classLevel, page: "1" }));
+        }
+      } catch {
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [filter.classLevel]);
+
   /* ---------- Query Builder ---------- */
   const params = useMemo(() => {
     const p: Record<string, any> = {
@@ -181,7 +200,18 @@ export default function SearchTutors() {
     try {
       setLoading(true);
       const res = await fetchTutors(params);
-      setTutors(res?.data || []);
+      const data = res?.data || [];
+      // Client-side safety: ensure tutors match selected classLevel if provided
+      const classLevel = (filter.classLevel || "").trim();
+      const filtered =
+        classLevel
+          ? data.filter((t: any) =>
+              Array.isArray(t.classLevels)
+                ? t.classLevels.includes(classLevel)
+                : true
+            )
+          : data;
+      setTutors(filtered);
       setMode(res?.mode || "");
       setTotal(res?.total || 0);
     } catch (err: any) {

@@ -3,7 +3,7 @@ import api, { handleApiError } from '../lib/api';
 // Get student profile
 export const getStudentProfile = async () => {
   try {
-    const response = await api.get('/users/student/profile');
+    const response = await api.get('/users/student-profile');
     return response.data.profile;
   } catch (error) {
     throw new Error(handleApiError(error));

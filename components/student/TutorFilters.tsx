@@ -70,14 +70,6 @@ export default function TutorFilters({
           className="h-8 text-sm rounded-full"
         />
         <Input
-          placeholder="Class"
-          value={filter.classLevel || ""}
-          onChange={(e) =>
-            setFilter((f) => ({ ...f, classLevel: e.target.value, page: "1" }))
-          }
-          className="h-8 text-sm rounded-full"
-        />
-        <Input
           placeholder="Board"
           value={filter.board || ""}
           onChange={(e) =>
