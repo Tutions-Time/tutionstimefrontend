@@ -115,12 +115,12 @@ export default function StudentFilters({
             <option value="">Any</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
-            <option value="Other">Other</option>
+            {/* <option value="Other">Other</option> */}
           </select>
         </div>
 
         {/* Availability */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <label className="text-xs font-medium text-gray-600">
             Availability (YYYY-MM-DD)
           </label>
@@ -134,7 +134,7 @@ export default function StudentFilters({
           <p className="text-[11px] text-gray-400">
             Use comma for multiple dates.
           </p>
-        </div>
+        </div> */}
       </div>
     </aside>
   );
