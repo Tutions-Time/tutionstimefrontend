@@ -130,9 +130,18 @@ export const getTutorEarnings = async (params?: {
 };
 
 // Request payout
-export const requestPayout = async (amount: number) => {
+export const requestPayout = async (
+  amount: number,
+  details?: {
+    upiId?: string;
+    accountHolderName?: string;
+    bankAccountNumber?: string;
+    ifsc?: string;
+  }
+) => {
   try {
-    const response = await api.post('/tutors/payout', { amount });
+    const payload = { amount, ...(details || {}) };
+    const response = await api.post('/tutors/payout', payload);
     return response.data;
   } catch (error) {
     throw new Error(handleApiError(error));

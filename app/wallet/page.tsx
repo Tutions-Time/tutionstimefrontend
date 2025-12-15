@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { getMyWallet, getMyTransactions } from '@/services/walletService';
 import { requestPayout } from '@/services/tutorService';
 import { toast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +21,13 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
   const [withdrawing, setWithdrawing] = useState(false);
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState<'upi' | 'bank'>('upi');
+  const [upiId, setUpiId] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [bankAccountNumber, setBankAccountNumber] = useState('');
+  const [ifsc, setIfsc] = useState('');
+  const [savingPayoutMethod, setSavingPayoutMethod] = useState(false);
 
   // ✅ Fetch wallet + transactions on load
   useEffect(() => {
@@ -82,9 +92,59 @@ export default function WalletPage() {
         toast({ title: res?.message || 'Payout request failed', variant: 'destructive' });
       }
     } catch (err: any) {
-      toast({ title: 'Payout request failed', description: err.message, variant: 'destructive' });
+      const msg = String(err?.message || '');
+      if (msg.includes('No payout method')) {
+        setShowPayoutModal(true);
+      }
+      toast({ title: 'Payout request failed', description: msg, variant: 'destructive' });
     } finally {
       setWithdrawing(false);
+    }
+  }
+
+  async function submitPayoutDetails() {
+    try {
+      const amt = Number(withdrawAmount);
+      if (!amt || isNaN(amt) || amt <= 0) {
+        toast({ title: 'Enter a valid amount', variant: 'destructive' });
+        return;
+      }
+      setSavingPayoutMethod(true);
+      let details: any = {};
+      if (payoutMethod === 'upi') {
+        if (!upiId.trim()) {
+          toast({ title: 'Enter UPI ID', variant: 'destructive' });
+          setSavingPayoutMethod(false);
+          return;
+        }
+        details.upiId = upiId.trim();
+      } else {
+        if (!accountHolderName.trim() || !bankAccountNumber.trim() || !ifsc.trim()) {
+          toast({ title: 'Fill all bank fields', variant: 'destructive' });
+          setSavingPayoutMethod(false);
+          return;
+        }
+        details.accountHolderName = accountHolderName.trim();
+        details.bankAccountNumber = bankAccountNumber.trim();
+        details.ifsc = ifsc.trim();
+      }
+      const res = await requestPayout(amt, details);
+      if (res?.success) {
+        toast({ title: 'Payout requested successfully' });
+        setShowPayoutModal(false);
+        setUpiId('');
+        setAccountHolderName('');
+        setBankAccountNumber('');
+        setIfsc('');
+        setWithdrawAmount('');
+        await refresh();
+      } else {
+        toast({ title: res?.message || 'Payout request failed', variant: 'destructive' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Payout request failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setSavingPayoutMethod(false);
     }
   }
 
@@ -240,6 +300,52 @@ export default function WalletPage() {
           </Card>
         </main>
       </div>
+      <Dialog open={showPayoutModal} onOpenChange={setShowPayoutModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Set Payout Method</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <button
+                className={`px-3 py-1 rounded border text-sm ${payoutMethod === 'upi' ? 'bg-primary/10 border-primary text-primary' : 'border-gray-300'}`}
+                onClick={() => setPayoutMethod('upi')}
+              >UPI</button>
+              <button
+                className={`px-3 py-1 rounded border text-sm ${payoutMethod === 'bank' ? 'bg-primary/10 border-primary text-primary' : 'border-gray-300'}`}
+                onClick={() => setPayoutMethod('bank')}
+              >Bank</button>
+            </div>
+            {payoutMethod === 'upi' ? (
+              <div>
+                <Label className="text-sm">UPI ID</Label>
+                <Input value={upiId} onChange={(e) => setUpiId(e.target.value)} placeholder="name@bank" />
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label className="text-sm">Account Holder Name</Label>
+                  <Input value={accountHolderName} onChange={(e) => setAccountHolderName(e.target.value)} placeholder="Name as per bank" />
+                </div>
+                <div>
+                  <Label className="text-sm">Bank Account Number</Label>
+                  <Input value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} placeholder="1234567890" />
+                </div>
+                <div>
+                  <Label className="text-sm">IFSC</Label>
+                  <Input value={ifsc} onChange={(e) => setIfsc(e.target.value)} placeholder="ABCD0123456" />
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPayoutModal(false)}>Cancel</Button>
+            <Button onClick={submitPayoutDetails} disabled={savingPayoutMethod}>
+              {savingPayoutMethod ? 'Saving…' : 'Save & Continue'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
