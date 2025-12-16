@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Save, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/studentProfileSlice";
@@ -30,6 +31,7 @@ export default function StudentProfilePage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const [errors, setErrors] = useState({}); // ⭐ ADDED
+  const router = useRouter();
 
   // -------- Fetch Profile --------
   useEffect(() => {
@@ -80,6 +82,7 @@ export default function StudentProfilePage() {
       if (res.success) {
         toast.success("Profile updated successfully!");
         setEditMode(false);
+        router.push("/dashboard/student");
       } else toast.error(res.message || "Update failed");
     } catch (err: any) {
       toast.error(err.message || "Error saving profile");
