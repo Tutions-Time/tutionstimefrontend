@@ -35,10 +35,10 @@ export default function AdminRefundsPage() {
 
   useEffect(() => { refresh(); }, []);
 
-  const act = async (id: string, status: 'approved' | 'rejected' | 'processed') => {
+  const act = async (id: string, status: 'approved' | 'rejected' | 'processed', method?: 'provider' | 'payout') => {
     setUpdating(id);
     try {
-      await updateRefundStatus(id, status);
+      await updateRefundStatus(id, status, method);
       refresh();
     } finally {
       setUpdating(null);
@@ -120,7 +120,9 @@ export default function AdminRefundsPage() {
           <DialogContent className="w-[95vw] sm:w-auto sm:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>Refund Details</DialogTitle>
-              <DialogDescription>Review all information and take action</DialogDescription>
+              <DialogDescription>
+                {updating === selected?._id ? 'Updating…' : 'Review all information and take action'}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -232,9 +234,10 @@ export default function AdminRefundsPage() {
             <DialogFooter>
               <Button
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   if (!selected?._id) return;
-                  act(selected._id, 'approved');
+                  await act(selected._id, 'approved', 'payout');
+                  setShowDetails(false);
                 }}
                 disabled={updating === selected?._id}
               >

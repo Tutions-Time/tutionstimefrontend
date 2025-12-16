@@ -170,9 +170,15 @@ export const getAdminRefunds = async (params?: { status?: string; from?: string;
   }
 };
 
-export const updateRefundStatus = async (id: string, status: 'approved' | 'rejected' | 'processed') => {
+export const updateRefundStatus = async (
+  id: string,
+  status: 'approved' | 'rejected' | 'processed',
+  method?: 'provider' | 'payout'
+) => {
   try {
-    const res = await api.patch(`/payments/admin/refunds/${id}`, { status });
+    const payload: any = { status };
+    if (method) payload.method = method;
+    const res = await api.patch(`/payments/admin/refunds/${id}`, payload);
     return res.data?.data;
   } catch (error) {
     throw new Error(handleApiError(error));
