@@ -6,6 +6,7 @@ import {
   createGroupOrder,
   verifyGroupPayment,
 } from "@/services/groupBatchService";
+import { requestRefund, previewRefund } from "@/services/studentService";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export default function StudentGroupBatches() {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollBatch, setEnrollBatch] = useState<any>(null);
   const [duration, setDuration] = useState(1);
+  const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
 
   // --------------------------
   // Razorpay Loader
@@ -207,6 +209,27 @@ export default function StudentGroupBatches() {
     } catch { }
   };
 
+  const submitRefund = async () => {
+    try {
+      setRefundModal({ ...refundModal, submitting: true });
+      const res = await requestRefund({
+        paymentId: refundModal.paymentId,
+        reasonCode: refundModal.reasonCode,
+        reasonText: refundModal.reasonText
+      });
+      if (res.success) {
+        toast.success("Refund requested");
+        setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
+      } else {
+        toast.error(res.message || "Failed");
+      }
+    } catch {
+      toast.error("Failed");
+    } finally {
+      setRefundModal((s: any) => ({ ...s, submitting: false }));
+    }
+  };
+
   // --------------------------
   // UI
   // --------------------------
@@ -269,13 +292,24 @@ export default function StudentGroupBatches() {
                 </Button>
                 </>
               ) : (
-                <Button
-                  variant="secondary"
-                  onClick={() => openSessionsModal(b._id)}
-                  className="flex-1 h-8 px-3 text-xs"
-                >
-                  View Sessions
-                </Button>
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => openSessionsModal(b._id)}
+                    className="flex-1 h-8 px-3 text-xs"
+                  >
+                    View Sessions
+                  </Button>
+                  {b.myPaymentId && (
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null })}
+                    >
+                      Refund
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -322,6 +356,86 @@ export default function StudentGroupBatches() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEnrollModalOpen(false)}>Cancel</Button>
             <Button onClick={proceedToPay}>Pay & Enroll</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------------- / REFUND MODAL ---------------- */}
+      <Dialog open={refundModal.open} onOpenChange={(open) => !open && setRefundModal({ ...refundModal, open: false })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Refund</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason</label>
+              <select
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={refundModal.reasonCode}
+                onChange={async (e) => {
+                  const code = e.target.value;
+                  const next = { ...refundModal, reasonCode: code };
+                  setRefundModal(next);
+                  if (refundModal.paymentId && code) {
+                    try {
+                      const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: code, reasonText: next.reasonText || undefined });
+                      setRefundModal((f: any) => ({ ...f, preview: pv }));
+                    } catch {}
+                  }
+                }}
+              >
+                <option value="" disabled>Select reason</option>
+                <option value="CLASS_NOT_CONDUCTED">Class not conducted</option>
+                <option value="TUTOR_ABSENT_OR_LATE">Tutor absent or late</option>
+                <option value="WRONG_PURCHASE">Wrong purchase</option>
+                <option value="QUALITY_ISSUE">Quality issue</option>
+                <option value="TECHNICAL_ISSUE">Technical issue</option>
+                <option value="SCHEDULE_CONFLICT">Schedule conflict</option>
+                <option value="CONTENT_NOT_AS_DESCRIBED">Content not as described</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+
+            {refundModal.reasonCode === "OTHER" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  rows={3}
+                  value={refundModal.reasonText}
+                  onChange={async (e) => {
+                    const txt = e.target.value;
+                    setRefundModal((f: any) => ({ ...f, reasonText: txt }));
+                    if (refundModal.paymentId && refundModal.reasonCode) {
+                      try {
+                        const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: txt });
+                        setRefundModal((f: any) => ({ ...f, preview: pv }));
+                      } catch {}
+                    }
+                  }}
+                />
+              </div>
+            )}
+
+            {refundModal.preview && (
+              <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded space-y-1">
+                <div className="flex justify-between"><span>Completion:</span> <span>{Math.round((refundModal.preview.completionPercentage || 0) * 100)}%</span></div>
+                <div className="flex justify-between"><span>Refundable:</span> <span>{Math.round((refundModal.preview.refundablePercentage || 0) * 100)}%</span></div>
+                <div className="flex justify-between font-medium"><span>Max Amount:</span> <span>₹{refundModal.preview.maximumRefundableAmount || 0}</span></div>
+                <div className="text-xs text-gray-500 mt-1">{refundModal.preview.explanation || ""}</div>
+                <div className="text-xs text-gray-500">Method: {refundModal.preview.suggestedRefundMethod}</div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRefundModal({ ...refundModal, open: false })}>Cancel</Button>
+            <Button 
+              onClick={submitRefund} 
+              disabled={refundModal.submitting || !refundModal.reasonCode || (refundModal.reasonCode === "OTHER" && !refundModal.reasonText)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {refundModal.submitting ? "Submitting..." : "Submit Request"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
