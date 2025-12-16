@@ -18,7 +18,7 @@ import {
   verifyNotePayment,
   getDownloadUrl,
 } from "@/services/noteService";
-import { getStudentRefunds, requestRefund } from "@/services/studentService";
+import { getStudentRefunds, requestRefund, previewRefund } from "@/services/studentService";
 import { Dialog } from "@headlessui/react";
 
 export default function NotesPage() {
@@ -32,10 +32,11 @@ export default function NotesPage() {
   const [refundModal, setRefundModal] = useState<{
     open: boolean;
     paymentId: string | null;
-    amount: number;
-    reason: string;
+    reasonCode: string;
+    reasonText: string;
     submitting: boolean;
-  }>({ open: false, paymentId: null, amount: 0, reason: "", submitting: false });
+    preview: any | null;
+  }>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
   const [lastPaymentId, setLastPaymentId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] =
@@ -92,7 +93,7 @@ export default function NotesPage() {
       if ((orderRes as any)?.walletPaid) {
         toast({ title: "Purchased via wallet" });
         if (orderRes?.paymentId) setLastPaymentId(orderRes.paymentId);
-        setRefundModal({ open: true, paymentId: orderRes?.paymentId || null, amount: Number(note.price || 0), reason: "", submitting: false });
+        setRefundModal({ open: true, paymentId: orderRes?.paymentId || null, reasonCode: "", reasonText: "", submitting: false, preview: null });
         fetchPurchased();
         return;
       }
@@ -149,7 +150,7 @@ export default function NotesPage() {
           if (verify?.success) {
             toast({ title: "Purchased" });
             fetchPurchased();
-            setRefundModal({ open: true, paymentId: lastPaymentId, amount: Number(orderRes?.amount || 0) / 100 || Number(note.price || 0), reason: "", submitting: false });
+            setRefundModal({ open: true, paymentId: lastPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
           } else {
             toast({ title: "Verification failed", variant: "destructive" });
           }
@@ -184,12 +185,12 @@ export default function NotesPage() {
   };
 
   const submitRefund = async () => {
-    if (!refundModal.paymentId || refundModal.amount <= 0) return;
+    if (!refundModal.paymentId || !refundModal.reasonCode) return;
     try {
       setRefundModal((s) => ({ ...s, submitting: true }));
-      await requestRefund({ paymentId: refundModal.paymentId, amount: refundModal.amount, reason: refundModal.reason });
+      await requestRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: refundModal.reasonText || undefined });
       toast({ title: "Refund requested" });
-      setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false });
+      setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
       const rf = await getStudentRefunds();
       setRefunds(rf || []);
     } catch {
@@ -392,30 +393,68 @@ export default function NotesPage() {
           </div>
         </main>
       </div>
-      <Dialog open={refundModal.open} onClose={() => setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false })} className="relative z-50">
+      <Dialog open={refundModal.open} onClose={() => setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null })} className="relative z-50">
         <div className="fixed inset-0 bg-black/40" />
         <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6 space-y-4">
               <Dialog.Title className="text-lg font-semibold">Request Refund</Dialog.Title>
               <div className="space-y-3">
-                <input
-                  type="number"
-                  min={1}
-                  value={refundModal.amount}
-                  onChange={(e) => setRefundModal((s) => ({ ...s, amount: Number(e.target.value || 0) }))}
+                <select
+                  value={refundModal.reasonCode || ""}
+                  onChange={async (e) => {
+                    const code = e.target.value;
+                    const next = { ...refundModal, reasonCode: code };
+                    setRefundModal(next as any);
+                    if (refundModal.paymentId && code) {
+                      try {
+                        const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: code, reasonText: next.reasonText || undefined });
+                        setRefundModal((s: any) => ({ ...s, preview: pv }));
+                      } catch {}
+                    }
+                  }}
                   className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="Amount"
-                />
-                <textarea
-                  value={refundModal.reason}
-                  onChange={(e) => setRefundModal((s) => ({ ...s, reason: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="Reason (optional)"
-                />
+                >
+                  <option value="" disabled>Select reason</option>
+                  <option value="CLASS_NOT_CONDUCTED">Class not conducted</option>
+                  <option value="TUTOR_ABSENT_OR_LATE">Tutor absent or late</option>
+                  <option value="WRONG_PURCHASE">Wrong purchase</option>
+                  <option value="QUALITY_ISSUE">Quality issue</option>
+                  <option value="TECHNICAL_ISSUE">Technical issue</option>
+                  <option value="SCHEDULE_CONFLICT">Schedule conflict</option>
+                  <option value="CONTENT_NOT_AS_DESCRIBED">Content not as described</option>
+                  <option value="OTHER">Other</option>
+                </select>
+                {refundModal.reasonCode === "OTHER" && (
+                  <textarea
+                    value={refundModal.reasonText || ""}
+                    onChange={async (e) => {
+                      const txt = e.target.value;
+                      setRefundModal((s: any) => ({ ...s, reasonText: txt }));
+                      if (refundModal.paymentId && refundModal.reasonCode) {
+                        try {
+                          const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: txt });
+                          setRefundModal((s: any) => ({ ...s, preview: pv }));
+                        } catch {}
+                      }
+                    }}
+                    className="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="Explain your reason"
+                  />
+                )}
+                {refundModal.preview && (
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <div>Completion: {Math.round((refundModal.preview.completionPercentage || 0) * 100)}%</div>
+                    <div>Refundable: {Math.round((refundModal.preview.refundablePercentage || 0) * 100)}%</div>
+                    <div>Max Amount: ₹{refundModal.preview.maximumRefundableAmount || 0}</div>
+                    <div>{refundModal.preview.explanation || ""}</div>
+                    <div>Window: {refundModal.preview.refundWindowValid ? "Valid" : "Expired"}</div>
+                    <div>Method: {refundModal.preview.suggestedRefundMethod}</div>
+                  </div>
+                )}
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setRefundModal({ open: false, paymentId: null, amount: 0, reason: "", submitting: false })}>Cancel</Button>
-                  <Button onClick={submitRefund} disabled={refundModal.submitting || !refundModal.paymentId || refundModal.amount <= 0}>
+                  <Button variant="outline" onClick={() => setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null })}>Cancel</Button>
+                  <Button onClick={submitRefund} disabled={refundModal.submitting || !refundModal.paymentId || !refundModal.reasonCode || (refundModal.reasonCode === "OTHER" && !(refundModal.reasonText || "").trim())}>
                     {refundModal.submitting ? "Submitting..." : "Submit"}
                   </Button>
                 </div>

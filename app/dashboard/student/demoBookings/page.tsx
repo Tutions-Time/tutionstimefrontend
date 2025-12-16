@@ -17,7 +17,7 @@ import { Dialog } from "@headlessui/react";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { submitSessionFeedback } from "@/services/progressService";
-import { getRegularPaymentByClass, requestRefund, getStudentRefunds } from "@/services/studentService";
+import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function StudentBookingsPage() {
     comment: "",
   });
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; amount: number; reason: string }>({ amount: 0, reason: "" });
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
 
   const themePrimary = "#FFD54F";
 
@@ -308,7 +308,7 @@ export default function StudentBookingsPage() {
                                   alert("No payment found for this class");
                                   return;
                                 }
-                                setRefundForm({ regularClassId: rc.regularClassId, paymentId: p._id, amount: Number(p.amount || 0), reason: "" });
+                                setRefundForm({ regularClassId: rc.regularClassId, paymentId: p._id });
                                 setRefundModalOpen(true);
                               } catch {
                                 alert("Unable to load payment");
@@ -559,23 +559,61 @@ export default function StudentBookingsPage() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm text-gray-600">Amount</label>
-                <input
-                  type="number"
-                  value={refundForm.amount}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, amount: Number(e.target.value || 0) }))}
+                <label className="block text-sm text-gray-600">Reason</label>
+                <select
+                  value={refundForm.reasonCode || ""}
+                  onChange={async (e) => {
+                    const code = e.target.value;
+                    const next = { ...refundForm, reasonCode: code };
+                    setRefundForm(next);
+                    if (refundForm.paymentId && code) {
+                      try {
+                        const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: code, reasonText: next.reasonText || undefined });
+                        setRefundForm((f) => ({ ...f, preview: pv }));
+                      } catch {}
+                    }
+                  }}
                   className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  min={0}
-                />
+                >
+                  <option value="" disabled>Select reason</option>
+                  <option value="CLASS_NOT_CONDUCTED">Class not conducted</option>
+                  <option value="TUTOR_ABSENT_OR_LATE">Tutor absent or late</option>
+                  <option value="WRONG_PURCHASE">Wrong purchase</option>
+                  <option value="QUALITY_ISSUE">Quality issue</option>
+                  <option value="TECHNICAL_ISSUE">Technical issue</option>
+                  <option value="SCHEDULE_CONFLICT">Schedule conflict</option>
+                  <option value="CONTENT_NOT_AS_DESCRIBED">Content not as described</option>
+                  <option value="OTHER">Other</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600">Reason (optional)</label>
-                <textarea
-                  value={refundForm.reason}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  rows={3}
-                />
+                {refundForm.reasonCode === "OTHER" && (
+                  <textarea
+                    value={refundForm.reasonText || ""}
+                    onChange={async (e) => {
+                      const txt = e.target.value;
+                      setRefundForm((f) => ({ ...f, reasonText: txt }));
+                      if (refundForm.paymentId && refundForm.reasonCode) {
+                        try {
+                          const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: txt });
+                          setRefundForm((f) => ({ ...f, preview: pv }));
+                        } catch {}
+                      }
+                    }}
+                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                    rows={3}
+                  />
+                )}
+                {refundForm.preview && (
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <div>Completion: {Math.round((refundForm.preview.completionPercentage || 0) * 100)}%</div>
+                    <div>Refundable: {Math.round((refundForm.preview.refundablePercentage || 0) * 100)}%</div>
+                    <div>Max Amount: ₹{refundForm.preview.maximumRefundableAmount || 0}</div>
+                    <div>{refundForm.preview.explanation || ""}</div>
+                    <div>Window: {refundForm.preview.refundWindowValid ? "Valid" : "Expired"}</div>
+                    <div>Method: {refundForm.preview.suggestedRefundMethod}</div>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 justify-end">
                 <Button
@@ -588,15 +626,15 @@ export default function StudentBookingsPage() {
                   className="bg-[#FFD54F] text-black font-semibold rounded-full px-5"
                   onClick={async () => {
                     try {
-                      if (!refundForm.paymentId || !refundForm.amount) return;
-                      const res = await requestRefund({ paymentId: refundForm.paymentId, amount: Number(refundForm.amount), reason: refundForm.reason });
+                      if (!refundForm.paymentId || !refundForm.reasonCode) return;
+                      const res = await requestRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: refundForm.reasonText || undefined });
                       if (res?.success) {
                         alert("Refund requested");
                         try {
                           await getStudentRefunds(); // optional refresh
                         } catch {}
                         setRefundModalOpen(false);
-                        setRefundForm({ amount: 0, reason: "" });
+                        setRefundForm({});
                       } else {
                         alert(res?.message || "Refund request failed");
                       }

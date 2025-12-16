@@ -26,7 +26,7 @@ import {
   verifySubscriptionPayment, 
 } from "@/services/razorpayService";
 import { getStudentRegularClasses } from "@/services/studentService";
-import { getRegularPaymentByClass, requestRefund } from "@/services/studentService";
+import { getRegularPaymentByClass, requestRefund, previewRefund } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Dialog } from "@headlessui/react";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
@@ -56,7 +56,7 @@ export default function StudentSessions() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; amount: number; reason: string }>({ amount: 0, reason: "" });
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -106,7 +106,7 @@ export default function StudentSessions() {
         toast({ title: "No payment found for this class", variant: "destructive" });
         return;
       }
-      setRefundForm({ regularClassId, paymentId: p._id, amount: Number(p.amount || 0), reason: "" });
+      setRefundForm({ regularClassId, paymentId: p._id });
       setRefundModalOpen(true);
     } catch {
       toast({ title: "Unable to load payment", variant: "destructive" });
@@ -115,14 +115,14 @@ export default function StudentSessions() {
 
   const submitRefund = async () => {
     try {
-      if (!refundForm.paymentId || !refundForm.amount) return;
-      const res = await requestRefund({ paymentId: refundForm.paymentId, amount: Number(refundForm.amount), reason: refundForm.reason });
+      if (!refundForm.paymentId || !refundForm.reasonCode) return;
+      const res = await requestRefund({ paymentId: refundForm.paymentId, reasonCode: String(refundForm.reasonCode), reasonText: refundForm.reasonText || undefined });
       if (res?.success) {
         toast({ title: "Refund requested" });
         const rf = await getStudentRefunds();
         setRefunds(rf || []);
         setRefundModalOpen(false);
-        setRefundForm({ amount: 0, reason: "" });
+        setRefundForm({});
       } else {
         toast({ title: res?.message || "Refund request failed", variant: "destructive" });
       }
@@ -739,27 +739,65 @@ export default function StudentSessions() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm text-gray-600">Amount</label>
-                <input
-                  type="number"
-                  value={refundForm.amount}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, amount: Number(e.target.value || 0) }))}
+                <label className="block text-sm text-gray-600">Reason</label>
+                <select
+                  value={refundForm.reasonCode || ""}
+                  onChange={async (e) => {
+                    const code = e.target.value;
+                    const next = { ...refundForm, reasonCode: code };
+                    setRefundForm(next);
+                    if (refundForm.paymentId && code) {
+                      try {
+                        const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: code, reasonText: next.reasonText || undefined });
+                        setRefundForm((f) => ({ ...f, preview: pv }));
+                      } catch {}
+                    }
+                  }}
                   className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  min={0}
-                />
+                >
+                  <option value="" disabled>Select reason</option>
+                  <option value="CLASS_NOT_CONDUCTED">Class not conducted</option>
+                  <option value="TUTOR_ABSENT_OR_LATE">Tutor absent or late</option>
+                  <option value="WRONG_PURCHASE">Wrong purchase</option>
+                  <option value="QUALITY_ISSUE">Quality issue</option>
+                  <option value="TECHNICAL_ISSUE">Technical issue</option>
+                  <option value="SCHEDULE_CONFLICT">Schedule conflict</option>
+                  <option value="CONTENT_NOT_AS_DESCRIBED">Content not as described</option>
+                  <option value="OTHER">Other</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-600">Reason (optional)</label>
-                <textarea
-                  value={refundForm.reason}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, reason: e.target.value }))}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  rows={3}
-                />
+                {refundForm.reasonCode === "OTHER" && (
+                  <textarea
+                    value={refundForm.reasonText || ""}
+                    onChange={async (e) => {
+                      const txt = e.target.value;
+                      setRefundForm((f) => ({ ...f, reasonText: txt }));
+                      if (refundForm.paymentId && refundForm.reasonCode) {
+                        try {
+                          const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: txt });
+                          setRefundForm((f) => ({ ...f, preview: pv }));
+                        } catch {}
+                      }
+                    }}
+                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                    rows={3}
+                  />
+                )}
               </div>
+              {refundForm.preview && (
+                <div className="text-sm text-gray-700 space-y-1">
+                  <div>Completion: {Math.round((refundForm.preview.completionPercentage || 0) * 100)}%</div>
+                  <div>Refundable: {Math.round((refundForm.preview.refundablePercentage || 0) * 100)}%</div>
+                  <div>Max Amount: ₹{refundForm.preview.maximumRefundableAmount || 0}</div>
+                  <div>{refundForm.preview.explanation || ""}</div>
+                  <div>Window: {refundForm.preview.refundWindowValid ? "Valid" : "Expired"}</div>
+                  <div>Method: {refundForm.preview.suggestedRefundMethod}</div>
+                </div>
+              )}
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setRefundModalOpen(false)}>Cancel</Button>
-                <Button onClick={submitRefund} className="bg-primary text-white">Submit</Button>
+                <Button onClick={submitRefund} className="bg-primary text-white" disabled={!refundForm.paymentId || !refundForm.reasonCode || (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())}>Submit</Button>
               </div>
             </div>
           </Dialog.Panel>

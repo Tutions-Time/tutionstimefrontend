@@ -136,10 +136,19 @@ export const getRegularPaymentByClass = async (regularClassId: string) => {
   }
 };
 
-export const requestRefund = async (payload: { paymentId: string; amount: number; reason?: string }) => {
+export const requestRefund = async (payload: { paymentId: string; reasonCode: string; reasonText?: string }) => {
   try {
     const res = await api.post('/payments/refunds/request', payload);
     return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const previewRefund = async (payload: { paymentId: string; reasonCode?: string; reasonText?: string }) => {
+  try {
+    const res = await api.post('/payments/refunds/preview', payload);
+    return res.data?.data;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
