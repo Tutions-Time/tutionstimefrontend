@@ -99,6 +99,10 @@ export default function TutorProfilePage() {
         else fd.append(k, v ?? "");
       });
 
+      if (photoFile) fd.append("photo", photoFile);
+      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      if (resumeFile) fd.append("resume", resumeFile);
+
       const res = await updateTutorProfile(fd);
 
       if (res.success && res.data) {
@@ -170,7 +174,7 @@ export default function TutorProfilePage() {
       {/* Main */}
       <main className="flex-grow">
         <form className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-          
+
           <TutorPersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
