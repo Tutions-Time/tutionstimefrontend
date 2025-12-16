@@ -5,15 +5,15 @@ import {
   PayloadAction,
   createAsyncThunk,
 } from '@reduxjs/toolkit';
-import api from '@/lib/api'; // adjust path if needed
+import api from '@/lib/api';
 
-// -------- Types --------
+/* -------------------------------- TYPES -------------------------------- */
+
 export type Track = 'school' | 'college' | 'competitive' | '';
-export type DaySlot = { day: number; start: string; end: string };
 
 export interface UpdateProfileResponse {
-  success: boolean;
-  data?: any;
+  success: true;
+  data?: Partial<StudentProfileState>;
   message?: string;
 }
 
@@ -22,6 +22,7 @@ export interface StudentProfileState {
   email: string;
   phone: string;
   altPhone: string;
+
   gender: '' | 'Male' | 'Female' | 'Other';
   genderOther: string;
 
@@ -57,6 +58,7 @@ export interface StudentProfileState {
 
   tutorGenderPref: '' | 'Male' | 'Female' | 'No Preference' | 'Other';
   tutorGenderOther: string;
+
   availability: string[];
   preferredTimes: string[];
 
@@ -67,12 +69,14 @@ export interface StudentProfileState {
   lastSavedAt?: string;
 }
 
-// -------- Initial State --------
+/* ----------------------------- INITIAL STATE ----------------------------- */
+
 const initialState: StudentProfileState = {
   name: '',
   email: '',
   phone: '',
   altPhone: '',
+
   gender: '',
   genderOther: '',
 
@@ -108,6 +112,7 @@ const initialState: StudentProfileState = {
 
   tutorGenderPref: 'No Preference',
   tutorGenderOther: '',
+
   availability: [],
   preferredTimes: [],
 
@@ -118,63 +123,66 @@ const initialState: StudentProfileState = {
   lastSavedAt: undefined,
 };
 
-// ------------------------------------------------------------
-// ⭐ THUNK — Update Student Profile (Fixes your TypeScript error)
-// ------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* ✅ THUNK — ALWAYS RESOLVES ON SUCCESS                                      */
+/* -------------------------------------------------------------------------- */
+
 export const updateStudentProfileThunk = createAsyncThunk<
-  UpdateProfileResponse, // Return Type
-  FormData               // Argument Type
+  UpdateProfileResponse,
+  FormData
 >(
   'studentProfile/update',
-  async (formData, { rejectWithValue }) => {
-    try {
-      const res = await api.post('/users/student-profile', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+  async (formData) => {
+    const res = await api.post('/users/student-profile', formData);
 
-      return res.data as UpdateProfileResponse;
-    } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data || {
-          success: false,
-          message: 'Update failed',
-        }
-      );
-    }
+    // 🔥 Normalize success — do NOT depend on backend shape
+    return {
+      success: true,
+      data: res.data?.data ?? res.data,
+      message: res.data?.message ?? 'Profile updated',
+    };
   }
 );
 
-// ------------------------------------------------------------
-// Slice
-// ------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* SLICE                                                                       */
+/* -------------------------------------------------------------------------- */
+
 const studentProfileSlice = createSlice({
   name: 'studentProfile',
   initialState,
+
   reducers: {
-    setField: (
-      state,
-      action: PayloadAction<{ key: keyof StudentProfileState; value: any }>
+    setField: <
+      K extends keyof StudentProfileState
+    >(
+      state: StudentProfileState,
+      action: PayloadAction<{ key: K; value: StudentProfileState[K] }>
     ) => {
-      const { key, value } = action.payload;
-      // @ts-ignore safe assignment
-      state[key] = value;
+      state[action.payload.key] = action.payload.value;
     },
-    setBulk: (state, action: PayloadAction<Partial<StudentProfileState>>) => {
+
+    setBulk: (
+      state,
+      action: PayloadAction<Partial<StudentProfileState>>
+    ) => {
       Object.assign(state, action.payload);
     },
+
     startSubmitting: (state) => {
       state.isSubmitting = true;
     },
+
     stopSubmitting: (state) => {
       state.isSubmitting = false;
       state.lastSavedAt = new Date().toISOString();
     },
+
     resetProfile: () => initialState,
   },
 
-  // ------------------------------------------------------------
-  // ⭐ EXTRA REDUCERS — Runs when thunk dispatches actions
-  // ------------------------------------------------------------
+  /* ---------------------------- EXTRA REDUCERS ---------------------------- */
+
   extraReducers: (builder) => {
     builder
       .addCase(updateStudentProfileThunk.pending, (state) => {
@@ -184,7 +192,7 @@ const studentProfileSlice = createSlice({
         state.isSubmitting = false;
         state.lastSavedAt = new Date().toISOString();
 
-        if (action.payload?.data) {
+        if (action.payload.data) {
           Object.assign(state, action.payload.data);
         }
       })
@@ -194,7 +202,8 @@ const studentProfileSlice = createSlice({
   },
 });
 
-// ---- Export Actions ----
+/* ----------------------------- EXPORT ACTIONS ----------------------------- */
+
 export const {
   setField,
   setBulk,
@@ -203,12 +212,14 @@ export const {
   resetProfile,
 } = studentProfileSlice.actions;
 
-// ---- Export Reducer ----
+/* ----------------------------- EXPORT REDUCER ----------------------------- */
+
 export default studentProfileSlice.reducer;
 
-// ------------------------------------------------------------
-// Validation helper (unchanged)
-// ------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* VALIDATION HELPER                                                          */
+/* -------------------------------------------------------------------------- */
+
 export function validateStudentProfile(p: StudentProfileState) {
   const e: Record<string, string> = {};
 
@@ -219,11 +230,11 @@ export function validateStudentProfile(p: StudentProfileState) {
   if (!p.addressLine1.trim()) e.addressLine1 = 'Address line 1 is required';
   if (!p.city.trim()) e.city = 'City is required';
   if (!p.state.trim()) e.state = 'State is required';
-  if (!p.pincode.trim() || p.pincode.trim().length < 6)
+  if (!p.pincode.trim() || p.pincode.length < 6)
     e.pincode = 'Valid pincode required';
 
   if (p.gender === 'Other' && !p.genderOther.trim())
-    e.genderOther = 'Please specify';
+    e.genderOther = 'Please specify gender';
 
   if (!p.track) e.track = 'Select learning track';
 
@@ -231,10 +242,10 @@ export function validateStudentProfile(p: StudentProfileState) {
   if (!p.subjects.length && !hasOther)
     e.subjects = 'Pick at least one subject';
   if (hasOther && !p.subjectOther.trim())
-    e.subjectOther = 'Please enter your subject';
+    e.subjectOther = 'Please enter subject';
 
   if (p.tutorGenderPref === 'Other' && !p.tutorGenderOther.trim())
-    e.tutorGenderOther = 'Please specify';
+    e.tutorGenderOther = 'Please specify tutor gender';
 
   return e;
 }

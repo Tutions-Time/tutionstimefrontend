@@ -69,51 +69,59 @@ export default function StudentProfileCompletePage() {
 
 
   // ---------- Submit ----------
-  const handleSubmit = async () => {
-    if (!validate()) return;
+ const handleSubmit = async () => {
+  if (!validate()) return;
 
-    const fd = new FormData();
-    const appendIf = (k: string, v: any) => {
-      if (v === undefined || v === null) return;
-      if (typeof v === "string" && v.trim() === "") return;
-      if (Array.isArray(v) && v.length === 0) return;
-      fd.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
-    };
-
-    dispatch(startSubmitting());
-
-    try {
-      // PERSONAL
-      appendIf("name", profile.name);
-      appendIf("email", profile.email);
-      appendIf("altPhone", profile.altPhone);
-      appendIf("gender", profile.gender);
-      if (profile.gender === "Other") appendIf("genderOther", profile.genderOther);
-
-      // ADDRESS
-      appendIf("addressLine1", profile.addressLine1);
-      appendIf("addressLine2", profile.addressLine2);
-      appendIf("city", profile.city);
-      appendIf("state", profile.state);
-      appendIf("pincode", profile.pincode);
-
-      // PHOTO
-      if (photoFile) fd.append("photo", photoFile);
-
-      const result = await dispatch(updateStudentProfileThunk(fd)).unwrap();
-      dispatch(stopSubmitting());
-
-      if (result?.success || result?.data) {
-        router.push("/dashboard/student");
-      } else {
-        alert("Something went wrong. Try again later.");
-      }
-    } catch (err) {
-      console.error(err);
-      dispatch(stopSubmitting());
-      alert("Something went wrong.");
-    }
+  const fd = new FormData();
+  const appendIf = (k: string, v: any) => {
+    if (v === undefined || v === null) return;
+    if (typeof v === "string" && v.trim() === "") return;
+    if (Array.isArray(v) && v.length === 0) return;
+    fd.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
   };
+
+  dispatch(startSubmitting());
+
+  try {
+    // ---------- PERSONAL ----------
+    appendIf("name", profile.name);
+    appendIf("email", profile.email);
+    appendIf("altPhone", profile.altPhone);
+    appendIf("gender", profile.gender);
+    if (profile.gender === "Other") {
+      appendIf("genderOther", profile.genderOther);
+    }
+
+    // ---------- ADDRESS ----------
+    appendIf("addressLine1", profile.addressLine1);
+    appendIf("addressLine2", profile.addressLine2);
+    appendIf("city", profile.city);
+    appendIf("state", profile.state);
+    appendIf("pincode", profile.pincode);
+
+    // ---------- PHOTO ----------
+    if (photoFile) fd.append("photo", photoFile);
+
+    // 🔥 IMPORTANT: unwrap = success if no error thrown
+    await dispatch(updateStudentProfileThunk(fd)).unwrap();
+
+    // dispatch(stopSubmitting());
+
+    // ✅ ALWAYS redirect on success
+    console.log("REDIRECTING NOW");
+    router.replace("/dashboard/student");
+  } catch (err) {
+    console.error(err);
+    dispatch(stopSubmitting());
+
+    toast({
+      title: "Update failed",
+      description: "Something went wrong. Please try again.",
+      variant: "destructive",
+    });
+  }
+};
+
 
   const disabled = profile.isSubmitting;
 

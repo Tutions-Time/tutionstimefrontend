@@ -14,6 +14,9 @@ import TutorAboutSection from "@/components/TutorCompleteProfile/TutorAboutSecti
 import TutorDemoVideoSection from "@/components/TutorCompleteProfile/TutorDemoVideoSection";
 import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSection";
 import { toast } from "@/hooks/use-toast";
+import TutorAgeConfirmationSection from
+  "@/components/TutorCompleteProfile/TutorAgeConfirmationSection";
+
 
 import {
   startSubmitting,
@@ -75,6 +78,8 @@ export default function TutorProfileCompletePage() {
   if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
   if (!profile.bio?.trim()) e.bio = "Bio is required";
   if (!demoVideoFile) e.demoVideo = "Upload a demo video";
+  if (!profile.isAgeConfirmed)
+  e.isAgeConfirmed = "You must confirm that you are 18+";
 
   setErrors(e);
 
@@ -254,6 +259,10 @@ export default function TutorProfileCompletePage() {
           setResumeFile={setResumeFile}
         />
 
+        <TutorAgeConfirmationSection
+  error={errors?.isAgeConfirmed}
+/>
+
           <div className="space-y-4 border p-4 rounded-xl">
             <div className="font-semibold">Payout Details</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -302,7 +311,7 @@ export default function TutorProfileCompletePage() {
             </SecondaryButton>
             <PrimaryButton
               onClick={handleSubmit}
-              disabled={profile.isSubmitting}
+              disabled={profile.isSubmitting || !profile.isAgeConfirmed}
             >
               {profile.isSubmitting ? "Saving…" : "Save & Continue"}
             </PrimaryButton>

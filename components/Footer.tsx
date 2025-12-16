@@ -15,21 +15,27 @@ export default function Footer() {
         animate={isInView ? 'visible' : 'hidden'}
       >
         <div className="grid md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
                 T
               </div>
-              <span className="font-bold text-xl text-text">Tuitions time</span>
+              <span className="font-bold text-xl text-text">
+                Tuitions time
+              </span>
             </div>
-            <p className="text-sm text-muted">Your Learning Journey Begins Here — With TuitionsTime</p>
+            <p className="text-sm text-muted">
+              Your Learning Journey Begins Here — With TuitionsTime
+            </p>
           </div>
 
+          {/* Students */}
           <div>
             <h4 className="font-semibold text-text mb-4">For Students</h4>
             <ul className="space-y-2 text-sm text-muted">
               <li>
-                <Link href="/search" className="hover:text-text">
+                <Link href="signup?role=student" className="hover:text-text">
                   Find Tutors
                 </Link>
               </li>
@@ -41,6 +47,7 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Tutors */}
           <div>
             <h4 className="font-semibold text-text mb-4">For Tutors</h4>
             <ul className="space-y-2 text-sm text-muted">
@@ -57,23 +64,35 @@ export default function Footer() {
             </ul>
           </div>
 
+          {/* Support & Policies */}
           <div>
             <h4 className="font-semibold text-text mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-muted">
               <li>
-                <a href="#" className="hover:text-text">
-                  Help Center
-                </a>
+                <Link href="/contact" className="hover:text-text">
+                  Contact Us
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-text">
-                  Contact Us
-                </a>
+                <Link href="/terms-and-conditions" className="hover:text-text">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="hover:text-text">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund-policy" className="hover:text-text">
+                  Refund Policy
+                </Link>
               </li>
             </ul>
           </div>
         </div>
 
+        {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
           <p>&copy; 2024 Tuitions time. All rights reserved.</p>
         </div>
