@@ -42,6 +42,14 @@ const SUBJECTS: Record<string, string[]> = {
 
 const CLASS_LEVELS: Record<string, string[]> = {
   School: [
+    "Class Nursery",
+    "Class LKG",
+    "Class UKG",
+    "Class 1",
+    "Class 2",
+    "Class 3",
+    "Class 4",
+    "Class 5",
     "Class 6",
     "Class 7",
     "Class 8",
@@ -77,13 +85,20 @@ export default function TutorSubjectsSection({
   const selectedTypes = profile.studentTypes || [];
 
   /* ---------------------- Derived Options ---------------------- */
-  const subjectOptions = useMemo(() => {
-    if (!selectedTypes.length) return [];
-    const merged = Array.from(
-      new Set(selectedTypes.flatMap((t) => SUBJECTS[t] || []))
-    );
-    return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
-  }, [selectedTypes]);
+ const subjectOptions = useMemo(() => {
+  if (!selectedTypes.length) return [];
+
+  const predefined = selectedTypes.flatMap((t) => SUBJECTS[t] || []);
+  const selected = profile.subjects || [];
+
+  const merged = Array.from(
+    new Set([...predefined, ...selected])
+  );
+
+  return merged.sort((a, b) =>
+    a === "Other" ? 1 : b === "Other" ? -1 : 0
+  );
+}, [selectedTypes, profile.subjects]);
 
   const classOptions = useMemo(() => {
     if (!selectedTypes.length) return [];
@@ -92,13 +107,21 @@ export default function TutorSubjectsSection({
     );
   }, [selectedTypes]);
 
-  const boardOptions = useMemo(() => {
-    if (!selectedTypes.length) return [];
-    const merged = Array.from(
-      new Set(selectedTypes.flatMap((t) => BOARDS[t] || []))
-    );
-    return merged.sort((a, b) => (a === "Other" ? 1 : b === "Other" ? -1 : 0));
-  }, [selectedTypes]);
+ const boardOptions = useMemo(() => {
+  if (!selectedTypes.length) return [];
+
+  const predefined = selectedTypes.flatMap((t) => BOARDS[t] || []);
+  const selected = profile.boards || [];
+
+  const merged = Array.from(
+    new Set([...predefined, ...selected])
+  );
+
+  return merged.sort((a, b) =>
+    a === "Other" ? 1 : b === "Other" ? -1 : 0
+  );
+}, [selectedTypes, profile.boards]);
+
 
 type ArrayKeys =
   | "subjects"

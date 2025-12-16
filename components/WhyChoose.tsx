@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { fadeInUp, useScrollAnimation } from './animations';
 import PrimaryButton from '@/components/PrimaryButton';
 import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function WhyChoose() {
   const { ref, isInView } = useScrollAnimation();
@@ -16,6 +17,7 @@ export default function WhyChoose() {
       buttonText: 'POST YOUR LEARNING NEEDS – FREE',
       image: '/images/tutor.jpg',
       reverse: false,
+       link: '/signup?role=student',
     },
     {
       title: 'Are You a Tutor?',
@@ -25,6 +27,7 @@ export default function WhyChoose() {
       buttonText: 'Register as Tutor',
       image: '/images/students.jpg',
       reverse: true,
+      link: '/signup?role=tutor',
     },
   ];
 
@@ -77,7 +80,7 @@ export default function WhyChoose() {
                   <p className="text-base md:text-lg font-semibold text-[#FFC107]">
                     {section.subtitle}
                   </p>
-                   <p className="text-base md:text-lg font-semibold text-[#FFC107] mb-6 md:mb-7">
+                  <p className="text-base md:text-lg font-semibold text-[#FFC107] mb-6 md:mb-7">
                     {section.subtitle2}
                   </p>
 
@@ -110,15 +113,17 @@ export default function WhyChoose() {
                   </div>
 
                   {/* Button */}
-                  <div
-                    className={`flex ${
-                      section.reverse ? 'md:justify-end' : 'md:justify-start'
-                    } justify-center`}
-                  >
-                    <PrimaryButton className="bg-[#FFD54F] text-gray-900 font-semibold px-6 md:px-8 py-3 rounded-xl hover:bg-[#ffcb3d] transition-all shadow-md hover:shadow-lg">
-                      {section.buttonText}
-                    </PrimaryButton>
-                  </div>
+                <div
+  className={`flex ${
+    section.reverse ? 'md:justify-end' : 'md:justify-start'
+  } justify-center`}
+>
+  <Link href={section.link}>
+    <PrimaryButton className="bg-[#FFD54F] text-gray-900 font-semibold px-6 md:px-8 py-3 rounded-xl hover:bg-[#ffcb3d] transition-all shadow-md hover:shadow-lg">
+      {section.buttonText}
+    </PrimaryButton>
+  </Link>
+</div>
                 </div>
               </motion.div>
             );

@@ -9,6 +9,8 @@ import { setBulk } from "@/store/slices/tutorProfileSlice";
 import { getUserProfile, updateTutorProfile } from "@/services/profileService";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { validateTutorProfile } from "@/utils/validators";
+import { useRouter } from "next/navigation";
+
 
 // Tutor Sections
 import TutorPersonalInfoSection from "@/components/TutorCompleteProfile/TutorPersonalInfoSection";
@@ -22,6 +24,7 @@ import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSec
 export default function TutorProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+  const router = useRouter();
 
   const [referralCode, setReferralCode] = useState<string>("");
 
@@ -96,11 +99,16 @@ export default function TutorProfilePage() {
         else fd.append(k, v ?? "");
       });
 
+      if (photoFile) fd.append("photo", photoFile);
+      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      if (resumeFile) fd.append("resume", resumeFile);
+
       const res = await updateTutorProfile(fd);
 
       if (res.success && res.data) {
         toast.success("Tutor profile updated!");
         setEditMode(false);
+        router.push("/dashboard/tutor");
       } else {
         toast.error(res.message || "Update failed");
       }
@@ -166,7 +174,7 @@ export default function TutorProfilePage() {
       {/* Main */}
       <main className="flex-grow">
         <form className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-          
+
           <TutorPersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}

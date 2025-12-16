@@ -159,16 +159,30 @@ export default function PreferredSubjectsSection({
             })}
 
             {/* Dynamically Added Custom Subjects */}
-            {profile.subjects
-              .filter((s) => !subjectOptions.includes(s) && s !== "Other")
-              .map((custom) => (
-                <span
-                  key={custom}
-                  className="flex items-center justify-center text-sm rounded-xl border px-3 py-2 bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium select-none"
-                >
-                  {custom}
-                </span>
-              ))}
+           {profile.subjects
+  .filter((s) => !subjectOptions.includes(s) && s !== "Other")
+  .map((custom) => {
+    const active = profile.subjects.includes(custom);
+
+    return (
+      <button
+        key={custom}
+        type="button"
+        onClick={() => toggleSubject(custom)}
+        className={cn(
+          "flex items-center justify-center text-sm rounded-xl border px-3 py-2 cursor-pointer select-none transition-all",
+          active
+            ? "bg-primary/10 border-primary/40 ring-2 ring-primary/30 text-primary font-medium"
+            : "hover:bg-gray-50 border-gray-200 text-gray-700",
+          disabled && "cursor-not-allowed opacity-70"
+        )}
+        disabled={disabled}
+      >
+        {custom}
+      </button>
+    );
+  })}
+
           </div>
 
           {/* "Other" Input Field */}

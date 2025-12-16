@@ -88,7 +88,7 @@ tutors from Nursery to Graduation level.
             variants={fadeInUp}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <Link href="/signup">
+            <Link href="/signup?role=student">
               <motion.div whileHover={floatHover} whileTap={{ scale: 0.96 }}>
                 <Button
                   size="lg"

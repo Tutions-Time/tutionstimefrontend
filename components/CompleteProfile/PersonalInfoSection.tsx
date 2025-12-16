@@ -160,6 +160,31 @@ export default function PersonalInfoSection({
 
           {/* City / State / Pincode */}
           <div className="grid md:grid-cols-3 gap-4">
+
+              {/* State */}
+            <div>
+              <Label>State</Label>
+              <select
+                disabled={disabled}
+                value={profile.state}
+                onChange={(e) => {
+                  dispatch(setField({ key: "state", value: e.target.value }));
+                  dispatch(setField({ key: "city", value: "" })); // reset city
+                  onValidate?.();
+                }}
+                className="border rounded px-3 py-2 w-full"
+              >
+                <option value="">Select State</option>
+                {STATESDISTRICTS.states.map((s) => (
+                  <option key={s.state} value={s.state}>
+                    {s.state}
+                  </option>
+                ))}
+              </select>
+
+              {errors.state && <p className="text-red-600 text-xs">{errors.state}</p>}
+            </div>
+
             {/* City (district dropdown) */}
             <div>
               <Label>City</Label>
@@ -184,30 +209,7 @@ export default function PersonalInfoSection({
               {errors.city && <p className="text-red-600 text-xs">{errors.city}</p>}
             </div>
 
-            {/* State */}
-            <div>
-              <Label>State</Label>
-              <select
-                disabled={disabled}
-                value={profile.state}
-                onChange={(e) => {
-                  dispatch(setField({ key: "state", value: e.target.value }));
-                  dispatch(setField({ key: "city", value: "" })); // reset city
-                  onValidate?.();
-                }}
-                className="border rounded px-3 py-2 w-full"
-              >
-                <option value="">Select State</option>
-                {STATESDISTRICTS.states.map((s) => (
-                  <option key={s.state} value={s.state}>
-                    {s.state}
-                  </option>
-                ))}
-              </select>
-
-              {errors.state && <p className="text-red-600 text-xs">{errors.state}</p>}
-            </div>
-
+          
             {/* Pincode */}
             <div>
               <Label>Pincode</Label> 
