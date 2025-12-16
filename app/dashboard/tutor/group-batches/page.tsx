@@ -204,6 +204,11 @@ export default function TutorGroupBatchesPage() {
                         })}
                     </select>
                     <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
+                    {(!options.availabilityDates || options.availabilityDates.length === 0) && (
+                      <p className="text-xs text-red-500 mt-1">
+                        No available dates found. Please update your <a href="/dashboard/tutor/profile" className="underline">availability in your profile</a>.
+                      </p>
+                    )}
                   </div>
                   
                   <div className="space-y-1">
