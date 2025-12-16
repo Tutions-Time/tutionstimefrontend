@@ -9,6 +9,15 @@ export const listBatches = async (params?: { subject?: string; level?: string; d
   }
 };
 
+export const getMyBatches = async () => {
+  try {
+    const res = await api.get(`/group-batches/my`);
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const getBatch = async (id: string) => {
   try {
     const res = await api.get(`/group-batches/${id}`);

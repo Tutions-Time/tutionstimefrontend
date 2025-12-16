@@ -87,31 +87,19 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
         <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
 
           <div className="space-y-2">
-            <label className="text-sm">Class start time</label>
-            <input
-              type="time"
-              value={form.classStartTime}
-              onChange={(e) => setForm({ ...form, classStartTime: e.target.value })}
-              className="border rounded p-2 w-full"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-sm">Select dates from availability</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto border p-2 rounded">
-              {(options.availabilityDates || []).map((d: string) => {
-                const checked = form.fixedDates.some(
-                  (x: string | Date) =>
-                    new Date(x).toDateString() === new Date(d).toDateString()
-                );
-
-                return (
-                  <label key={d} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={checked} onChange={() => toggleDate(d)} />
-                    <span>{new Date(d).toLocaleDateString()}</span>
-                  </label>
-                );
-              })}
+            <label className="text-sm font-medium">Schedule Info</label>
+            <div className="text-sm bg-gray-50 p-2 rounded border">
+              {batch?.recurring?.days?.length ? (
+                <>
+                  <div>Days: {batch.recurring.days.join(", ")}</div>
+                  <div>Time: {batch.recurring.time}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Schedule is based on your availability at creation time.
+                  </div>
+                </>
+              ) : (
+                <div className="text-gray-500">No recurring schedule found.</div>
+              )}
             </div>
           </div>
 

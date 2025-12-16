@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getCreateOptions } from "@/services/groupBatchService";
+import { getCreateOptions, getMyBatches } from "@/services/groupBatchService";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, IndianRupee, Link as LinkIcon } from "lucide-react";
@@ -61,8 +61,8 @@ export default function TutorGroupBatches() {
   // ----------------------------
   const load = async () => {
     try {
-      const res = await api.get("/group-batches/list");
-      setList(res.data?.data || []);
+      const data = await getMyBatches();
+      setList(data || []);
     } catch {}
   };
 
@@ -464,17 +464,6 @@ export default function TutorGroupBatches() {
         options={editOptions}
         onSubmit={async (payload) => {
           if (!selectedId) return;
-          const classStart = String((payload as any).classStartTime || "");
-          const m = classStart.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
-          if (m) {
-            const hh = Number(m[1]);
-            const mm = Number(m[2]);
-            payload.fixedDates = (payload.fixedDates || []).map((d: any) => {
-              const nd = new Date(d);
-              nd.setHours(hh, mm, 0, 0);
-              return nd.toISOString();
-            });
-          }
           try {
             await api.patch(`/group-batches/${selectedId}/edit`, payload);
             toast.success("Batch updated");
