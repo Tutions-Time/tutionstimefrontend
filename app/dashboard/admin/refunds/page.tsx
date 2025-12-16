@@ -54,27 +54,24 @@ export default function AdminRefundsPage() {
         <div className="lg:pl-64">
           <Topbar title="Refund Requests" subtitle="Review and process" />
 
-          <main className="p-4 lg:p-6 space-y-6">
-            <Card className="p-6 rounded-2xl bg-white shadow-sm">
+          <main className="p-3 sm:p-4 lg:p-6 space-y-6">
+            <Card className="p-4 sm:p-6 rounded-2xl bg-white shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-lg font-semibold">Requests</div>
-                <Link href="/dashboard/admin/transactions">
-                  <Button variant="outline">Transactions</Button>
-                </Link>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-xs sm:text-sm">
                   <thead>
                     <tr className="text-left text-muted">
                       <th className="p-2">Amount</th>
                       <th className="p-2">Status</th>
-                      <th className="p-2">Reason</th>
-                      <th className="p-2">Type</th>
-                      <th className="p-2">Gateway</th>
+                      <th className="p-2 hidden md:table-cell">Reason</th>
+                      {/* <th className="p-2 hidden md:table-cell">Type</th> */}
+                      {/* <th className="p-2 hidden md:table-cell">Gateway</th> */}
                       <th className="p-2">Student</th>
-                      <th className="p-2">Tutor</th>
-                      <th className="p-2">Course</th>
-                      <th className="p-2">Created</th>
+                      <th className="p-2 hidden md:table-cell">Tutor</th>
+                      <th className="p-2 hidden md:table-cell">Course</th>
+                      <th className="p-2 hidden md:table-cell">Created</th>
                       <th className="p-2">Actions</th>
                     </tr>
                   </thead>
@@ -86,13 +83,13 @@ export default function AdminRefundsPage() {
                         <tr key={x._id} className="border-t">
                           <td className="p-2">₹{x.amount}</td>
                           <td className="p-2 capitalize">{x.status}</td>
-                          <td className="p-2">{x.reasonCode || x.reason || ''}</td>
-                          <td className="p-2">{x.paymentType || '—'}</td>
-                          <td className="p-2">{x.paymentGateway || '—'}</td>
+                          <td className="p-2 hidden md:table-cell">{x.reasonCode || x.reason || ''}</td>
+                          {/* <td className="p-2 hidden md:table-cell">{x.paymentType || '—'}</td> */}
+                          {/* <td className="p-2 hidden md:table-cell">{x.paymentGateway || '—'}</td> */}
                           <td className="p-2">{x?.studentName || x?.paymentId?.studentId?.name || x?.userId?.name || '—'}</td>
-                          <td className="p-2">{x?.tutorName || x?.paymentId?.tutorId?.name || '—'}</td>
-                          <td className="p-2">{x?.courseLabel || '—'}</td>
-                          <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
+                          <td className="p-2 hidden md:table-cell">{x?.tutorName || x?.paymentId?.tutorId?.name || '—'}</td>
+                          <td className="p-2 hidden md:table-cell">{x?.courseLabel || '—'}</td>
+                          <td className="p-2 hidden md:table-cell">{new Date(x.createdAt).toLocaleString()}</td>
                           <td className="p-2 space-x-2">
                             <Button
                               size="sm"
@@ -104,9 +101,9 @@ export default function AdminRefundsPage() {
                             >
                               View
                             </Button>
-                            <Button size="sm" disabled={updating === x._id} onClick={() => act(x._id, 'approved')}>Approve</Button>
+                            {/* <Button size="sm" disabled={updating === x._id} onClick={() => act(x._id, 'approved')}>Approve</Button>
                             <Button size="sm" variant="destructive" disabled={updating === x._id} onClick={() => act(x._id, 'rejected')}>Reject</Button>
-                            <Button size="sm" variant="outline" disabled={updating === x._id} onClick={() => act(x._id, 'processed')}>Process</Button>
+                            <Button size="sm" variant="outline" disabled={updating === x._id} onClick={() => act(x._id, 'processed')}>Process</Button> */}
                           </td>
                         </tr>
                       ))
@@ -120,13 +117,13 @@ export default function AdminRefundsPage() {
           </main>
         </div>
         <Dialog open={showDetails} onOpenChange={(v) => setShowDetails(v)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-[95vw] sm:w-auto sm:max-w-xl lg:max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>Refund Details</DialogTitle>
               <DialogDescription>Review all information and take action</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="text-muted">Refund ID</div>
                   <div className="font-medium break-all">{selected?._id}</div>
@@ -153,7 +150,7 @@ export default function AdminRefundsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="text-muted">Reason Code</div>
                   <div className="font-medium break-all">{selected?.reasonCode || '—'}</div>
@@ -176,7 +173,7 @@ export default function AdminRefundsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="text-muted">Payment Type</div>
                   <div className="font-medium">{selected?.paymentType || '—'}</div>
@@ -209,7 +206,7 @@ export default function AdminRefundsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <div className="text-muted">Created At</div>
                   <div className="font-medium">
