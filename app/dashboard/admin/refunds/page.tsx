@@ -72,6 +72,8 @@ export default function AdminRefundsPage() {
                       <th className="p-2">Type</th>
                       <th className="p-2">Gateway</th>
                       <th className="p-2">Student</th>
+                      <th className="p-2">Tutor</th>
+                      <th className="p-2">Course</th>
                       <th className="p-2">Created</th>
                       <th className="p-2">Actions</th>
                     </tr>
@@ -87,7 +89,9 @@ export default function AdminRefundsPage() {
                           <td className="p-2">{x.reasonCode || x.reason || ''}</td>
                           <td className="p-2">{x.paymentType || '—'}</td>
                           <td className="p-2">{x.paymentGateway || '—'}</td>
-                          <td className="p-2">{x?.paymentId?.studentId?.name || x?.userId?.name || '—'}</td>
+                          <td className="p-2">{x?.studentName || x?.paymentId?.studentId?.name || x?.userId?.name || '—'}</td>
+                          <td className="p-2">{x?.tutorName || x?.paymentId?.tutorId?.name || '—'}</td>
+                          <td className="p-2">{x?.courseLabel || '—'}</td>
                           <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
                           <td className="p-2 space-x-2">
                             <Button
@@ -187,11 +191,21 @@ export default function AdminRefundsPage() {
                 </div>
                 <div>
                   <div className="text-muted">Student</div>
-                  <div className="font-medium">{selected?.paymentId?.studentId?.name || selected?.userId?.name || '—'}</div>
+                  <div className="font-medium">{selected?.studentName || selected?.paymentId?.studentId?.name || selected?.userId?.name || '—'}</div>
                 </div>
                 <div>
                   <div className="text-muted">Tutor</div>
-                  <div className="font-medium">{selected?.paymentId?.tutorId?.name || '—'}</div>
+                  <div className="font-medium">{selected?.tutorName || selected?.paymentId?.tutorId?.name || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-muted">Course</div>
+                  <div className="font-medium">
+                    {selected?.courseLabel ||
+                      selected?.paymentId?.regularClassId?.subject ||
+                      selected?.paymentId?.groupBatchId?.subject ||
+                      selected?.paymentId?.noteId?.title ||
+                      '—'}
+                  </div>
                 </div>
               </div>
 

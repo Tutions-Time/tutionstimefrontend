@@ -372,6 +372,8 @@ export default function NotesPage() {
                           <th className="p-2">Amount</th>
                           <th className="p-2">Status</th>
                           <th className="p-2">Reason</th>
+                          <th className="p-2">Course</th>
+                          <th className="p-2">Tutor</th>
                           <th className="p-2">Created</th>
                         </tr>
                       </thead>
@@ -381,6 +383,8 @@ export default function NotesPage() {
                             <td className="p-2">₹{x.amount}</td>
                             <td className="p-2 capitalize">{x.status}</td>
                             <td className="p-2">{x.reason || ""}</td>
+                            <td className="p-2">{x.courseLabel || "—"}</td>
+                            <td className="p-2">{x.tutorName || "—"}</td>
                             <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
                           </tr>
                         ))}
