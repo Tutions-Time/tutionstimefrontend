@@ -28,15 +28,13 @@ export default function TutorGroupBatchesPage() {
     subject: "",
     level: "",
     batchType: "revision",
-    fixedDates: [],
+    startDate: "",
     classStartTime: "18:00",
     seatCap: 10,
-    pricePerStudent: 500,
     description: "",
     published: true,
   });
   const [list, setList] = useState<any[]>([]);
-  const [dateInput, setDateInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<any>({
@@ -44,7 +42,8 @@ export default function TutorGroupBatchesPage() {
     levels: [],
     availabilityDates: [],
     batchTypes: ["revision", "exam"],
-    scheduleTypes: ["fixed"],
+    scheduleTypes: ["recurring"],
+    monthlyRate: 0,
   });
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -92,7 +91,8 @@ export default function TutorGroupBatchesPage() {
           levels: data?.levels || [],
           availabilityDates: data?.availabilityDates || [],
           batchTypes: data?.batchTypes || ["revision", "exam"],
-          scheduleTypes: data?.scheduleTypes || ["fixed"],
+          scheduleTypes: data?.scheduleTypes || ["recurring"],
+          monthlyRate: data?.monthlyRate || 0,
         });
       } catch (e: any) {
         toast.error(e.message || "Unable to load options");
@@ -103,24 +103,6 @@ export default function TutorGroupBatchesPage() {
     fetchOptions();
   }, [open]);
 
-  const addDate = () => {
-    if (!dateInput) return;
-    if (!(options.availabilityDates || []).includes(dateInput)) {
-      toast.error("Select date from availability list");
-      return;
-    }
-    setForm({ ...form, fixedDates: [...(form.fixedDates || []), dateInput] });
-    setDateInput("");
-  };
-
-  const toggleFixedDate = (d: string) => {
-    const cur = Array.isArray(form.fixedDates) ? form.fixedDates : [];
-    const next = cur.includes(d)
-      ? cur.filter((x: string) => x !== d)
-      : [...cur, d];
-    setForm({ ...form, fixedDates: next });
-  };
-
   const create = async () => {
     try {
       const res = await api.post("/group-batches/create", form);
@@ -130,10 +112,9 @@ export default function TutorGroupBatchesPage() {
           subject: "",
           level: "",
           batchType: "revision",
-          fixedDates: [],
+          startDate: "",
           classStartTime: "18:00",
           seatCap: 10,
-          pricePerStudent: 500,
           description: "",
           published: true,
         });
@@ -339,31 +320,41 @@ export default function TutorGroupBatchesPage() {
                     )}
                   </select>
 
-                  <div className="space-y-2">
-                    <div className="text-sm">
-                      Select from your availability (
-                      {(options.availabilityDates || []).length} options)
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto border p-2 rounded">
-                      {(options.availabilityDates || []).map((d: string) => (
-                        <label
-                          key={d}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={(form.fixedDates || []).includes(d)}
-                            onChange={() => toggleFixedDate(d)}
-                          />
-                          <span>{new Date(d).toLocaleString()}</span>
-                        </label>
-                      ))}
-                    </div>
-
-                    <div className="text-sm">
-                      Selected: {(form.fixedDates || []).length}
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Start Date</label>
+                    <select
+                      className="border p-2 rounded w-full"
+                      value={form.startDate}
+                      onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                    >
+                      <option value="">Select Start Date</option>
+                      {(options.availabilityDates || [])
+                        .map((d: string) => new Date(d))
+                        .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                        .map((d: Date) => {
+                          const val = d.toISOString().split("T")[0]; // YYYY-MM-DD
+                          return (
+                            <option key={val} value={val}>
+                              {d.toDateString()}
+                            </option>
+                          );
+                        })}
+                    </select>
+                    <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">
+                      Class Start Time
+                    </label>
+                    <input
+                      type="time"
+                      className="border p-2 rounded w-full"
+                      value={form.classStartTime}
+                      onChange={(e) =>
+                        setForm({ ...form, classStartTime: e.target.value })
+                      }
+                    />
                   </div>
 
                   <div className="space-y-1">
@@ -383,20 +374,15 @@ export default function TutorGroupBatchesPage() {
 
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">
-                      Price Per Student (₹)
+                      Price Per Month (₹)
                     </label>
                     <input
                       type="number"
-                      className="border p-2 rounded w-full"
-                      placeholder="Enter price "
-                      value={form.pricePerStudent}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          pricePerStudent: e.target.value,
-                        })
-                      }
+                      className="border p-2 rounded w-full bg-gray-100"
+                      value={options.monthlyRate}
+                      readOnly
                     />
+                    <p className="text-xs text-gray-500">Based on your profile monthly rate.</p>
                   </div>
 
                   <textarea

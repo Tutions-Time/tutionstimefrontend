@@ -23,10 +23,9 @@ export default function TutorGroupBatches() {
     subject: "",
     level: "",
     batchType: "revision",
-    fixedDates: [],
+    startDate: "",
     classStartTime: "18:00",
     seatCap: 10,
-    pricePerStudent: 500,
     description: "",
     published: true,
   });
@@ -38,7 +37,8 @@ export default function TutorGroupBatches() {
     levels: [],
     availabilityDates: [],
     batchTypes: ["revision", "exam"],
-    scheduleTypes: ["fixed"],
+    scheduleTypes: ["recurring"],
+    monthlyRate: 0,
   });
 
   const [loadingOptions, setLoadingOptions] = useState(false);
@@ -86,7 +86,8 @@ export default function TutorGroupBatches() {
           levels: data?.levels || [],
           availabilityDates: data?.availabilityDates || [],
           batchTypes: data?.batchTypes || ["revision", "exam"],
-          scheduleTypes: data?.scheduleTypes || ["fixed"],
+          scheduleTypes: data?.scheduleTypes || ["recurring"],
+          monthlyRate: data?.monthlyRate || 0,
         });
       } catch {
         toast.error("Unable to load options");
@@ -100,18 +101,13 @@ export default function TutorGroupBatches() {
   // ----------------------------
   // Helpers
   // ----------------------------
-  const toggleFixedDate = (d: string) => {
-    const cur = form.fixedDates || [];
-    const next = cur.includes(d) ? cur.filter((x: string) => x !== d) : [...cur, d];
-    setForm({ ...form, fixedDates: next });
-  };
 
   const create = async () => {
     try {
       const res = await api.post("/group-batches/create", form);
       if (res.data?.success) {
         toast.success("Batch created");
-        setForm({ subject: "", level: "", batchType: "revision", fixedDates: [], classStartTime: "18:00", seatCap: 10, pricePerStudent: 500, description: "", published: true });
+        setForm({ subject: "", level: "", batchType: "revision", startDate: "", classStartTime: "18:00", seatCap: 10, description: "", published: true });
         setOpen(false);
         load();
       } else {
@@ -307,24 +303,28 @@ export default function TutorGroupBatches() {
               ))}
             </select>
 
-            {/* Availability */}
+            {/* Start Date */}
             <div className="space-y-1">
-              <div className="text-sm text-gray-600">
-                Select from your availability:
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-auto border p-2 rounded">
-                {(options.availabilityDates || []).map((d: string) => (
-                  <label key={d} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={form.fixedDates.includes(d)}
-                      onChange={() => toggleFixedDate(d)}
-                    />
-                    {new Date(d).toLocaleString()}
-                  </label>
-                ))}
-              </div>
+              <label className="text-sm font-medium text-gray-700">Start Date</label>
+              <select
+                className="border p-2 rounded w-full"
+                value={form.startDate}
+                onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              >
+                <option value="">Select Start Date</option>
+                {(options.availabilityDates || [])
+                  .map((d: string) => new Date(d))
+                  .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                  .map((d: Date) => {
+                    const val = d.toISOString().split("T")[0]; // YYYY-MM-DD
+                    return (
+                      <option key={val} value={val}>
+                        {d.toDateString()}
+                      </option>
+                    );
+                  })}
+              </select>
+              <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
@@ -335,8 +335,14 @@ export default function TutorGroupBatches() {
               <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e)=> setForm({ ...form, seatCap: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Price Per Student (₹)</label>
-              <input type="number" className="border p-2 rounded w-full" placeholder="Enter price " value={form.pricePerStudent} onChange={(e)=> setForm({ ...form, pricePerStudent: e.target.value })} />
+              <label className="text-sm font-medium text-gray-700">Price Per Month (₹)</label>
+              <input 
+                type="number" 
+                className="border p-2 rounded w-full bg-gray-100" 
+                value={options.monthlyRate} 
+                readOnly 
+              />
+              <p className="text-xs text-gray-500">Based on your profile monthly rate.</p>
             </div>
             <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e)=> setForm({ ...form, description: e.target.value })} />
             <div className="flex items-center gap-2">
@@ -389,7 +395,7 @@ export default function TutorGroupBatches() {
       <div className="mt-2 space-y-1 text-xs">
         <div className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
-          {b.fixedDates?.length ?? 0} dates
+          {b.scheduleType === "recurring" ? "Recurring" : `${b.fixedDates?.length ?? 0} dates`}
         </div>
 
         <div className="flex items-center gap-1">
@@ -399,7 +405,7 @@ export default function TutorGroupBatches() {
 
         <div className="flex items-center gap-1">
           <IndianRupee className="w-3 h-3" />
-          {b.pricePerStudent}
+          {b.pricePerStudent}/mo
         </div>
       </div>
 

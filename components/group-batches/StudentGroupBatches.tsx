@@ -9,6 +9,20 @@ import {
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 
@@ -21,6 +35,11 @@ export default function StudentGroupBatches() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [couponMap, setCouponMap] = useState<Record<string, string>>({});
+
+  // Enrollment Modal State
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [enrollBatch, setEnrollBatch] = useState<any>(null);
+  const [duration, setDuration] = useState(1);
 
   // --------------------------
   // Razorpay Loader
@@ -104,7 +123,16 @@ export default function StudentGroupBatches() {
   // --------------------------
   // Reserve + Pay
   // --------------------------
-  const reserveAndPay = async (batchId: string) => {
+  const openEnrollModal = (batch: any) => {
+    setEnrollBatch(batch);
+    setDuration(1);
+    setEnrollModalOpen(true);
+  };
+
+  const proceedToPay = async () => {
+    if (!enrollBatch) return;
+    const batchId = enrollBatch._id;
+    
     try {
       const res = await reserveSeat(batchId);
       if (!res?.success) {
@@ -115,11 +143,13 @@ export default function StudentGroupBatches() {
       const order = await createGroupOrder({
         batchId,
         reservationId: res.reservationId,
+        durationInMonths: duration,
         // couponCode: couponMap[batchId]?.trim(),
       });
 
       if ((order as any)?.walletPaid) {
         toast.success("Enrollment confirmed via wallet");
+        setEnrollModalOpen(false);
         await fetchData();
         return;
       }
@@ -130,6 +160,7 @@ export default function StudentGroupBatches() {
       }
 
       await openRazorpay(order, batchId);
+      setEnrollModalOpen(false);
     } catch (e: any) {
       toast.error(e.message || "Join failed");
     }
@@ -217,7 +248,7 @@ export default function StudentGroupBatches() {
                 <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
               <div className="flex items-center gap-1">
-                <IndianRupee className="w-3 h-3" /> {b.pricePerStudent}
+                <IndianRupee className="w-3 h-3" /> {b.pricePerStudent}/mo
               </div>
               <div className="flex items-center gap-1">
                 <Video className="w-3 h-3" /> Online Class
@@ -231,7 +262,7 @@ export default function StudentGroupBatches() {
                 {/* Coupon UI disabled */}
                 <Button
                   disabled={loading || b.liveSeats <= 0}
-                  onClick={() => reserveAndPay(b._id)}
+                  onClick={() => openEnrollModal(b)}
                   className="flex-1 h-8 px-3 text-xs bg-primary text-black"
                 >
                   {loading ? "Processing..." : "Join Now"}
@@ -251,6 +282,49 @@ export default function StudentGroupBatches() {
         ))}
       </div>
 
+
+      {/* ---------------- / ENROLLMENT MODAL ---------------- */}
+      <Dialog open={enrollModalOpen} onOpenChange={setEnrollModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enroll in {enrollBatch?.subject}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex justify-between text-sm">
+              <span>Price per month:</span>
+              <span className="font-medium">₹{enrollBatch?.pricePerStudent}</span>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Duration (Months)</label>
+              <Select 
+                value={String(duration)} 
+                onValueChange={(v) => setDuration(Number(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                    <SelectItem key={m} value={String(m)}>{m} Month{m > 1 ? 's' : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+              <span className="font-medium">Total Amount:</span>
+              <span className="text-lg font-bold text-primary">
+                ₹{(enrollBatch?.pricePerStudent || 0) * duration}
+              </span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEnrollModalOpen(false)}>Cancel</Button>
+            <Button onClick={proceedToPay}>Pay & Enroll</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ---------------- / SESSIONS MODAL ---------------- */}
       <GroupSessionsModal
