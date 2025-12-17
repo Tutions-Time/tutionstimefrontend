@@ -19,6 +19,19 @@ export const fetchStudents = async (params?: Record<string, any>) => {
   }
 };
 
+export const fetchStudentById = async (studentUserId: string) => {
+  try {
+    const response = await api.get(`/users/student-profile/${studentUserId}`);
+    // The backend returns { success: true, data: { user: {...}, profile: {...} } }
+    // We'll return the profile merged with some user info if needed, or just the whole data object
+    // Let's return the profile and attach userId info to it for convenience
+    const { user, profile } = response.data.data;
+    return { ...profile, userId: user };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Update tutor profile
 export const updateTutorProfile = async (profileData: any) => {
   try {
