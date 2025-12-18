@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
@@ -12,7 +13,7 @@ import {
 import { getCreateOptions, getMyBatches } from "@/services/groupBatchService";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, IndianRupee, Link as LinkIcon } from "lucide-react";
+import { Calendar, Users, IndianRupee } from "lucide-react";
 
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailModal";
@@ -54,7 +55,13 @@ export default function TutorGroupBatches() {
   const [sessions, setSessions] = useState<any[]>([]);
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editOptions, setEditOptions] = useState<any>({ subjects: [], levels: [], availabilityDates: [], batchTypes: ["revision", "exam"], scheduleTypes: ["fixed"] });
+  const [editOptions, setEditOptions] = useState<any>({
+    subjects: [],
+    levels: [],
+    availabilityDates: [],
+    batchTypes: ["revision", "exam"],
+    scheduleTypes: ["fixed"],
+  });
 
   // ----------------------------
   // Fetch List
@@ -63,7 +70,9 @@ export default function TutorGroupBatches() {
     try {
       const data = await getMyBatches();
       setList(data || []);
-    } catch {}
+    } catch {
+      // handled silently
+    }
   };
 
   useEffect(() => {
@@ -96,7 +105,7 @@ export default function TutorGroupBatches() {
       }
     };
     fetchOptions();
-  }, [open]);
+  }, [open, options.subjects?.length]);
 
   // ----------------------------
   // Helpers
@@ -107,7 +116,16 @@ export default function TutorGroupBatches() {
       const res = await api.post("/group-batches/create", form);
       if (res.data?.success) {
         toast.success("Batch created");
-        setForm({ subject: "", level: "", batchType: "revision", startDate: "", classStartTime: "18:00", seatCap: 10, description: "", published: true });
+        setForm({
+          subject: "",
+          level: "",
+          batchType: "revision",
+          startDate: "",
+          classStartTime: "18:00",
+          seatCap: 10,
+          description: "",
+          published: true,
+        });
         setOpen(false);
         load();
       } else {
@@ -237,8 +255,8 @@ export default function TutorGroupBatches() {
         kind === "recording"
           ? "upload-recording"
           : kind === "notes"
-          ? "upload-notes"
-          : "upload-assignment";
+            ? "upload-notes"
+            : "upload-assignment";
 
       await api.post(`/sessions/${sessionId}/${endpoint}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -328,23 +346,23 @@ export default function TutorGroupBatches() {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
-              <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e)=> setForm({ ...form, classStartTime: e.target.value })} />
+              <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e) => setForm({ ...form, classStartTime: e.target.value })} />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Seat Capacity</label>
-              <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e)=> setForm({ ...form, seatCap: e.target.value })} />
+              <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e) => setForm({ ...form, seatCap: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Price Per Month (₹)</label>
-              <input 
-                type="number" 
-                className="border p-2 rounded w-full bg-gray-100" 
-                value={options.monthlyRate} 
-                readOnly 
+              <label className="text-sm font-medium text-gray-700">Price Per Month (ƒ,1)</label>
+              <input
+                type="number"
+                className="border p-2 rounded w-full bg-gray-100"
+                value={options.monthlyRate}
+                readOnly
               />
               <p className="text-xs text-gray-500">Based on your profile monthly rate.</p>
             </div>
-            <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e)=> setForm({ ...form, description: e.target.value })} />
+            <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -365,87 +383,98 @@ export default function TutorGroupBatches() {
         </DialogContent>
       </Dialog>
 
-    {/* ============================= */}
-{/*     BATCH LIST CARDS          */}
-{/* ============================= */}
-<h2 className="font-medium text-base">My Batches</h2>
+      {/* ============================= */}
+      {/*     BATCH LIST CARDS          */}
+      {/* ============================= */}
+      <h2 className="font-medium text-base">My Batches</h2>
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-  {list.map((b: any) => (
-    <Card
-      key={b._id}
-      className="p-3 bg-white shadow-sm hover:shadow-md transition w-full flex flex-col rounded-md"
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-semibold">{b.subject}</span>
-            {b.level && <Badge variant="secondary" className="text-[10px] px-2 py-0">{b.level}</Badge>}
-          </div>
-          <div className="text-xs text-gray-500">Batch • {b.batchType}</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg-grid-cols-3 gap-3">
+        {list.map((b: any) => (
+          <Card
+            key={b._id}
+            className="p-3 bg-white shadow-sm hover:shadow-md transition w-full flex flex-col rounded-md"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-semibold">{b.subject}</span>
+                  {b.level && <Badge variant="secondary" className="text-[10px] px-2 py-0">{b.level}</Badge>}
+                </div>
+                <div className="text-xs text-gray-500">Batch ƒ?› {b.batchType}</div>
+              </div>
 
-        <Badge className="bg-green-100 text-green-700 text-[10px] px-2 py-0">
-          {b.status}
-        </Badge>
+              <Badge className="bg-green-100 text-green-700 text-[10px] px-2 py-0">
+                {b.status}
+              </Badge>
+            </div>
+
+            {/* Info */}
+            <div className="mt-2 space-y-1 text-xs">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+
+                {b.scheduleType === "recurring" && b.batchStartDate ? (
+                  <span>
+                    Starts{" "}
+                    {new Date(b.batchStartDate).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                ) : (
+                  <span>{b.fixedDates?.length ?? 0} dates</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                Seats {b.liveSeats}/{b.seatCap}
+              </div>
+
+              <div className="flex items-center gap-1">
+                <IndianRupee className="w-3 h-3" />
+                {b.pricePerStudent}
+              </div>
+            </div>
+
+            {/* Small Buttons */}
+            <div className="mt-3 flex flex-wrap gap-1 w-full">
+              <Button
+                className="h-8 px-3 text-xs flex-1 sm:flex-none"
+                onClick={() => openDetail(b._id)}
+              >
+                Details
+              </Button>
+
+              <Button
+                variant="secondary"
+                className="h-8 px-3 text-xs flex-1 sm:flex-none"
+                onClick={() => openSessions(b._id)}
+              >
+                Sessions
+              </Button>
+
+              <Button
+                variant="secondary"
+                className="h-8 px-3 text-xs flex-1 sm:flex-none"
+                onClick={() => openEdit(b._id)}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="destructive"
+                className="h-8 px-3 text-xs flex-1 sm:flex-none"
+                onClick={() => cancel(b._id)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        ))}
       </div>
-
-      {/* Info */}
-      <div className="mt-2 space-y-1 text-xs">
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3 h-3" />
-          {b.scheduleType === "recurring" ? "Recurring" : `${b.fixedDates?.length ?? 0} dates`}
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Users className="w-3 h-3" />
-          Seats {b.liveSeats}/{b.seatCap}
-        </div>
-
-        <div className="flex items-center gap-1">
-          <IndianRupee className="w-3 h-3" />
-          {b.pricePerStudent}/mo
-        </div>
-      </div>
-
-      {/* Small Buttons */}
-      <div className="mt-3 flex flex-wrap gap-1 w-full">
-        <Button
-          className="h-8 px-3 text-xs flex-1 sm:flex-none"
-          onClick={() => openDetail(b._id)}
-        >
-          Details
-        </Button>
-
-        <Button
-          variant="secondary"
-          className="h-8 px-3 text-xs flex-1 sm:flex-none"
-          onClick={() => openSessions(b._id)}
-        >
-          Sessions
-        </Button>
-
-        <Button
-          variant="secondary"
-          className="h-8 px-3 text-xs flex-1 sm:flex-none"
-          onClick={() => openEdit(b._id)}
-        >
-          Edit
-        </Button>
-
-        <Button
-          variant="destructive"
-          className="h-8 px-3 text-xs flex-1 sm:flex-none"
-          onClick={() => cancel(b._id)}
-        >
-          Cancel
-        </Button>
-      </div>
-    </Card>
-  ))}
-</div>
-
 
       {/* ============================= */}
       {/*     DETAIL MODAL              */}
