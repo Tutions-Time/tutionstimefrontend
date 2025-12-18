@@ -69,58 +69,99 @@ export default function StudentProfileCompletePage() {
 
 
   // ---------- Submit ----------
- const handleSubmit = async () => {
-  if (!validate()) return;
+  const handleSubmit = async () => {
+    if (!validate()) return;
 
-  const fd = new FormData();
-  const appendIf = (k: string, v: any) => {
-    if (v === undefined || v === null) return;
-    if (typeof v === "string" && v.trim() === "") return;
-    if (Array.isArray(v) && v.length === 0) return;
-    fd.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
-  };
+    const fd = new FormData();
+    const appendIf = (k: string, v: any) => {
+      if (v === undefined || v === null) return;
+      if (typeof v === "string" && v.trim() === "") return;
+      if (Array.isArray(v) && v.length === 0) return;
+      fd.append(k, Array.isArray(v) ? JSON.stringify(v) : String(v));
+    };
 
-  dispatch(startSubmitting());
+    dispatch(startSubmitting());
 
-  try {
-    // ---------- PERSONAL ----------
-    appendIf("name", profile.name);
-    appendIf("email", profile.email);
-    appendIf("altPhone", profile.altPhone);
-    appendIf("gender", profile.gender);
-    if (profile.gender === "Other") {
-      appendIf("genderOther", profile.genderOther);
+    try {
+      // ---------- PERSONAL ----------
+      appendIf("name", profile.name);
+      appendIf("email", profile.email);
+      appendIf("altPhone", profile.altPhone);
+      appendIf("gender", profile.gender);
+      if (profile.gender === "Other") {
+        appendIf("genderOther", profile.genderOther);
+      }
+
+      // ---------- ADDRESS ----------
+      appendIf("addressLine1", profile.addressLine1);
+      appendIf("addressLine2", profile.addressLine2);
+      appendIf("city", profile.city);
+      appendIf("state", profile.state);
+      appendIf("pincode", profile.pincode);
+
+      // ---------- ACADEMIC ----------
+      appendIf("track", profile.track);
+      
+      // School
+      appendIf("board", profile.board);
+      if (profile.board === "Other") appendIf("boardOther", profile.boardOther);
+      appendIf("classLevel", profile.classLevel);
+      if (profile.classLevel === "Other") appendIf("classLevelOther", profile.classLevelOther);
+      appendIf("stream", profile.stream);
+      if (profile.stream === "Other") appendIf("streamOther", profile.streamOther);
+
+      // College
+      appendIf("program", profile.program);
+      if (profile.program === "Other") appendIf("programOther", profile.programOther);
+      appendIf("discipline", profile.discipline);
+      if (profile.discipline === "Other") appendIf("disciplineOther", profile.disciplineOther);
+      appendIf("yearSem", profile.yearSem);
+      if (profile.yearSem === "Other") appendIf("yearSemOther", profile.yearSemOther);
+
+      // Competitive
+      appendIf("exam", profile.exam);
+      if (profile.exam === "Other") appendIf("examOther", profile.examOther);
+      appendIf("targetYear", profile.targetYear);
+      if (profile.targetYear === "Other") appendIf("targetYearOther", profile.targetYearOther);
+
+      // ---------- PREFERENCES ----------
+      appendIf("subjects", profile.subjects);
+      // The backend expects subjectOther if 'Other' is in subjects
+      if (profile.subjects.includes("Other")) {
+        appendIf("subjectOther", profile.subjectOther);
+      }
+
+      appendIf("tutorGenderPref", profile.tutorGenderPref);
+      if (profile.tutorGenderPref === "Other") {
+        appendIf("tutorGenderOther", profile.tutorGenderOther);
+      }
+      
+      appendIf("preferredTimes", profile.preferredTimes);
+      appendIf("availability", profile.availability);
+      appendIf("goals", profile.goals);
+
+      // ---------- PHOTO ----------
+      if (photoFile) fd.append("photo", photoFile);
+
+      // 🔥 IMPORTANT: unwrap = success if no error thrown
+      await dispatch(updateStudentProfileThunk(fd)).unwrap();
+
+      // dispatch(stopSubmitting());
+
+      // ✅ ALWAYS redirect on success
+      console.log("REDIRECTING NOW");
+      router.replace("/dashboard/student");
+    } catch (err) {
+      console.error(err);
+      dispatch(stopSubmitting());
+
+      toast({
+        title: "Update failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    // ---------- ADDRESS ----------
-    appendIf("addressLine1", profile.addressLine1);
-    appendIf("addressLine2", profile.addressLine2);
-    appendIf("city", profile.city);
-    appendIf("state", profile.state);
-    appendIf("pincode", profile.pincode);
-
-    // ---------- PHOTO ----------
-    if (photoFile) fd.append("photo", photoFile);
-
-    // 🔥 IMPORTANT: unwrap = success if no error thrown
-    await dispatch(updateStudentProfileThunk(fd)).unwrap();
-
-    // dispatch(stopSubmitting());
-
-    // ✅ ALWAYS redirect on success
-    console.log("REDIRECTING NOW");
-    router.replace("/dashboard/student");
-  } catch (err) {
-    console.error(err);
-    dispatch(stopSubmitting());
-
-    toast({
-      title: "Update failed",
-      description: "Something went wrong. Please try again.",
-      variant: "destructive",
-    });
-  }
-};
+  };
 
 
   const disabled = profile.isSubmitting;

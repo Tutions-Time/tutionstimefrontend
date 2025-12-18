@@ -18,6 +18,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
+import { Textarea } from "../ui/textarea";
 
 /* ---------------- Constants ---------------- */
 const TUTOR_GENDER = ["No Preference", "Male", "Female", "Other"] as const;
@@ -196,6 +197,18 @@ export default function TutorPreferencesSection({
               ))}
             </div>
           )}
+        </div>
+
+        {/* Learning Goals */}
+        <div className="md:col-span-2">
+          <Label className="mb-2 block">Learning Goals (Optional)</Label>
+          <Textarea
+            placeholder="e.g. I want to prepare for JEE Mains, or I need help with Calculus..."
+            value={profile.goals || ""}
+            onChange={(e) => dispatch(setField({ key: "goals", value: e.target.value }))}
+            disabled={disabled}
+            className="h-24 resize-none"
+          />
         </div>
 
         {/* Availability */}
