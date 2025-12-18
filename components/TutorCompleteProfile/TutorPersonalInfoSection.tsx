@@ -1,11 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 import OtherInline from "@/components/forms/OtherInline";
 import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
+import { lookupPincode } from "@/app/data/PincodeMap";
+import { getPincodeForCity } from "@/utils/pincodeLookup";
 
 const GENDER = ["Male", "Female", "Other"];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
@@ -29,16 +33,40 @@ export default function TutorPersonalInfoSection({
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
 
-  const Err = ({ msg }: { msg?: string }) =>
+const Err = ({ msg }: { msg?: string }) =>
     msg ? <p className="text-xs text-red-600 mt-1">{msg}</p> : null;
 
   const currentPhotoSrc = photoFile
     ? URL.createObjectURL(photoFile)
     : photoPreview;
 
- const selectedStateObj = STATESDISTRICTS?.states?.find(
+const selectedStateObj = STATESDISTRICTS?.states?.find(
   (s) => s.state === profile.state
 ) ?? null;
+
+  const autofillPincode = (state: string, city: string) => {
+    const found = lookupPincode(state, city);
+    if (found) {
+      dispatch(setField({ key: "pincode", value: found }));
+    }
+  };
+
+  // Best-effort remote lookup when local map has no hit
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!profile.state || !profile.city) return;
+      if (profile.pincode) return; // user already set or local hit
+      const pin = await getPincodeForCity(profile.state, profile.city);
+      if (!cancelled && pin) {
+        dispatch(setField({ key: "pincode", value: pin }));
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, profile.state, profile.city, profile.pincode]);
 
 
   return (
@@ -207,6 +235,7 @@ export default function TutorPersonalInfoSection({
                 onChange={(e) => {
                   dispatch(setField({ key: "state", value: e.target.value }));
                   dispatch(setField({ key: "city", value: "" })); // reset district
+                  dispatch(setField({ key: "pincode", value: "" })); // reset pincode
                   onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
@@ -228,6 +257,7 @@ export default function TutorPersonalInfoSection({
                 value={profile.city || ""}
                 onChange={(e) => {
                   dispatch(setField({ key: "city", value: e.target.value }));
+                  autofillPincode(profile.state || "", e.target.value);
                   onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"

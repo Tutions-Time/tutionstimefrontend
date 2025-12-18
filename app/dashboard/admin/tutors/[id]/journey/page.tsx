@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { getTutorJourney } from "@/services/adminService";
+import { cn } from "@/lib/utils";
 
 type JourneyData = {
   tutor: {
@@ -93,6 +94,33 @@ export default function TutorJourneyPage() {
 
   const formatMoney = (n?: number) => `₹${(Number(n || 0)).toLocaleString("en-IN")}`;
 
+  const statusTone = (status?: string) => {
+    const s = (status || "").toLowerCase();
+    switch (s) {
+      case "created":
+        return "bg-indigo-100 text-indigo-900 border border-indigo-200";
+      case "pending":
+        return "bg-amber-100 text-amber-900 border border-amber-200";
+      case "confirmed":
+      case "approved":
+      case "active":
+      case "settled":
+      case "paid":
+      case "completed":
+        return "bg-emerald-100 text-emerald-900 border border-emerald-200";
+      case "scheduled":
+        return "bg-blue-100 text-blue-900 border border-blue-200";
+      case "cancelled":
+      case "rejected":
+      case "failed":
+        return "bg-rose-100 text-rose-900 border border-rose-200";
+      case "paused":
+        return "bg-yellow-100 text-yellow-900 border border-yellow-200";
+      default:
+        return "bg-slate-100 text-slate-800 border border-slate-200";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -134,10 +162,10 @@ export default function TutorJourneyPage() {
             </Card>
           ) : data ? (
             <>
-              <Card className="p-6 rounded-2xl bg-white shadow-sm">
+              <Card className="p-6 rounded-2xl shadow-sm bg-gradient-to-r from-amber-50 via-white to-blue-50 border border-amber-100">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-semibold">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-lg font-semibold shadow-inner">
                       {data.tutor.name
                         .split(" ")
                         .map((n) => n[0])
@@ -151,16 +179,18 @@ export default function TutorJourneyPage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="capitalize">
+                    <Badge variant="outline" className="capitalize border-amber-200 text-amber-900 bg-amber-50">
                       Status: {data.tutor.status}
                     </Badge>
-                    <Badge variant="outline">Joined: {formatDate(data.tutor.joinedAt)}</Badge>
+                    <Badge variant="outline" className="border-blue-200 text-blue-900 bg-blue-50">
+                      Joined: {formatDate(data.tutor.joinedAt)}
+                    </Badge>
                   </div>
                 </div>
               </Card>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl shadow-sm bg-gradient-to-br from-amber-50 via-white to-white border border-amber-100">
                   <div className="flex items-center gap-2 text-sm text-muted mb-2">
                     <PlayCircle className="w-4 h-4" />
                     Demos
@@ -173,7 +203,7 @@ export default function TutorJourneyPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl shadow-sm bg-gradient-to-br from-blue-50 via-white to-white border border-blue-100">
                   <div className="flex items-center gap-2 text-sm text-muted mb-2">
                     <CalendarClock className="w-4 h-4" />
                     Sessions
@@ -186,7 +216,7 @@ export default function TutorJourneyPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl shadow-sm bg-gradient-to-br from-emerald-50 via-white to-white border border-emerald-100">
                   <div className="flex items-center gap-2 text-sm text-muted mb-2">
                     <Users className="w-4 h-4" />
                     Classes & Batches
@@ -199,7 +229,7 @@ export default function TutorJourneyPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl shadow-sm bg-gradient-to-br from-rose-50 via-white to-white border border-rose-100">
                   <div className="flex items-center gap-2 text-sm text-muted mb-2">
                     <Wallet className="w-4 h-4" />
                     Payments
@@ -212,9 +242,9 @@ export default function TutorJourneyPage() {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold">Recent Demos</div>
+                    <div className="font-semibold text-text">Recent Demos</div>
                     <Badge variant="outline">Total {data.demos.total}</Badge>
                   </div>
                   <div className="space-y-3">
@@ -230,10 +260,14 @@ export default function TutorJourneyPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className="capitalize" variant="outline">
+                            <Badge className={cn("capitalize", statusTone(d.status))}>
                               {d.status}
                             </Badge>
-                            {d.regularClassId ? <Badge variant="secondary">Converted</Badge> : null}
+                            {d.regularClassId ? (
+                              <Badge className="bg-emerald-100 text-emerald-900 border border-emerald-200">
+                                Converted
+                              </Badge>
+                            ) : null}
                           </div>
                         </div>
                       ))
@@ -241,9 +275,9 @@ export default function TutorJourneyPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl bg-white shadow-sm border border-blue-100/60">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold">Recent Sessions</div>
+                    <div className="font-semibold text-text">Recent Sessions</div>
                     <Badge variant="outline">Total {data.sessions.total}</Badge>
                   </div>
                   <div className="space-y-3">
@@ -258,7 +292,7 @@ export default function TutorJourneyPage() {
                               {s.groupBatchId ? "Group" : "1:1"} · {s.regularClassId ? "Regular" : "Demo/Adhoc"}
                             </div>
                           </div>
-                          <Badge className="capitalize" variant="outline">
+                          <Badge className={cn("capitalize", statusTone(s.status))}>
                             {s.status}
                           </Badge>
                         </div>
@@ -269,9 +303,9 @@ export default function TutorJourneyPage() {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl bg-white shadow-sm border border-emerald-100/60">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold">Recent Batches</div>
+                    <div className="font-semibold text-text">Recent Batches</div>
                     <Badge variant="outline">Total {data.batches.total}</Badge>
                   </div>
                   <div className="space-y-3">
@@ -286,7 +320,7 @@ export default function TutorJourneyPage() {
                               {b.batchType} · Seats {b.enrolled?.length || 0}/{b.seatCap || 0}
                             </div>
                           </div>
-                          <Badge className="capitalize" variant="outline">
+                          <Badge className={cn("capitalize", statusTone(b.status))}>
                             {b.status}
                           </Badge>
                         </div>
@@ -295,9 +329,9 @@ export default function TutorJourneyPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm">
+                <Card className="p-4 rounded-xl bg-white shadow-sm border border-rose-100/60">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold">Recent Payments</div>
+                    <div className="font-semibold text-text">Recent Payments</div>
                     <Badge variant="outline">Revenue {formatMoney(data.payments.revenue)}</Badge>
                   </div>
                   <div className="space-y-3">
@@ -313,7 +347,7 @@ export default function TutorJourneyPage() {
                             <div className="text-xs text-muted">{formatDateTime(p.createdAt)}</div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className="capitalize" variant="outline">
+                            <Badge className={cn("capitalize", statusTone(p.status))}>
                               {p.status}
                             </Badge>
                             {p.refundTotal ? (
@@ -327,7 +361,7 @@ export default function TutorJourneyPage() {
                 </Card>
               </div>
 
-              <Card className="p-4 rounded-xl bg-white shadow-sm">
+              <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
                 <div className="flex items-center gap-2 text-sm text-muted mb-2">
                   <Notebook className="w-4 h-4" />
                   Notes
