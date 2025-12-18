@@ -256,6 +256,8 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                 disabled={disabled || !profile.state}
                 value={profile.city || ""}
                 onChange={(e) => {
+                  // Reset stale pincode when city changes
+                  dispatch(setField({ key: "pincode", value: "" }));
                   dispatch(setField({ key: "city", value: e.target.value }));
                   autofillPincode(profile.state || "", e.target.value);
                   onValidate?.();
@@ -279,9 +281,10 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
             <Input
               disabled={disabled}
               value={profile.pincode || ""}
-              onChange={(e) =>
-                dispatch(setField({ key: "pincode", value: e.target.value }))
-              }
+              onChange={(e) => {
+                dispatch(setField({ key: "pincode", value: e.target.value }));
+                onValidate?.();
+              }}
               onBlur={onValidate}
               placeholder="Pincode"
               inputMode="numeric"
