@@ -134,6 +134,15 @@ export const getAllTutors = async () => {
   }
 };
 
+export const getTutorJourney = async (id: string) => {
+  try {
+    const res = await api.get(`/admin/tutors/${id}/journey`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const updateTutorKyc = async (id: string, kyc: 'approved' | 'rejected' | 'pending') => {
   try {
     const res = await api.put(`/admin/tutors/${id}/kyc`, { kyc });
