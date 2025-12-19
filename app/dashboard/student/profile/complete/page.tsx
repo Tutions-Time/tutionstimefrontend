@@ -98,6 +98,7 @@ export default function StudentProfileCompletePage() {
       if (profile.gender === "Other") {
         appendIf("genderOther", profile.genderOther);
       }
+      appendIf("learningMode", profile.learningMode);
 
       // ---------- ADDRESS ----------
       appendIf("addressLine1", profile.addressLine1);

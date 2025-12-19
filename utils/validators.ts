@@ -27,6 +27,7 @@ export interface StudentProfileErrors {
   state?: string;
   pincode?: string;
   phone?: string;       // <-- KEEP for compatibility
+  learningMode?: string;
 }
 
 /* -------------------------------------------------------
@@ -104,6 +105,10 @@ export function validateStudentProfileFields(
   if (isEmpty(data.pincode)) errors.pincode = "Pincode is required";
   else if (!isValidPincode(data.pincode))
     errors.pincode = "Pincode must be 6 digits";
+
+  if (isEmpty(data.learningMode)) errors.learningMode = "Learning mode is required";
+  else if (!["Online", "Offline", "Both"].includes(data.learningMode))
+    errors.learningMode = "Learning mode must be Online, Offline, or Both";
 
   return errors;
 }
