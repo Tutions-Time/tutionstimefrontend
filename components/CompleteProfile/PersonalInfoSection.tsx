@@ -100,16 +100,23 @@ export default function PersonalInfoSection({
               disabled && "cursor-not-allowed opacity-70"
             )}
           >
-            <div className="h-full w-full rounded-full overflow-hidden shadow relative">
-              <img
-                src={
-                  photoFile
-                    ? URL.createObjectURL(photoFile)
-                    : getImageUrl(profile.photoUrl)
-                }
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
+            <div className="h-full w-full rounded-full overflow-hidden shadow flex items-center justify-center bg-gray-100 relative">
+
+              {/* SHOW IMAGE IF AVAILABLE */}
+              {(photoFile || profile.photoUrl) ? (
+                <img
+                  src={
+                    photoFile
+                      ? URL.createObjectURL(photoFile)
+                      : getImageUrl(profile.photoUrl)
+                  }
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                /* DUMMY USER ICON */
+                <User className="w-16 h-16 text-gray-400" />
+              )}
             </div>
 
             {!disabled && (
@@ -134,6 +141,7 @@ export default function PersonalInfoSection({
             <Label>Full Name</Label>
             <Input
               value={profile.name}
+              placeholder="Full Name"
               onChange={(e) =>
                 dispatch(setField({ key: "name", value: e.target.value }))
               }
@@ -148,6 +156,7 @@ export default function PersonalInfoSection({
             <div>
               <Label>Email</Label>
               <Input
+                placeholder="abc@example.com"
                 value={profile.email}
                 onChange={(e) =>
                   dispatch(setField({ key: "email", value: e.target.value }))
@@ -161,6 +170,7 @@ export default function PersonalInfoSection({
             <div>
               <Label>Alternate Phone</Label>
               <Input
+                placeholder="Mobile Number"
                 value={profile.altPhone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 onBlur={onValidate}
@@ -175,6 +185,7 @@ export default function PersonalInfoSection({
           <div>
             <Label>Address Line 1</Label>
             <Input
+              placeholder="Address"
               value={profile.addressLine1}
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine1", value: e.target.value }))
@@ -190,7 +201,7 @@ export default function PersonalInfoSection({
           {/* City / State / Pincode */}
           <div className="grid md:grid-cols-3 gap-4">
 
-              {/* State */}
+            {/* State */}
             <div>
               <Label>State</Label>
               <select
@@ -242,10 +253,10 @@ export default function PersonalInfoSection({
               {errors.city && <p className="text-red-600 text-xs">{errors.city}</p>}
             </div>
 
-          
+
             {/* Pincode */}
             <div>
-              <Label>Pincode</Label> 
+              <Label>Pincode</Label>
               <Input
                 value={profile.pincode}
                 onChange={(e) => {
