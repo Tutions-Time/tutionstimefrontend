@@ -21,8 +21,11 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
               <div className="border rounded p-3 space-y-1 text-sm">
                 <div className="font-medium">Overview</div>
                 <div>Subject: {batch.subject}</div>
+                <div>Board: {batch.board || "General"}</div>
                 <div>Level: {batch.level || "General"}</div>
-                <div>Type: {batch.batchType}</div>
+                <div>
+                  Type: {batch.batchType === "normal class" || batch.batchType === "normal" || batch.batchType === "exam" ? "Normal Class" : "Revision"}
+                </div>
                 <div>Seats: {batch.liveSeats}/{batch.seatCap}</div>
                 <div>Price: ₹{batch.pricePerStudent}</div>
                 {batch.meetingLink && (
@@ -35,8 +38,11 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                 <div className="font-medium">Window</div>
                 <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
                 <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
-                <div>Status: {batch.status}</div>
-                <div>Published: {batch.published ? "Yes" : "No"}</div>
+                <div>Status: {batch.status}</div>                {batch.batchEndDate && (
+                  <div>
+                    End Date: {new Date(batch.batchEndDate).toLocaleDateString("en-IN")}
+                  </div>
+                )}
               </div>
             </div>
           )}

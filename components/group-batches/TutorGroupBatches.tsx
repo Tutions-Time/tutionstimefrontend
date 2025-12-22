@@ -19,14 +19,22 @@ import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailModal";
 import EditBatchModal from "@/components/group-batches/EditBatchModal";
 
-export default function TutorGroupBatches() {
+type TutorGroupBatchesProps = {
+  refreshToken?: number;
+};
+
+export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesProps) {
   const [form, setForm] = useState<any>({
     subject: "",
+    board: "",
+    boardOther: "",
     level: "",
     batchType: "revision",
     startDate: "",
+    endDate: "",
     classStartTime: "18:00",
     seatCap: 10,
+    pricePerMonth: "",
     description: "",
     published: true,
   });
@@ -36,8 +44,9 @@ export default function TutorGroupBatches() {
   const [options, setOptions] = useState<any>({
     subjects: [],
     levels: [],
+    boards: [],
     availabilityDates: [],
-    batchTypes: ["revision", "exam"],
+    batchTypes: ["revision", "normal class"],
     scheduleTypes: ["recurring"],
     monthlyRate: 0,
   });
@@ -59,7 +68,7 @@ export default function TutorGroupBatches() {
     subjects: [],
     levels: [],
     availabilityDates: [],
-    batchTypes: ["revision", "exam"],
+    batchTypes: ["revision", "normal class"],
     scheduleTypes: ["fixed"],
   });
 
@@ -77,7 +86,7 @@ export default function TutorGroupBatches() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [refreshToken]);
 
   // ----------------------------
   // Load Creation Options
@@ -93,8 +102,9 @@ export default function TutorGroupBatches() {
         setOptions({
           subjects: data?.subjects || [],
           levels: data?.levels || [],
+          boards: data?.boards || [],
           availabilityDates: data?.availabilityDates || [],
-          batchTypes: data?.batchTypes || ["revision", "exam"],
+          batchTypes: data?.batchTypes || ["revision", "normal class"],
           scheduleTypes: data?.scheduleTypes || ["recurring"],
           monthlyRate: data?.monthlyRate || 0,
         });
@@ -110,19 +120,32 @@ export default function TutorGroupBatches() {
   // ----------------------------
   // Helpers
   // ----------------------------
+  const getBatchTypeLabel = (t: string) => {
+    if (t === "normal class" || t === "normal" || t === "exam") return "Normal Class";
+    if (t === "revision") return "Revision";
+    return t;
+  };
 
   const create = async () => {
     try {
-      const res = await api.post("/group-batches/create", form);
+      const payload = {
+        ...form,
+        board: form.board === "Other" ? form.boardOther : form.board,
+      };
+      const res = await api.post("/group-batches/create", payload);
       if (res.data?.success) {
         toast.success("Batch created");
         setForm({
           subject: "",
+          board: "",
+          boardOther: "",
           level: "",
           batchType: "revision",
           startDate: "",
+          endDate: "",
           classStartTime: "18:00",
           seatCap: 10,
+    pricePerMonth: "",
           description: "",
           published: true,
         });
@@ -188,7 +211,7 @@ export default function TutorGroupBatches() {
         subjects: opts?.subjects || [],
         levels: opts?.levels || [],
         availabilityDates: opts?.availabilityDates || [],
-        batchTypes: opts?.batchTypes || ["revision", "exam"],
+        batchTypes: opts?.batchTypes || ["revision", "normal class"],
         scheduleTypes: opts?.scheduleTypes || ["fixed"],
       });
       setEditOpen(true);
@@ -298,6 +321,38 @@ export default function TutorGroupBatches() {
               ))}
             </select>
 
+            {/* Board */}
+            <select
+              className="border p-2 rounded w-full"
+              value={form.board}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  board: e.target.value,
+                  boardOther: e.target.value === "Other" ? form.boardOther : "",
+                })
+              }
+            >
+              <option value="">Select Board</option>
+              {(options.boards || []).map((b: string) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+              <option value="Other">Other</option>
+            </select>
+            {form.board === "Other" && (
+              <input
+                type="text"
+                className="border p-2 rounded w-full"
+                placeholder="Enter board name"
+                value={form.boardOther}
+                onChange={(e) =>
+                  setForm({ ...form, boardOther: e.target.value })
+                }
+              />
+            )}
+
             {/* Level */}
             <select
               className="border p-2 rounded w-full"
@@ -317,7 +372,7 @@ export default function TutorGroupBatches() {
               onChange={(e) => setForm({ ...form, batchType: e.target.value })}
             >
               {(options.batchTypes || []).map((t: string) => (
-                <option key={t}>{t}</option>
+                <option key={t} value={t}>{getBatchTypeLabel(t)}</option>
               ))}
             </select>
 
@@ -345,6 +400,27 @@ export default function TutorGroupBatches() {
               <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
             </div>
             <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">End Date</label>
+              <select
+                className="border p-2 rounded w-full"
+                value={form.endDate}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+              >
+                <option value="">Select End Date</option>
+                {(options.availabilityDates || [])
+                  .map((d: string) => new Date(d))
+                  .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                  .map((d: Date) => {
+                    const val = d.toISOString().split("T")[0]; // YYYY-MM-DD
+                    return (
+                      <option key={val} value={val}>
+                        {d.toDateString()}
+                      </option>
+                    );
+                  })}
+              </select>
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
               <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e) => setForm({ ...form, classStartTime: e.target.value })} />
             </div>
@@ -353,14 +429,14 @@ export default function TutorGroupBatches() {
               <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e) => setForm({ ...form, seatCap: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Price Per Month (ƒ,1)</label>
+              <label className="text-sm font-medium text-gray-700">Price Per Month</label>
               <input
                 type="number"
-                className="border p-2 rounded w-full bg-gray-100"
-                value={options.monthlyRate}
-                readOnly
+                className="border p-2 rounded w-full"
+                placeholder="Enter monthly price for this batch"
+                value={form.pricePerMonth}
+                onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })}
               />
-              <p className="text-xs text-gray-500">Based on your profile monthly rate.</p>
             </div>
             <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             <div className="flex items-center gap-2">
@@ -401,7 +477,10 @@ export default function TutorGroupBatches() {
                   <span className="text-sm font-semibold">{b.subject}</span>
                   {b.level && <Badge variant="secondary" className="text-[10px] px-2 py-0">{b.level}</Badge>}
                 </div>
-                <div className="text-xs text-gray-500">Batch ƒ?› {b.batchType}</div>
+                <div className="text-xs text-gray-500">Batch :  {getBatchTypeLabel(b.batchType)}</div>
+                <div className="text-[11px] text-gray-500">
+                  Board: {b.board || "General"}
+                </div>
               </div>
 
               <Badge className="bg-green-100 text-green-700 text-[10px] px-2 py-0">
@@ -427,6 +506,19 @@ export default function TutorGroupBatches() {
                   <span>{b.fixedDates?.length ?? 0} dates</span>
                 )}
               </div>
+              {b.batchEndDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>
+                    Ends{" "}
+                    {new Date(b.batchEndDate).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" />

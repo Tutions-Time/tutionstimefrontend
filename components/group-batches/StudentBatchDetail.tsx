@@ -64,15 +64,19 @@ export default function StudentBatchDetail() {
           <div className="border rounded p-3 space-y-1 text-sm bg-white">
             <div className="font-medium">Overview</div>
             <div>Subject: {batch.subject}</div>
+            <div>Board: {batch.board || "General"}</div>
             <div>Level: {batch.level || "General"}</div>
-            <div>Type: {batch.batchType}</div>
+            <div>
+              Type: {batch.batchType === "normal class" || batch.batchType === "normal" || batch.batchType === "exam" ? "Normal Class" : "Revision"}
+            </div>
             <div>Price: ₹{batch.pricePerStudent}</div>
           </div>
           <div className="border rounded p-3 space-y-1 text-sm bg-white">
             <div className="font-medium">Window & Validity</div>
             <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
-            <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
-            <div>Status: {batch.status}</div>
+            <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>            {batch.batchEndDate && (
+              <div>End Date: {new Date(batch.batchEndDate).toLocaleDateString("en-IN")}</div>
+            )}
             {batch.myEnrollment?.validUntil && (
               <div className="mt-2 pt-2 border-t">
                 <span className="font-semibold text-green-600">Subscription Active Until:</span>

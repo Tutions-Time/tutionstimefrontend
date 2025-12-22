@@ -24,6 +24,8 @@ import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
 export default function TutorGroupBatchesPage() {
   const [form, setForm] = useState<any>({
     subject: "",
+    board: "",
+    boardOther: "",
     level: "",
     batchType: "revision",
     startDate: "",
@@ -41,8 +43,9 @@ export default function TutorGroupBatchesPage() {
   const [options, setOptions] = useState<any>({
     subjects: [],
     levels: [],
+    boards: [],
     availabilityDates: [],
-    batchTypes: ["revision", "exam"],
+    batchTypes: ["revision", "normal class"],
     scheduleTypes: ["recurring"],
   });
   const [loadingOptions, setLoadingOptions] = useState(false);
@@ -58,8 +61,9 @@ export default function TutorGroupBatchesPage() {
         setOptions({
           subjects: data?.subjects || [],
           levels: data?.levels || [],
+          boards: data?.boards || [],
           availabilityDates: data?.availabilityDates || [],
-          batchTypes: data?.batchTypes || ["revision", "exam"],
+          batchTypes: data?.batchTypes || ["revision", "normal class"],
           scheduleTypes: data?.scheduleTypes || ["recurring"],
         });
       } catch (e: any) {
@@ -79,6 +83,7 @@ export default function TutorGroupBatchesPage() {
 
     const payload = {
       ...form,
+      board: form.board === "Other" ? form.boardOther : form.board,
       classStartTime: classStartTime.format("HH:mm"),
       classEndTime: classEndTime.format("HH:mm"),
       pricePerMonth:
@@ -91,6 +96,8 @@ export default function TutorGroupBatchesPage() {
         toast.success("Batch created");
         setForm({
           subject: "",
+          board: "",
+          boardOther: "",
           level: "",
           batchType: "revision",
           startDate: "",
@@ -169,6 +176,37 @@ export default function TutorGroupBatchesPage() {
 
                   <select
                     className="border p-2 rounded w-full"
+                    value={form.board}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        board: e.target.value,
+                        boardOther: e.target.value === "Other" ? form.boardOther : "",
+                      })
+                    }
+                  >
+                    <option value="">Select Board</option>
+                    {(options.boards || []).map((b: string) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                    <option value="Other">Other</option>
+                  </select>
+                  {form.board === "Other" && (
+                    <input
+                      type="text"
+                      className="border p-2 rounded w-full"
+                      placeholder="Enter board name"
+                      value={form.boardOther}
+                      onChange={(e) =>
+                        setForm({ ...form, boardOther: e.target.value })
+                      }
+                    />
+                  )}
+
+                  <select
+                    className="border p-2 rounded w-full"
                     value={form.level}
                     onChange={(e) =>
                       setForm({ ...form, level: e.target.value })
@@ -189,10 +227,12 @@ export default function TutorGroupBatchesPage() {
                       setForm({ ...form, batchType: e.target.value })
                     }
                   >
-                    {(options.batchTypes || ["revision", "exam"]).map(
+                    {(options.batchTypes || ["revision", "normal class"]).map(
                       (t: string) => (
                         <option key={t} value={t}>
-                          {t[0].toUpperCase() + t.slice(1)}
+                          {t === "normal class" || t === "normal" || t === "exam"
+                            ? "Normal Class"
+                            : t[0].toUpperCase() + t.slice(1)}
                         </option>
                       )
                     )}
@@ -253,26 +293,30 @@ export default function TutorGroupBatchesPage() {
                       Class Start Time
                     </label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <TimePicker
-                        value={classStartTime}
-                        onChange={setClassStartTime}
-                        ampm
-                        ampmInClock
-                        views={["hours", "minutes"]}
-                        format="hh:mm a"
-                        minutesStep={1}
-                        viewRenderers={{
-                          hours: renderTimeViewClock,
-                          minutes: renderTimeViewClock,
-                        }}
-                        slotProps={{
-                          textField: {
-                            size: "small",
-                            fullWidth: true,
-                            className: "mt-1 mb-3",
-                          },
-                        }}
-                      />
+                        <TimePicker
+                          value={classStartTime}
+                          onChange={setClassStartTime}
+                          ampm
+                          ampmInClock
+                          views={["hours", "minutes"]}
+                          format="hh:mm a"
+                          minutesStep={1}
+                          viewRenderers={{
+                            hours: renderTimeViewClock,
+                            minutes: renderTimeViewClock,
+                          }}
+                          slotProps={{
+                            textField: {
+                              size: "small",
+                              fullWidth: true,
+                              className: "mt-1 mb-3",
+                            },
+                            popper: {
+                              disablePortal: false,
+                              sx: { zIndex: 2000 },
+                            },
+                          }}
+                        />
                     </LocalizationProvider>
                   </div>
 
@@ -281,26 +325,30 @@ export default function TutorGroupBatchesPage() {
                       Class End Time
                     </label>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <TimePicker
-                        value={classEndTime}
-                        onChange={setClassEndTime}
-                        ampm
-                        ampmInClock
-                        views={["hours", "minutes"]}
-                        format="hh:mm a"
-                        minutesStep={1}
-                        viewRenderers={{
-                          hours: renderTimeViewClock,
-                          minutes: renderTimeViewClock,
-                        }}
-                        slotProps={{
-                          textField: {
-                            size: "small",
-                            fullWidth: true,
-                            className: "mt-1 mb-3",
-                          },
-                        }}
-                      />
+                        <TimePicker
+                          value={classEndTime}
+                          onChange={setClassEndTime}
+                          ampm
+                          ampmInClock
+                          views={["hours", "minutes"]}
+                          format="hh:mm a"
+                          minutesStep={1}
+                          viewRenderers={{
+                            hours: renderTimeViewClock,
+                            minutes: renderTimeViewClock,
+                          }}
+                          slotProps={{
+                            textField: {
+                              size: "small",
+                              fullWidth: true,
+                              className: "mt-1 mb-3",
+                            },
+                            popper: {
+                              disablePortal: false,
+                              sx: { zIndex: 2000 },
+                            },
+                          }}
+                        />
                     </LocalizationProvider>
                   </div>
 
@@ -367,7 +415,7 @@ export default function TutorGroupBatchesPage() {
         />
 
         <main className="p-4 lg:p-6">
-          <TutorGroupBatches key={refreshKey} />
+          <TutorGroupBatches refreshToken={refreshKey} />
         </main>
       </div>
     </div>

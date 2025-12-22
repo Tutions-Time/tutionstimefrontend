@@ -317,7 +317,7 @@ export default function TutorJourneyPage() {
                           <div>
                             <div className="font-medium text-text">{b.subject || "Batch"}</div>
                             <div className="text-xs text-muted">
-                              {b.batchType} · Seats {b.enrolled?.length || 0}/{b.seatCap || 0}
+                              {(b.batchType === "normal" || b.batchType === "exam") ? "Normal Class" : "Revision"} · Seats {b.enrolled?.length || 0}/{b.seatCap || 0}
                             </div>
                           </div>
                           <Badge className={cn("capitalize", statusTone(b.status))}>

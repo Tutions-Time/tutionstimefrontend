@@ -248,6 +248,9 @@ export default function StudentGroupBatches() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-sm font-semibold">{b.subject}</div>
+                <div className="text-[11px] text-gray-500">
+                  Board: {b.board || "General"}
+                </div>
                 <div className="text-[11px] text-gray-500">{b.level || "General"}</div>
               </div>
 
@@ -267,6 +270,11 @@ export default function StudentGroupBatches() {
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> {b.fixedDates?.length ?? 0} dates
               </div>
+              {b.batchEndDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> End{" "}{new Date(b.batchEndDate).toLocaleDateString("en-IN")}
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
