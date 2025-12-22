@@ -124,6 +124,15 @@ export const getDashboardStats = async () => {
   }
 };
 
+export const getDashboardActivity = async (limit = 6) => {
+  try {
+    const response = await api.get('/admin/dashboard/activity', { params: { limit } });
+    return response.data.events || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 export const getAllTutors = async () => {
   try {

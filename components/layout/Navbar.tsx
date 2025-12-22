@@ -64,7 +64,7 @@ export function Navbar({ onMenuClick, unreadCount = 0, userName, userRole, onLog
       ? '/dashboard/student/profile'
       : user?.role === 'tutor'
       ? '/dashboard/tutor/profile'
-      : '/admin/profile';
+      : '';
 
 
   // ---------------- LOGOUT HANDLER ----------------
@@ -110,9 +110,11 @@ export function Navbar({ onMenuClick, unreadCount = 0, userName, userRole, onLog
 
             <DropdownMenuContent align="end" className="w-48">
               {/* PROFILE LINK */}
-              <DropdownMenuItem asChild>
-                <Link href={profileUrl}>Profile</Link>
-              </DropdownMenuItem>
+              {user?.role !== 'admin' && (
+                <DropdownMenuItem asChild>
+                  <Link href={profileUrl}>Profile</Link>
+                </DropdownMenuItem>
+              )}
 
               {/* Tutor-only options */}
               {user?.role === 'tutor' && (

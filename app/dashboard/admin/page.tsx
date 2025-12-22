@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  BarChart3, Users, User, Wallet, Calendar, TrendingUp, TrendingDown, Search, ShieldCheck
+  BarChart3, Users, User, Wallet, Calendar, TrendingUp, TrendingDown, Search, ShieldCheck, RotateCcw, Layers
 } from 'lucide-react';
 
 import { Navbar } from '@/components/layout/Navbar';
@@ -16,7 +16,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 type Trend = 'up' | 'down' | 'flat';
 
-import { getDashboardStats } from '@/services/adminService';
+import { getDashboardStats, getDashboardActivity } from '@/services/adminService';
 
 const kpisDefault = [
   { label: 'Total Users', value: '0', icon: Users, tone: 'primary' as const, delta: '0%', trend: 'flat' as Trend },
@@ -25,16 +25,32 @@ const kpisDefault = [
   { label: 'Sessions (7d)', value: '0', icon: Calendar, tone: 'warning' as const, delta: '0%', trend: 'flat' as Trend },
 ];
 
-const recentEvents = [
-  { id: 'u1', type: 'signup', name: 'Rohit Kumar', role: 'student', at: '2h ago' },
-  { id: 'u2', type: 'signup', name: 'Priya Iyer', role: 'tutor', at: '6h ago' },
-  { id: 'p1', type: 'payout', name: 'Tutor Payout Processed', role: 'system', at: 'Yesterday' },
-  { id: 'v1', type: 'kyc', name: 'KYC Approved: Ankit S.', role: 'tutor', at: 'Yesterday' },
-];
+type ActivityEvent = {
+  id: string;
+  type: 'signup' | 'payment' | 'payout' | 'kyc' | 'refund' | 'session' | 'batch';
+  name: string;
+  role?: string;
+  at: string;
+};
+
+const formatRelativeTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+};
 
 function AdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [kpiCards, setKpiCards] = useState(kpisDefault);
+  const [recentEvents, setRecentEvents] = useState<ActivityEvent[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +68,17 @@ function AdminDashboardContent() {
       ];
       setKpiCards(cards);
     }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    getDashboardActivity(6)
+      .then((events) => {
+        if (!mounted) return;
+        setRecentEvents(events);
+      })
+      .catch(() => {});
     return () => { mounted = false; };
   }, []);
 
@@ -134,21 +161,32 @@ function AdminDashboardContent() {
                 </Link>
               </div>
 
+              {recentEvents.length === 0 && (
+                <Card className="p-6 rounded-2xl shadow-soft bg-white">
+                  <p className="text-sm text-muted">No recent activity yet.</p>
+                </Card>
+              )}
+
               {recentEvents.map((ev) => (
                 <Card key={ev.id} className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         {ev.type === 'signup' && <Users className="w-5 h-5 text-primary" />}
-                        {ev.type === 'payout' && <Wallet className="w-5 h-5 text-primary" />}
+                        {(ev.type === 'payment' || ev.type === 'payout') && <Wallet className="w-5 h-5 text-primary" />}
                         {ev.type === 'kyc' && <ShieldCheck className="w-5 h-5 text-primary" />}
+                        {ev.type === 'refund' && <RotateCcw className="w-5 h-5 text-primary" />}
+                        {ev.type === 'session' && <Calendar className="w-5 h-5 text-primary" />}
+                        {ev.type === 'batch' && <Layers className="w-5 h-5 text-primary" />}
                       </div>
                       <div>
                         <p className="font-semibold text-text">{ev.name}</p>
                         <p className="text-sm text-muted capitalize">{ev.role}</p>
                       </div>
                     </div>
-                    <Badge className="bg-primary/10 text-primary border-primary/20">{ev.at}</Badge>
+                    <Badge className="bg-primary/10 text-primary border-primary/20">
+                      {formatRelativeTime(ev.at)}
+                    </Badge>
                   </div>
                 </Card>
               ))}
