@@ -379,6 +379,9 @@ export default function AdminTutorsPage() {
                             )}
                             {t.status === "active" ? "Suspend" : "Activate"}
                           </Button>
+                          <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
+                            <Button size="sm">Journey</Button>
+                          </Link>
                         </div>
                       </td>
                     </tr>

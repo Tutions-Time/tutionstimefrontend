@@ -91,6 +91,13 @@ export default function StudentProfilePage() {
     }
   };
 
+  // Auto-clear validation when required fields change
+  useEffect(() => {
+    if (Object.keys(errors || {}).length === 0) return;
+    const v = validateStudentProfileFields(profile);
+    setErrors(v);
+  }, [profile.state, profile.city, profile.pincode]);
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-[80vh]">

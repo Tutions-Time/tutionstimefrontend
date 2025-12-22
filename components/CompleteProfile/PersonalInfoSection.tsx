@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/studentProfileSlice";
 import { Label } from "@/components/ui/label";
@@ -9,10 +11,13 @@ import OtherInline from "@/components/forms/OtherInline";
 import { getImageUrl } from "@/utils/getImageUrl";
 import { cn } from "@/lib/utils";
 import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
+import { lookupPincode } from "@/app/data/PincodeMap";
+import { getPincodeForCity } from "@/utils/pincodeLookup";
 
 import type { StudentProfileErrors } from "@/utils/validators";
 
 const GENDER = ["Male", "Female", "Other"] as const;
+const LEARNING_MODES = ["Online", "Offline", "Both"] as const;
 
 export default function PersonalInfoSection({
   photoFile,
@@ -33,6 +38,30 @@ export default function PersonalInfoSection({
   const selectedStateObj = STATESDISTRICTS.states.find(
     (s) => s.state === profile.state
   );
+
+  const autofillPincode = (state: string, city: string) => {
+    const found = lookupPincode(state, city);
+    if (found) {
+      dispatch(setField({ key: "pincode", value: found }));
+    }
+  };
+
+  // Best-effort remote lookup when local map has no hit
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!profile.state || !profile.city) return;
+      if (profile.pincode) return; // user already set or local hit
+      const pin = await getPincodeForCity(profile.state, profile.city);
+      if (!cancelled && pin) {
+        dispatch(setField({ key: "pincode", value: pin }));
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, profile.state, profile.city, profile.pincode]);
 
   const onGenderChange = (val: string) => {
     if (disabled) return;
@@ -181,6 +210,7 @@ export default function PersonalInfoSection({
                 onChange={(e) => {
                   dispatch(setField({ key: "state", value: e.target.value }));
                   dispatch(setField({ key: "city", value: "" })); // reset city
+                  dispatch(setField({ key: "pincode", value: "" })); // reset pincode
                   onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
@@ -203,7 +233,10 @@ export default function PersonalInfoSection({
                 disabled={disabled || !profile.state}
                 value={profile.city}
                 onChange={(e) => {
+                  // Reset stale pincode when city changes
+                  dispatch(setField({ key: "pincode", value: "" }));
                   dispatch(setField({ key: "city", value: e.target.value }));
+                  autofillPincode(profile.state, e.target.value);
                   onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
@@ -226,9 +259,10 @@ export default function PersonalInfoSection({
               <Label>Pincode</Label>
               <Input
                 value={profile.pincode}
-                onChange={(e) =>
-                  dispatch(setField({ key: "pincode", value: e.target.value }))
-                }
+                onChange={(e) => {
+                  dispatch(setField({ key: "pincode", value: e.target.value }));
+                  onValidate?.();
+                }}
                 onBlur={onValidate}
                 disabled={disabled}
               />
@@ -249,6 +283,24 @@ export default function PersonalInfoSection({
             />
             {errors.gender && (
               <p className="text-red-600 text-xs">{errors.gender}</p>
+            )}
+          </div>
+
+          {/* Learning Mode */}
+          <div>
+            <OtherInline
+              label="Learning Mode"
+              value={profile.learningMode as any}
+              options={LEARNING_MODES.map((v) => ({ value: v, label: v }))}
+              onChange={(val: string) => {
+                if (disabled) return;
+                dispatch(setField({ key: "learningMode", value: val as any }));
+                onValidate?.();
+              }}
+              disabled={disabled}
+            />
+            {errors.learningMode && (
+              <p className="text-red-600 text-xs">{errors.learningMode}</p>
             )}
           </div>
         </div>

@@ -46,6 +46,13 @@ export default function StudentProfileCompletePage() {
     } catch { }
   }, [profile]);
 
+  // Auto-validate on key field changes to clear stale errors (state/city/pincode)
+  useEffect(() => {
+    if (Object.keys(errors || {}).length === 0) return;
+    const refreshed = validateStudentProfileFields(profile);
+    setErrors(refreshed);
+  }, [profile.state, profile.city, profile.pincode]);
+
   // ---------- Validation ----------
   const validate = () => {
     const e = validateStudentProfileFields(profile);
@@ -91,6 +98,7 @@ export default function StudentProfileCompletePage() {
       if (profile.gender === "Other") {
         appendIf("genderOther", profile.genderOther);
       }
+      appendIf("learningMode", profile.learningMode);
 
       // ---------- ADDRESS ----------
       appendIf("addressLine1", profile.addressLine1);
@@ -185,6 +193,7 @@ export default function StudentProfileCompletePage() {
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
             errors={errors}
+            onValidate={validate}
           />
 
           <AcademicDetailsSection errors={{}} />

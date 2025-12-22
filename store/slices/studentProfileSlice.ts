@@ -65,6 +65,8 @@ export interface StudentProfileState {
   goals: string;
   photoUrl?: string;
 
+  learningMode: '' | 'Online' | 'Offline' | 'Both';
+
   isSubmitting: boolean;
   lastSavedAt?: string;
 }
@@ -118,6 +120,8 @@ const initialState: StudentProfileState = {
 
   goals: '',
   photoUrl: undefined,
+
+  learningMode: '',
 
   isSubmitting: false,
   lastSavedAt: undefined,
