@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +24,7 @@ type TutorGroupBatchesProps = {
 };
 
 export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesProps) {
+  const { toast } = useToast();
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
@@ -109,7 +110,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           monthlyRate: data?.monthlyRate || 0,
         });
       } catch {
-        toast.error("Unable to load options");
+        toast({
+          title: "Unable to load options",
+          description: "Unable to load options",
+          variant: "destructive",
+        });
       } finally {
         setLoadingOptions(false);
       }
@@ -127,6 +132,27 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   };
 
   const create = async () => {
+    const errors: string[] = [];
+    if (!form.subject) errors.push("Subject is required");
+    if (!form.level) errors.push("Level is required");
+    if (!form.board) errors.push("Board is required");
+    if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
+    if (!form.startDate) errors.push("Start date is required");
+    if (form.endDate && form.startDate && form.endDate < form.startDate) {
+      errors.push("End date must be on or after start date");
+    }
+    if (!form.classStartTime) errors.push("Class start time is required");
+    if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
+    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
+    if (errors.length) {
+      toast({
+        title: "Please fix the errors",
+        description: errors.join("\n"),
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const payload = {
         ...form,
@@ -134,7 +160,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       };
       const res = await api.post("/group-batches/create", payload);
       if (res.data?.success) {
-        toast.success("Batch created");
+        toast({
+          title: "Batch created",
+        });
         setForm({
           subject: "",
           board: "",
@@ -152,10 +180,27 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
         setOpen(false);
         load();
       } else {
-        toast.error("Failed");
+        toast({
+          title: "Failed",
+          description: "Failed",
+          variant: "destructive",
+        });
       }
-    } catch {
-      toast.error("Failed");
+    } catch (e: any) {
+      const errs = e?.response?.data?.errors;
+      if (Array.isArray(errs) && errs.length) {
+        toast({
+          title: "Validation error",
+          description: errs.join("\n"),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed",
+          description: e?.response?.data?.message || e.message || "Failed",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -163,11 +208,23 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     try {
       const res = await api.post(`/group-batches/${id}/cancel`);
       if (res.data?.success) {
-        toast.success("Cancelled");
+        toast({
+          title: "Cancelled",
+        });
         load();
-      } else toast.error("Failed");
+      } else {
+        toast({
+          title: "Failed",
+          description: "Failed",
+          variant: "destructive",
+        });
+      }
     } catch {
-      toast.error("Failed");
+      toast({
+        title: "Failed",
+        description: "Failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -175,11 +232,23 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     try {
       const res = await api.post(`/group-batches/${id}/reschedule`);
       if (res.data?.success) {
-        toast.success("Rescheduled");
+        toast({
+          title: "Rescheduled",
+        });
         load();
-      } else toast.error("Failed");
+      } else {
+        toast({
+          title: "Failed",
+          description: "Failed",
+          variant: "destructive",
+        });
+      }
     } catch {
-      toast.error("Failed");
+      toast({
+        title: "Failed",
+        description: "Failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -197,7 +266,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       setBatch(b.data?.data || null);
       setRoster(r.data?.data || []);
     } catch {
-      toast.error("Unable to load batch");
+      toast({
+        title: "Unable to load batch",
+        description: "Unable to load batch",
+        variant: "destructive",
+      });
     }
   };
 
@@ -216,7 +289,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       });
       setEditOpen(true);
     } catch {
-      toast.error("Unable to load batch");
+      toast({
+        title: "Unable to load batch",
+        description: "Unable to load batch",
+        variant: "destructive",
+      });
     }
   };
 
@@ -234,7 +311,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       setSessions(s.data?.data || []);
       setBatch(b.data?.data || null);
     } catch {
-      toast.error("Unable to load sessions");
+      toast({
+        title: "Unable to load sessions",
+        description: "Unable to load sessions",
+        variant: "destructive",
+      });
     }
   };
 
@@ -243,7 +324,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       const res = await api.post(`/sessions/${sessionId}/join`);
       if (res.data?.url) window.open(res.data.url, "_blank");
     } catch {
-      toast.error("Join failed");
+      toast({
+        title: "Join failed",
+        description: "Join failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -290,9 +375,15 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
         setSessions(s.data?.data || []);
       }
 
-      toast.success("Uploaded successfully");
+      toast({
+        title: "Uploaded successfully",
+      });
     } catch {
-      toast.error("Upload failed");
+      toast({
+        title: "Upload failed",
+        description: "Upload failed",
+        variant: "destructive",
+      });
     }
   };
 
@@ -587,11 +678,17 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           if (!selectedId) return;
           try {
             await api.patch(`/group-batches/${selectedId}/edit`, payload);
-            toast.success("Batch updated");
+            toast({
+              title: "Batch updated",
+            });
             setEditOpen(false);
             await load();
           } catch {
-            toast.error("Failed to update");
+            toast({
+              title: "Failed to update",
+              description: "Failed to update",
+              variant: "destructive",
+            });
           }
         }}
       />

@@ -6,7 +6,7 @@ import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import api from "@/lib/api";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -22,6 +22,7 @@ import { getCreateOptions } from "@/services/groupBatchService";
 import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
 
 export default function TutorGroupBatchesPage() {
+  const { toast } = useToast();
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
@@ -75,25 +76,47 @@ export default function TutorGroupBatchesPage() {
     fetchOptions();
   }, [open, options.subjects?.length]);
 
+  const validate = () => {
+    const errors: string[] = [];
+    if (!form.subject) errors.push("Subject is required");
+    if (!form.level) errors.push("Level is required");
+    if (!form.board) errors.push("Board is required");
+    if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
+    if (!form.startDate) errors.push("Start date is required");
+    if (form.endDate && form.startDate && form.endDate < form.startDate) {
+      errors.push("End date must be on or after start date");
+    }
+    if (!classStartTime || !classEndTime) errors.push("Start and end times are required");
+    if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
+    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
+    return errors;
+  };
+
   const create = async () => {
-    if (!classStartTime || !classEndTime) {
-      toast.error("Please select class start and end times");
+    const errors = validate();
+    if (errors.length) {
+      toast({
+        title: "Please fix the errors",
+        description: errors.join("\n"),
+        variant: "destructive",
+      });
       return;
     }
 
     const payload = {
       ...form,
       board: form.board === "Other" ? form.boardOther : form.board,
-      classStartTime: classStartTime.format("HH:mm"),
-      classEndTime: classEndTime.format("HH:mm"),
-      pricePerMonth:
-        form.pricePerMonth === "" ? undefined : Number(form.pricePerMonth),
+      classStartTime: classStartTime ? classStartTime.format("HH:mm") : "",
+      classEndTime: classEndTime ? classEndTime.format("HH:mm") : "",
+      pricePerMonth: form.pricePerMonth === "" ? undefined : Number(form.pricePerMonth),
     };
 
     try {
       const res = await api.post("/group-batches/create", payload);
       if (res.data?.success) {
-        toast.success("Batch created");
+        toast({
+          title: "Batch created",
+        });
         setForm({
           subject: "",
           board: "",
@@ -118,8 +141,19 @@ export default function TutorGroupBatchesPage() {
       }
     } catch (e: any) {
       const errs = e?.response?.data?.errors;
-      if (Array.isArray(errs) && errs.length) toast.error(errs.join(", "));
-      else toast.error(e.message || "Failed");
+        if (Array.isArray(errs) && errs.length) {
+          toast({
+            title: "Validation error",
+            description: errs.join("\n"),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Failed",
+            description: e?.response?.data?.message || e.message || "Failed",
+            variant: "destructive",
+          });
+        }
     }
   };
 
@@ -296,10 +330,9 @@ export default function TutorGroupBatchesPage() {
                         <TimePicker
                           value={classStartTime}
                           onChange={setClassStartTime}
-                          ampm
-                          ampmInClock
+                          ampm={false}
                           views={["hours", "minutes"]}
-                          format="hh:mm a"
+                          format="HH:mm"
                           minutesStep={1}
                           viewRenderers={{
                             hours: renderTimeViewClock,
@@ -328,10 +361,9 @@ export default function TutorGroupBatchesPage() {
                         <TimePicker
                           value={classEndTime}
                           onChange={setClassEndTime}
-                          ampm
-                          ampmInClock
+                          ampm={false}
                           views={["hours", "minutes"]}
-                          format="hh:mm a"
+                          format="HH:mm"
                           minutesStep={1}
                           viewRenderers={{
                             hours: renderTimeViewClock,
