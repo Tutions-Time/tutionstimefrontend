@@ -44,6 +44,11 @@ export default function Footer() {
                   Sign Up
                 </Link>
               </li>
+               <li>
+                <Link href="/how-it-works" className="hover:text-text">
+                  How it works
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -59,6 +64,11 @@ export default function Footer() {
               <li>
                 <Link href="/login" className="hover:text-text">
                   Login
+                </Link>
+              </li>
+               <li>
+                <Link href="/how-it-works" className="hover:text-text">
+                  How it works
                 </Link>
               </li>
             </ul>
