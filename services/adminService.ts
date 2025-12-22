@@ -134,9 +134,17 @@ export const getDashboardActivity = async (limit = 6) => {
 };
 
 
-export const getAllTutors = async () => {
+export const getAllTutors = async (params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  kyc?: 'all' | 'pending' | 'approved' | 'rejected';
+  status?: 'all' | 'active' | 'suspended';
+  minRating?: number;
+  sort?: 'joined_desc' | 'joined_asc' | 'rating_desc' | 'rating_asc' | 'name_asc' | 'name_desc';
+}) => {
   try {
-    const res = await api.get('/admin/tutors');
+    const res = await api.get('/admin/tutors', { params });
     return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));

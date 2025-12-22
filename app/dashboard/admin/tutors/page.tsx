@@ -52,6 +52,13 @@ export default function AdminTutorsPage() {
   const [kyc, setKyc] = useState<Kyc | "all">("all");
   const [status, setStatus] = useState<Status | "all">("all");
   const [minRating, setMinRating] = useState<number>(0);
+  const [sort, setSort] = useState<
+    "joined_desc" | "joined_asc" | "rating_desc" | "rating_asc" | "name_asc" | "name_desc"
+  >("joined_desc");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
   const [rows, setRows] = useState<TutorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [kycModal, setKycModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
@@ -73,10 +80,19 @@ export default function AdminTutorsPage() {
     const fetchTutors = async () => {
       try {
         setLoading(true);
-        const res = await getAllTutors();
+        const res = await getAllTutors({
+          page,
+          limit,
+          q: query,
+          kyc,
+          status,
+          minRating,
+          sort,
+        });
         if (res.success) {
-          setRows(res.data);
-          toast({ title: "Tutors loaded successfully" });
+          setRows(res.data || []);
+          setTotal(res.pagination?.total || 0);
+          setPages(res.pagination?.pages || 1);
         } else {
           toast({
             title: "Failed to load tutors",
@@ -94,25 +110,18 @@ export default function AdminTutorsPage() {
       }
     };
     fetchTutors();
-  }, []);
+  }, [page, limit, query, kyc, status, minRating, sort]);
 
-  // ✅ Filters
-  const filtered = useMemo(() => {
-    let data = [...rows];
-    const q = query.trim().toLowerCase();
-    if (q) {
-      data = data.filter(
-        (r) =>
-          r.name.toLowerCase().includes(q) ||
-          r.email.toLowerCase().includes(q) ||
-          (r.phone ?? "").toLowerCase().includes(q)
-      );
-    }
-    if (kyc !== "all") data = data.filter((r) => r.kyc === kyc);
-    if (status !== "all") data = data.filter((r) => r.status === status);
-    if (minRating > 0) data = data.filter((r) => r.rating >= minRating);
-    return data;
-  }, [rows, query, kyc, status, minRating]);
+  useEffect(() => {
+    setPage(1);
+  }, [query, kyc, status, minRating, sort, limit]);
+
+  const showing = useMemo(() => {
+    if (total === 0) return "0";
+    const start = (page - 1) * limit + 1;
+    const end = Math.min(page * limit, total);
+    return `${start}-${end}`;
+  }, [page, limit, total]);
 
   // ✅ Approve/Reject KYC
   async function setKycStatus(id: string, newStatus: Kyc) {
@@ -195,7 +204,7 @@ export default function AdminTutorsPage() {
         <main className="p-4 lg:p-6 space-y-6">
           {/* Filters */}
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
               <div className="relative md:col-span-2">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
                 <Input
@@ -240,11 +249,178 @@ export default function AdminTutorsPage() {
                   placeholder="Min rating"
                 />
               </div>
+
+              <select
+                className="h-10 rounded-md border px-3 text-sm"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as any)}
+              >
+                <option value="joined_desc">Joined (newest)</option>
+                <option value="joined_asc">Joined (oldest)</option>
+                <option value="rating_desc">Rating (high → low)</option>
+                <option value="rating_asc">Rating (low → high)</option>
+                <option value="name_asc">Name (A → Z)</option>
+                <option value="name_desc">Name (Z → A)</option>
+              </select>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="text-muted">
+                Showing {showing} of {total}
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  className="h-9 rounded-md border px-2 text-xs"
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value))}
+                >
+                  <option value={5}>5 / page</option>
+                  <option value={10}>10 / page</option>
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                </select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  Prev
+                </Button>
+                <span className="text-xs text-muted">
+                  Page {page} of {pages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                  disabled={page >= pages}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </Card>
 
+          {/* Mobile cards */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {loading && (
+              <Card className="p-6 rounded-2xl bg-white shadow-sm text-center text-muted">
+                Loading tutors...
+              </Card>
+            )}
+            {!loading && rows.length === 0 && (
+              <Card className="p-6 rounded-2xl bg-white shadow-sm text-center text-muted">
+                No tutors found. Try different filters.
+              </Card>
+            )}
+            {!loading &&
+              rows.map((t) => (
+                <Card key={t.id} className="p-4 rounded-2xl bg-white shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
+                        {t.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </div>
+                      <div>
+                        <div className="font-medium text-text">{t.name}</div>
+                        <div className="text-xs text-muted">{t.email}</div>
+                      </div>
+                    </div>
+                    <Badge
+                      className={cn(
+                        "border capitalize",
+                        t.kyc === "approved"
+                          ? "bg-green-100 text-green-700 border-green-300"
+                          : t.kyc === "pending"
+                          ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                          : "bg-red-100 text-red-700 border-red-300"
+                      )}
+                    >
+                      {t.kyc}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted">
+                    <div>Phone</div>
+                    <div className="text-text">{t.phone || "-"}</div>
+                    <div>Rating</div>
+                    <div className="text-text">{t.rating.toFixed(1)}</div>
+                    <div>Classes (30d)</div>
+                    <div className="text-text">{t.classes30d}</div>
+                    <div>Earnings (30d)</div>
+                    <div className="text-text">
+                      ƒ,1{t.earnings30d.toLocaleString("en-IN")}
+                    </div>
+                    <div>Status</div>
+                    <div className="text-text capitalize">{t.status}</div>
+                    <div>Joined</div>
+                    <div className="text-text">{new Date(t.joinedAt).toLocaleDateString()}</div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setKycModal({ open: true, row: t })}
+                    >
+                      <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
+                    </Button>
+                    {t.kyc !== "approved" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          window.confirm(`Approve KYC for ${t.name}?`) &&
+                          setKycStatus(t.id, "approved")
+                        }
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                      </Button>
+                    )}
+                    {t.kyc !== "rejected" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const reason = prompt(
+                            `Reject KYC for ${t.name}. Enter reason:`
+                          );
+                          if (reason !== null)
+                            setKycStatus(t.id, "rejected");
+                        }}
+                      >
+                        <XCircle className="w-4 h-4 mr-2" /> Reject
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        window.confirm(`Toggle status for ${t.name}?`) &&
+                        toggleStatus(t.id, t.status)
+                      }
+                    >
+                      {t.status === "active" ? (
+                        <ToggleLeft className="w-4 h-4 mr-2" />
+                      ) : (
+                        <ToggleRight className="w-4 h-4 mr-2" />
+                      )}
+                      {t.status === "active" ? "Suspend" : "Activate"}
+                    </Button>
+                    <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
+                      <Button size="sm">Journey</Button>
+                    </Link>
+                  </div>
+                </Card>
+              ))}
+          </div>
+
           {/* Table */}
-          <Card className="overflow-x-auto rounded-2xl bg-white shadow-sm">
+          <Card className="overflow-x-auto rounded-2xl bg-white shadow-sm hidden md:block">
             {loading ? (
               <div className="p-12 text-center text-muted">
                 Loading tutors...
@@ -265,7 +441,7 @@ export default function AdminTutorsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => (
+                  {rows.map((t) => (
                     <tr key={t.id} className="border-t">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
@@ -386,7 +562,7 @@ export default function AdminTutorsPage() {
                       </td>
                     </tr>
                   ))}
-                  {filtered.length === 0 && (
+                  {rows.length === 0 && (
                     <tr>
                       <td
                         colSpan={9}
