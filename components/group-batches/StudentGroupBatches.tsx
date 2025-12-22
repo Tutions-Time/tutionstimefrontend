@@ -17,13 +17,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 
@@ -35,12 +28,10 @@ export default function StudentGroupBatches() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
-  const [couponMap, setCouponMap] = useState<Record<string, string>>({});
 
   // Enrollment Modal State
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollBatch, setEnrollBatch] = useState<any>(null);
-  const [duration, setDuration] = useState(1);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
 
   // --------------------------
@@ -127,7 +118,6 @@ export default function StudentGroupBatches() {
   // --------------------------
   const openEnrollModal = (batch: any) => {
     setEnrollBatch(batch);
-    setDuration(1);
     setEnrollModalOpen(true);
   };
 
@@ -145,7 +135,6 @@ export default function StudentGroupBatches() {
       const order = await createGroupOrder({
         batchId,
         reservationId: res.reservationId,
-        durationInMonths: duration,
         // couponCode: couponMap[batchId]?.trim(),
       });
 
@@ -251,12 +240,20 @@ export default function StudentGroupBatches() {
                 <div className="text-[11px] text-gray-500">
                   Board: {b.board || "General"}
                 </div>
-                <div className="text-[11px] text-gray-500">{b.level || "General"}</div>
-              </div>
+            <div className="text-[11px] text-gray-500">{b.level || "General"}</div>
+            <div className="text-[11px] text-gray-500">{b.batchTypeLabel || b.batchType}</div>
+            {b.tutor?.name && (
+              <div className="text-[11px] text-gray-500">Tutor: {b.tutor.name}</div>
+            )}
+          </div>
 
               {b.isEnrolledForCurrentUser ? (
                 <span className="text-[10px] px-2 py-[2px] rounded-full bg-green-100 text-green-700">
                   Enrolled
+                </span>
+              ) : !b.published ? (
+                <span className="text-[10px] px-2 py-[2px] rounded-full bg-yellow-100 text-yellow-700">
+                  Coming Soon
                 </span>
               ) : (
                 <span className="text-[10px] px-2 py-[2px] rounded-full bg-blue-100 text-blue-700">
@@ -267,23 +264,32 @@ export default function StudentGroupBatches() {
 
             {/* Info */}
             <div className="space-y-1 text-[12px]">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> {b.fixedDates?.length ?? 0} dates
-              </div>
+              
+              {b.batchStartDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Start{" "}
+                  {new Date(b.batchStartDate).toLocaleDateString("en-IN")}
+                </div>
+              )}
               {b.batchEndDate && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> End{" "}{new Date(b.batchEndDate).toLocaleDateString("en-IN")}
                 </div>
               )}
+            
+            
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
               <div className="flex items-center gap-1">
-                <IndianRupee className="w-3 h-3" /> {b.pricePerStudent}/mo
+                <IndianRupee className="w-3 h-3" /> ₹{b.pricePerStudent} (full batch)
               </div>
-              <div className="flex items-center gap-1">
+              {/* <div className="flex items-center gap-1">
                 <Video className="w-3 h-3" /> Online Class
-              </div>
+              </div> */}
+              {b.description && (
+                <div className="text-[11px] text-gray-600">{b.description}</div>
+              )}
             </div>
 
             {/* Small CTA Buttons */}
@@ -292,11 +298,11 @@ export default function StudentGroupBatches() {
                 <>
                 {/* Coupon UI disabled */}
                 <Button
-                  disabled={loading || b.liveSeats <= 0}
+                  disabled={loading || b.liveSeats <= 0 || !b.published}
                   onClick={() => openEnrollModal(b)}
                   className="flex-1 h-8 px-3 text-xs bg-primary text-black"
                 >
-                  {loading ? "Processing..." : "Join Now"}
+                  {!b.published ? "Coming Soon" : loading ? "Processing..." : "Join Now"}
                 </Button>
                 </>
               ) : (
@@ -333,31 +339,14 @@ export default function StudentGroupBatches() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="flex justify-between text-sm">
-              <span>Price per month:</span>
+              <span>Batch price:</span>
               <span className="font-medium">₹{enrollBatch?.pricePerStudent}</span>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Select Duration (Months)</label>
-              <Select 
-                value={String(duration)} 
-                onValueChange={(v) => setDuration(Number(v))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                    <SelectItem key={m} value={String(m)}>{m} Month{m > 1 ? 's' : ''}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
               <span className="font-medium">Total Amount:</span>
               <span className="text-lg font-bold text-primary">
-                ₹{(enrollBatch?.pricePerStudent || 0) * duration}
+                ₹{enrollBatch?.pricePerStudent || 0}
               </span>
             </div>
           </div>

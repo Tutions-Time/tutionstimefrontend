@@ -36,7 +36,7 @@ export const reserveSeat = async (id: string) => {
   }
 };
 
-export const createGroupOrder = async (payload: { batchId: string; reservationId: string; couponCode?: string; durationInMonths?: number }) => {
+export const createGroupOrder = async (payload: { batchId: string; reservationId: string; couponCode?: string }) => {
   try {
     const res = await api.post(`/payments/group/create-order`, payload);
     return res.data;
