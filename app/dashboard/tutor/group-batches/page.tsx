@@ -68,7 +68,11 @@ export default function TutorGroupBatchesPage() {
           scheduleTypes: data?.scheduleTypes || ["recurring"],
         });
       } catch (e: any) {
-        toast.error(e.message || "Unable to load options");
+        toast({
+          title: "Unable to load options",
+          description: e?.message,
+          variant: "destructive",
+        });
       } finally {
         setLoadingOptions(false);
       }
@@ -136,8 +140,18 @@ export default function TutorGroupBatchesPage() {
         setRefreshKey((k) => k + 1);
       } else {
         const errs = res.data?.errors;
-        if (Array.isArray(errs) && errs.length) toast.error(errs.join(", "));
-        else toast.error("Failed");
+        if (Array.isArray(errs) && errs.length) {
+          toast({
+            title: "Failed",
+            description: errs.join(", "),
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Failed",
+            variant: "destructive",
+          });
+        }
       }
     } catch (e: any) {
       const errs = e?.response?.data?.errors;
