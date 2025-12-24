@@ -30,6 +30,7 @@ export interface TutorProfileState {
   exams: string[];
   studentTypes: string[];
   groupSize: string;
+  groupSizes: string[];
 
   // ----- Rates & Availability -----
   hourlyRate: string;
@@ -85,6 +86,7 @@ export const initialState: TutorProfileState = {
   exams: [],
   studentTypes: [],
   groupSize: "",
+  groupSizes: [],
 
   // Rates & Availability
   hourlyRate: "",

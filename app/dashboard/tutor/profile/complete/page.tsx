@@ -132,6 +132,7 @@ export default function TutorProfileCompletePage() {
         exams: [],
         studentTypes: [],
         groupSize: "",
+        groupSizes: [],
         hourlyRate: "",
         monthlyRate: "",
         availableDays: [],
@@ -171,6 +172,12 @@ export default function TutorProfileCompletePage() {
         exams: profile.exams,
         studentTypes: profile.studentTypes,
         groupSize: profile.groupSize,
+        groupSizes:
+          Array.isArray(profile.groupSizes) && profile.groupSizes.length
+            ? profile.groupSizes
+            : profile.groupSize
+            ? [profile.groupSize]
+            : [],
         hourlyRate: profile.hourlyRate,
         monthlyRate: profile.monthlyRate,
         availability: profile.availability,

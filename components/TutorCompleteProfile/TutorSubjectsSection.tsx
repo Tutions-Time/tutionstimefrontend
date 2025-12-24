@@ -82,14 +82,41 @@ export default function TutorSubjectsSection({
   const [otherSubject, setOtherSubject] = useState("");
   const [otherBoard, setOtherBoard] = useState("");
 
-  const selectedTypes = profile.studentTypes || [];
+type ArrayKeys =
+  | "subjects"
+  | "classLevels"
+  | "boards"
+  | "exams"
+  | "studentTypes";
+
+  const getArray = (key: ArrayKeys) => {
+    const value = (profile as unknown as Record<string, unknown>)[key];
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const selectedTypes = getArray("studentTypes");
+  const selectedSubjects = getArray("subjects");
+  const selectedBoards = getArray("boards");
+  const selectedClassLevels = getArray("classLevels");
+  const selectedGroupSizes = Array.isArray(profile.groupSizes)
+    ? profile.groupSizes
+    : profile.groupSize
+    ? [profile.groupSize]
+    : [];
 
   /* ---------------------- Derived Options ---------------------- */
  const subjectOptions = useMemo(() => {
   if (!selectedTypes.length) return [];
 
   const predefined = selectedTypes.flatMap((t) => SUBJECTS[t] || []);
-  const selected = profile.subjects || [];
+  const selected = selectedSubjects;
 
   const merged = Array.from(
     new Set([...predefined, ...selected])
@@ -111,7 +138,7 @@ export default function TutorSubjectsSection({
   if (!selectedTypes.length) return [];
 
   const predefined = selectedTypes.flatMap((t) => BOARDS[t] || []);
-  const selected = profile.boards || [];
+  const selected = selectedBoards;
 
   const merged = Array.from(
     new Set([...predefined, ...selected])
@@ -123,17 +150,10 @@ export default function TutorSubjectsSection({
 }, [selectedTypes, profile.boards]);
 
 
-type ArrayKeys =
-  | "subjects"
-  | "classLevels"
-  | "boards"
-  | "exams"
-  | "studentTypes";
+  const toggleArrayField = (key: ArrayKeys, value: string) => {
+    if (disabled) return;
 
-const toggleArrayField = (key: ArrayKeys, value: string) => {
-  if (disabled) return;
-
-  const arr = Array.isArray(profile[key]) ? [...profile[key]] : [];
+  const arr = [...getArray(key)];
   const exists = arr.includes(value);
   const next = exists ? arr.filter((v) => v !== value) : [...arr, value];
 
@@ -160,13 +180,23 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
       .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
 
-    const current = Array.isArray(profile[field]) ? profile[field] : [];
+    const current = getArray(field);
     if (!current.includes(formatted)) {
       const updated = [...current.filter((s) => s !== "Other"), formatted, "Other"];
       dispatch(setField({ key: field, value: updated }));
     }
 
     setInput("");
+  };
+
+  const toggleGroupSize = (value: string) => {
+    if (disabled) return;
+    const exists = selectedGroupSizes.includes(value);
+    const next = exists
+      ? selectedGroupSizes.filter((v) => v !== value)
+      : [...selectedGroupSizes, value];
+    dispatch(setField({ key: "groupSizes", value: next }));
+    dispatch(setField({ key: "groupSize", value: next[0] || "" }));
   };
 
   const handleOtherKeyDown = (
@@ -244,7 +274,7 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
             <Label className="block mb-2 font-medium">Subjects You Teach</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {subjectOptions.map((s) => {
-                const active = profile.subjects.includes(s);
+                const active = selectedSubjects.includes(s);
                 return (
                   <label key={s} className={chipClasses(active)}>
                     <input
@@ -260,7 +290,7 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
               })}
             </div>
 
-            {profile.subjects.includes("Other") && (
+            {selectedSubjects.includes("Other") && (
               <div className="mt-4 max-w-md relative">
                 <Label className="mb-1 block">Other Subject</Label>
                 <div className="relative">
@@ -303,7 +333,7 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
             <Label className="block mb-2 font-medium">Classes You Teach</Label>
             <div className="flex flex-wrap gap-2">
               {classOptions.map((opt) => {
-                const selected = profile.classLevels.includes(opt);
+                const selected = selectedClassLevels.includes(opt);
                 return (
                   <button
                     key={opt}
@@ -326,7 +356,7 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
             </Label>
             <div className="flex flex-wrap gap-2">
               {boardOptions.map((b) => {
-                const active = profile.boards.includes(b);
+                const active = selectedBoards.includes(b);
                 return (
                   <label key={b} className={chipClasses(active)}>
                     <input
@@ -342,7 +372,7 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
               })}
             </div>
 
-            {profile.boards.includes("Other") && (
+            {selectedBoards.includes("Other") && (
               <div className="mt-4 max-w-md relative">
                 <Label className="mb-1 block">Other Board / Curriculum</Label>
                 <div className="relative">
@@ -387,15 +417,12 @@ const toggleArrayField = (key: ArrayKeys, value: string) => {
             </Label>
             <div className="flex flex-wrap gap-2">
               {GROUP_SIZES.map((size) => {
-                const active = profile.groupSize === size;
+                const active = selectedGroupSizes.includes(size);
                 return (
                   <button
                     key={size}
                     type="button"
-                    onClick={() =>
-                      !disabled &&
-                      dispatch(setField({ key: "groupSize", value: size }))
-                    }
+                    onClick={() => toggleGroupSize(size)}
                     className={chipClasses(active)}
                     disabled={disabled}
                   >
