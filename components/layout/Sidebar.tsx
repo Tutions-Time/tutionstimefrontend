@@ -70,7 +70,7 @@ const adminLinks: NavLink[] = [
   // { href: '/dashboard/admin/categories', label: 'Categories', icon: Layers },
   // { href: '/dashboard/admin/transactions', label: 'Transactions', icon: ClipboardList },
   { href: '/dashboard/admin/refunds', label: 'Refunds', icon: ClipboardList },
-  { href: '/dashboard/admin/sessions', label: 'Sessions', icon: Calendar },
+  // { href: '/dashboard/admin/sessions', label: 'Sessions', icon: Calendar },
   { href: '/dashboard/admin/marketing/referrals', label: 'Referrals', icon: TrendingUp },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
 ];

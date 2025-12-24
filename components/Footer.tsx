@@ -1,7 +1,7 @@
-'use client';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { fadeInUp, useScrollAnimation } from './animations';
+"use client";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { fadeInUp, useScrollAnimation } from "./animations";
 
 export default function Footer() {
   const { ref, isInView } = useScrollAnimation();
@@ -12,7 +12,7 @@ export default function Footer() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         variants={fadeInUp}
         initial="hidden"
-        animate={isInView ? 'visible' : 'hidden'}
+        animate={isInView ? "visible" : "hidden"}
       >
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
@@ -21,13 +21,14 @@ export default function Footer() {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
                 T
               </div>
-              <span className="font-bold text-xl text-text">
-                Tuitions time
-              </span>
+              <span className="font-bold text-xl text-text">Tuitions time</span>
             </div>
-            <p className="text-sm text-muted">
+            <p className="text-sm text-muted pb-2">
               Your Learning Journey Begins Here — With TuitionsTime
             </p>
+            <Link href="/how-it-works" className="hover:text-text text-sm font-medium">
+              How it works
+            </Link>
           </div>
 
           {/* Students */}
@@ -42,11 +43,6 @@ export default function Footer() {
               <li>
                 <Link href="/signup" className="hover:text-text">
                   Sign Up
-                </Link>
-              </li>
-               <li>
-                <Link href="/how-it-works" className="hover:text-text">
-                  How it works
                 </Link>
               </li>
             </ul>
@@ -64,11 +60,6 @@ export default function Footer() {
               <li>
                 <Link href="/login" className="hover:text-text">
                   Login
-                </Link>
-              </li>
-               <li>
-                <Link href="/how-it-works" className="hover:text-text">
-                  How it works
                 </Link>
               </li>
             </ul>

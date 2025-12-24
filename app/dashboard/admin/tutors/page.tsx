@@ -191,14 +191,14 @@ export default function AdminTutorsPage() {
           title="Tutors"
           subtitle="KYC, performance, and controls"
           greeting
-          action={
-            <Link href="/admin/analytics">
-              <Button className="bg-primary hover:bg-primary/90 text-text">
-                <Users className="w-4 h-4 mr-2" />
-                Platform Overview
-              </Button>
-            </Link>
-          }
+          // action={
+          //   <Link href="/admin/analytics">
+          //     <Button className="bg-primary hover:bg-primary/90 text-text">
+          //       <Users className="w-4 h-4 mr-2" />
+          //       Platform Overview
+          //     </Button>
+          //   </Link>
+          // }
         />
 
         <main className="p-4 lg:p-6 space-y-6">
