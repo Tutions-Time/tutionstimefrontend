@@ -161,7 +161,7 @@ export default function WalletPage() {
       />
 
       <div className="lg:pl-64">
-        <Topbar
+        {/* <Topbar
           title="Wallet"
           subtitle="Your balance and transactions"
           action={
@@ -169,7 +169,7 @@ export default function WalletPage() {
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
           }
-        />
+        /> */}
 
         <main className="p-4 lg:p-6 space-y-6">
           {/* Wallet Balance */}

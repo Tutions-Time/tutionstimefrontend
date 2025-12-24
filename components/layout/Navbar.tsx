@@ -122,9 +122,9 @@ export function Navbar({ onMenuClick, unreadCount = 0, userName, userRole, onLog
                   <DropdownMenuItem asChild>
                     <Link href="/wallet">Wallet</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  {/* <DropdownMenuItem asChild>
                     <Link href="/analytics/tutor">Analytics</Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </>
               )}
 
