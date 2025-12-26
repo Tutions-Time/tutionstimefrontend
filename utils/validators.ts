@@ -31,10 +31,6 @@ export interface TutorProfileErrors {
   photoUrl?: string;
   resumeUrl?: string;
   demoVideo?: string;
-  upiId?: string;
-  accountHolderName?: string;
-  bankAccountNumber?: string;
-  ifsc?: string;
 }
 
 export interface StudentProfileErrors {
@@ -100,9 +96,7 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
   if (isEmpty(data.email)) errors.email = "Email is required";
   else if (!isValidEmail(data.email)) errors.email = "Enter a valid email";
 
-  if (isEmpty(data.phone)) {
-    errors.phone = "Mobile number is required";
-  } else if (!isValidPhone(data.phone)) {
+  if (data.phone && !isValidPhone(data.phone)) {
     errors.phone = "Mobile number must be exactly 10 digits";
   }
 
@@ -113,6 +107,8 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.addressLine1))
     errors.addressLine1 = "Address Line 1 is required";
+  if (isEmpty(data.addressLine2))
+    errors.addressLine2 = "Address Line 2 is required";
   if (isEmpty(data.addressLine2))
     errors.addressLine2 = "Address Line 2 is required";
 
@@ -139,9 +135,6 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (!Array.isArray(data.boards) || data.boards.length === 0)
     errors.boards = "Select at least one board";
-
-  if (!Array.isArray(data.exams) || data.exams.length === 0)
-    errors.exams = "Select at least one exam";
 
   if (!Array.isArray(data.studentTypes) || data.studentTypes.length === 0)
     errors.studentTypes = "Select at least one student type";

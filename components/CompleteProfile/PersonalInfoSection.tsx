@@ -181,6 +181,19 @@ export default function PersonalInfoSection({
             />
           </div>
 
+          {/* Address Line 2 */}
+          <div>
+            <Label>Address Line 2</Label>
+            <Input
+              placeholder="Address Line 2"
+              value={profile.addressLine2}
+              onChange={(e) =>
+                dispatch(setField({ key: "addressLine2", value: e.target.value }))
+              }
+              disabled={disabled}
+            />
+          </div>
+
           {/* City / State / Pincode */}
           <div className="grid md:grid-cols-3 gap-4">
 

@@ -27,7 +27,7 @@ export default function TutorRatesAvailabilitySection({
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div>
-          <Label>Hourly Rate (â‚¹)</Label>
+          <Label>Hourly Rate </Label>
           <Input
             disabled={disabled}
             value={profile.hourlyRate}
@@ -40,7 +40,7 @@ export default function TutorRatesAvailabilitySection({
         </div>
 
         <div>
-          <Label>Monthly Rate (â‚¹)</Label>
+          <Label>Monthly Rate </Label>
           <Input
             disabled={disabled}
             value={profile.monthlyRate}
