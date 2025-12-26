@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Loader2, Save, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 import { useAppDispatch, useAppSelector } from "@/store/store";
@@ -29,8 +29,6 @@ export default function StudentProfilePage() {
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-
-  const [errors, setErrors] = useState({}); // ⭐ ADDED
   const router = useRouter();
 
   // -------- Fetch Profile --------
@@ -41,9 +39,15 @@ export default function StudentProfilePage() {
         if (res.success && res.data.profile) {
           dispatch(setBulk(res.data.profile));
           setReferralCode(res.data?.referralCode || "");
-        } else toast.error("Profile not found");
+        } else toast({
+            title: "Profile not found",
+            variant: "destructive",
+          });
       } catch {
-        toast.error("Error loading profile");
+        toast({
+          title: "Error loading profile",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -51,19 +55,15 @@ export default function StudentProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
-  // -------- VALIDATION ON BLUR --------
-  const updateFieldValidation = () => {
-    const v = validateStudentProfileFields(profile);
-    setErrors(v);
-  };
-
   // -------- Save Handler --------
   const handleSave = async () => {
     const validation = validateStudentProfileFields(profile);
-    setErrors(validation);
 
     if (Object.keys(validation).length > 0) {
-      toast.error("Please correct the highlighted fields");
+      toast({
+        title: "Please correct the highlighted fields",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -80,23 +80,28 @@ export default function StudentProfilePage() {
 
       const res = await updateStudentProfile(fd);
       if (res.success) {
-        toast.success("Profile updated successfully!");
+        toast({
+          title: "Profile updated successfully",
+        });
         setEditMode(false);
         router.push("/dashboard/student");
-      } else toast.error(res.message || "Update failed");
+      } else toast({
+          title: "Update failed",
+          description: res.message || "Update failed",
+          variant: "destructive",
+        });
     } catch (err: any) {
-      toast.error(err.message || "Error saving profile");
+      toast({
+        title: "Error saving profile",
+        description: err.message || "Error saving profile",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  // Auto-clear validation when required fields change
-  useEffect(() => {
-    if (Object.keys(errors || {}).length === 0) return;
-    const v = validateStudentProfileFields(profile);
-    setErrors(v);
-  }, [profile.state, profile.city, profile.pincode]);
+  
 
   if (loading)
     return (
@@ -151,7 +156,7 @@ export default function StudentProfilePage() {
           <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
             <div>
               <div className="text-sm text-muted">Your Referral Code</div>
-              <div className="text-2xl font-bold">{referralCode || "—"}</div>
+              <div className="text-2xl font-bold">{referralCode || "â€”"}</div>
             </div>
             <button
               className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
@@ -168,14 +173,12 @@ export default function StudentProfilePage() {
           <PersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
-            errors={errors}
             disabled={!editMode}
-            onValidate={updateFieldValidation} // ⭐ ADDED
           />
 
-          <AcademicDetailsSection disabled={!editMode} errors={{}} />
+          <AcademicDetailsSection disabled={!editMode} />
 
-          <PreferredSubjectsSection disabled={!editMode} errors={{}} />
+          <PreferredSubjectsSection disabled={!editMode} />
 
           <PaymentPreferenceSection disabled={!editMode} />
 
@@ -186,3 +189,5 @@ export default function StudentProfilePage() {
     </div>
   );
 }
+
+

@@ -27,10 +27,8 @@ const toOptions = (arr: readonly string[]) => arr.map(v => ({ value: v, label: v
 
 /* ---------------------- Component ---------------------- */
 export default function AcademicDetailsSection({
-  errors,
   disabled = false,
 }: {
-  errors: Record<string, string>;
   disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
@@ -109,9 +107,6 @@ export default function AcademicDetailsSection({
               );
             })}
           </div>
-          {errors.track && (
-            <p className="text-rose-600 text-xs mt-1">{errors.track}</p>
-          )}
         </div>
 
         {/* SCHOOL */}

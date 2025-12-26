@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,9 @@ import {
   setBulk,
 } from "@/store/slices/tutorProfileSlice";
 import { updateTutorProfile } from "@/services/profileService";
+import { validateTutorProfile } from "@/utils/validators";
+import api from "@/lib/api";
+import { setUser } from "@/store/slices/authSlice";
 
 export default function TutorProfileCompletePage() {
   const router = useRouter();
@@ -35,8 +38,6 @@ export default function TutorProfileCompletePage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [upiId, setUpiId] = useState("");
   const [accountHolderName, setAccountHolderName] = useState("");
@@ -65,40 +66,32 @@ export default function TutorProfileCompletePage() {
   }, [profile]);
 
   // ---------- VALIDATION ----------
- const validate = () => {
-  const e: Record<string, string> = {};
+  const validate = () => {
+    const e: Record<string, string> = {
+      ...validateTutorProfile(profile),
+    };
 
-  if (!profile.name?.trim()) e.name = "Name is required";
-  if (!profile.email?.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
-    e.email = "Valid email required";
-  if (!profile.pincode?.trim()) e.pincode = "Pincode required";
-  if (!profile.qualification) e.qualification = "Qualification required";
-  if (!profile.experience) e.experience = "Experience required";
-  if (!profile.subjects?.length) e.subjects = "Select at least one subject";
-  if (!profile.hourlyRate?.trim()) e.hourlyRate = "Hourly rate required";
-  if (!profile.bio?.trim()) e.bio = "Bio is required";
-  if (!demoVideoFile) e.demoVideo = "Upload a demo video";
-  if (!profile.isAgeConfirmed)
-  e.isAgeConfirmed = "You must confirm that you are 18+";
+    const hasDemoVideo = Boolean(demoVideoFile || profile.demoVideoUrl);
+    if (!hasDemoVideo) e.demoVideo = "Upload a demo video";
+    if (!profile.isAgeConfirmed)
+      e.isAgeConfirmed = "You must confirm that you are 18+";
 
-  setErrors(e);
+    const msgs = Object.values(e).filter(Boolean) as string[];
 
-  const msgs = Object.values(e).filter(Boolean) as string[];
+    if (msgs.length > 0) {
+      msgs.forEach((msg) =>
+        toast({
+          title: "Validation Error",
+          description: msg,
+          variant: "destructive",
+        })
+      );
 
-  if (msgs.length > 0) {
-    msgs.forEach((msg) =>
-      toast({
-        title: "Validation Error",
-        description: msg,
-        variant: "destructive",
-      })
-    );
+      return false;
+    }
 
-    return false;
-  }
-
-  return true;
-};
+    return true;
+  };
 
 
   const clearAllStateAndCache = () => {
@@ -206,15 +199,31 @@ export default function TutorProfileCompletePage() {
       // Call your existing API (single endpoint)
       await updateTutorProfile(fd);
 
-      // ✅ CLEAR ALL FIELDS + FILES + LOCAL STORAGE BEFORE REDIRECT (SUCCESS)
+      try {
+        const response = await api.get("/auth/me");
+        dispatch(setUser(response.data.user));
+        const cookiePayload = {
+          role: response.data.user.role,
+          isProfileComplete: response.data.user.isProfileComplete,
+        };
+        document.cookie = `auth=${encodeURIComponent(
+          JSON.stringify(cookiePayload)
+        )}; path=/; max-age=2592000`;
+      } catch {}
+
+      // âœ… CLEAR ALL FIELDS + FILES + LOCAL STORAGE BEFORE REDIRECT (SUCCESS)
       clearAllStateAndCache();
       dispatch(stopSubmitting());
       router.push("/dashboard/tutor");
     } catch (err) {
-      // ✅ EVEN ON ERROR: CLEAR ALL FIELDS + FILES + LOCAL STORAGE, THEN REDIRECT
-      clearAllStateAndCache();
       dispatch(stopSubmitting());
-      router.push("/dashboard/tutor");
+      const message =
+        err instanceof Error ? err.message : "Please fix the errors and try again.";
+      toast({
+        title: "Update failed",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -247,18 +256,16 @@ export default function TutorProfileCompletePage() {
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
             photoPreview={photoPreview}
-            errors={errors}
           />
 
           <TutorAcademicSection />
           <TutorSubjectsSection />
-          <TutorRatesAvailabilitySection errors={errors} />
-          <TutorAboutSection errors={errors} />
+          <TutorRatesAvailabilitySection />
+          <TutorAboutSection />
 
           <TutorDemoVideoSection
             demoVideoFile={demoVideoFile}
             setDemoVideoFile={setDemoVideoFile}
-            errors={errors}
           />
 
         <TutorResumeSection
@@ -266,9 +273,7 @@ export default function TutorProfileCompletePage() {
           setResumeFile={setResumeFile}
         />
 
-        <TutorAgeConfirmationSection
-  error={errors?.isAgeConfirmed}
-/>
+        <TutorAgeConfirmationSection />
 
           <div className="space-y-4 border p-4 rounded-xl">
             <div className="font-semibold">Payout Details</div>
@@ -320,7 +325,7 @@ export default function TutorProfileCompletePage() {
               onClick={handleSubmit}
               disabled={profile.isSubmitting || !profile.isAgeConfirmed}
             >
-              {profile.isSubmitting ? "Saving…" : "Save & Continue"}
+              {profile.isSubmitting ? "Savingâ€¦" : "Save & Continue"}
             </PrimaryButton>
           </div>
         </div>
@@ -328,3 +333,4 @@ export default function TutorProfileCompletePage() {
     </div>
   );
 }
+

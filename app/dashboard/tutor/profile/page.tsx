@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Loader2, Save, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast";
+import { toast } from "@/hooks/use-toast";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setBulk } from "@/store/slices/tutorProfileSlice";
 import { getUserProfile, updateTutorProfile } from "@/services/profileService";
@@ -39,8 +39,6 @@ export default function TutorProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [errors, setErrors] = useState({});
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -54,10 +52,16 @@ export default function TutorProfilePage() {
           setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
           setResumeUrl(getImageUrl(tutor.resumeUrl));
         } else {
-          toast.error("Profile not found");
+          toast({
+            title: "Profile not found",
+            variant: "destructive",
+          });
         }
       } catch {
-        toast.error("Error loading tutor profile");
+        toast({
+          title: "Error loading tutor profile",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -66,24 +70,18 @@ export default function TutorProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
-  // ⭐ VALIDATION TRIGGER ON BLUR
-  const updateFieldValidation = () => {
-    let v = validateTutorProfile(profile);
-
-    if (!profile.phone) delete v.phone;
-
-    setErrors(v);
+  // â­ VALIDATION TRIGGER ON BLUR
+    const v = validateTutorProfile(profile);
   };
 
   const handleSave = async () => {
-    let validation = validateTutorProfile(profile);
-
-    if (!profile.phone) delete validation.phone;
-
-    setErrors(validation);
+    const validation = validateTutorProfile(profile);
 
     if (Object.keys(validation).length > 0) {
-      toast.error("Please fix highlighted errors");
+      toast({
+        title: "Please fix highlighted errors",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -106,14 +104,24 @@ export default function TutorProfilePage() {
       const res = await updateTutorProfile(fd);
 
       if (res.success && res.data) {
-        toast.success("Tutor profile updated!");
+        toast({
+          title: "Tutor profile updated",
+        });
         setEditMode(false);
         router.push("/dashboard/tutor");
       } else {
-        toast.error(res.message || "Update failed");
+        toast({
+          title: "Update failed",
+          description: res.message || "Update failed",
+          variant: "destructive",
+        });
       }
     } catch (err: any) {
-      toast.error(err.message || "Error saving profile");
+      toast({
+        title: "Error saving profile",
+        description: err.message || "Error saving profile",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -179,22 +187,19 @@ export default function TutorProfilePage() {
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
             photoPreview={photoPreview}
-            errors={errors}
             disabled={!editMode}
-            onValidate={updateFieldValidation}   // ⭐ added
           />
 
           <TutorAcademicSection disabled={!editMode} />
           <TutorSubjectsSection disabled={!editMode} />
-          <TutorRatesAvailabilitySection disabled={!editMode} errors={{}} />
-          <TutorAboutSection disabled={!editMode} errors={{}} />
+          <TutorRatesAvailabilitySection disabled={!editMode} />
+          <TutorAboutSection disabled={!editMode} />
 
           <TutorDemoVideoSection
             demoVideoFile={demoVideoFile}
             setDemoVideoFile={setDemoVideoFile}
             demoVideoUrl={demoVideoUrl}
             disabled={!editMode}
-            errors={{}}
           />
 
           <TutorResumeSection
@@ -209,3 +214,6 @@ export default function TutorProfilePage() {
     </div>
   );
 }
+
+
+

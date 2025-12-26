@@ -51,10 +51,8 @@ const SUBJECTS_COMP_BY_EXAM: Record<string, string[]> = {
 
 /* ---------------------- Component ---------------------- */
 export default function PreferredSubjectsSection({
-  errors,
   disabled = false,
 }: {
-  errors: Record<string, string>;
   disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
@@ -212,9 +210,6 @@ export default function PreferredSubjectsSection({
             </div>
           )}
 
-          {errors.subjects && (
-            <p className="text-rose-600 text-xs mt-2">{errors.subjects}</p>
-          )}
         </>
       ) : (
         <p className="text-sm text-gray-600">

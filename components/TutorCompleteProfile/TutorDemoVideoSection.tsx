@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { PlayCircle, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
@@ -8,23 +8,21 @@ export default function TutorDemoVideoSection({
   demoVideoFile,
   setDemoVideoFile,
   demoVideoUrl,
-  errors,
-  disabled = false, // ✅ new prop
+  disabled = false, // âœ… new prop
 }: {
   demoVideoFile: File | null;
   setDemoVideoFile: (f: File | null) => void;
   demoVideoUrl?: string | null;
-  errors: Record<string, string>;
   disabled?: boolean;
 }) {
   const onPickDemoVideo = (f: File) => {
-    if (disabled) return; // 🚫 Prevent uploads when not in edit mode
+    if (disabled) return; // ðŸš« Prevent uploads when not in edit mode
     const sizeMB = f.size / (1024 * 1024);
     if (sizeMB > MAX_VIDEO_MB) return alert(`Max ${MAX_VIDEO_MB}MB allowed`);
     setDemoVideoFile(f);
   };
 
-  // ✅ choose preview priority: local file > API URL
+  // âœ… choose preview priority: local file > API URL
   const videoSrc = demoVideoFile
     ? URL.createObjectURL(demoVideoFile)
     : demoVideoUrl || null;
@@ -92,9 +90,7 @@ export default function TutorDemoVideoSection({
         </div>
       )}
 
-      {errors.demoVideo && (
-        <p className="text-rose-600 text-xs mt-2">{errors.demoVideo}</p>
-      )}
     </section>
   );
 }
+

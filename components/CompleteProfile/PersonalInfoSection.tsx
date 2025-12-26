@@ -14,23 +14,17 @@ import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
 import { lookupPincode } from "@/app/data/PincodeMap";
 import { getPincodeForCity } from "@/utils/pincodeLookup";
 
-import type { StudentProfileErrors } from "@/utils/validators";
-
 const GENDER = ["Male", "Female", "Other"] as const;
 const LEARNING_MODES = ["Online", "Offline", "Both"] as const;
 
 export default function PersonalInfoSection({
   photoFile,
   setPhotoFile,
-  errors,
   disabled = false,
-  onValidate,
 }: {
   photoFile: File | null;
   setPhotoFile: (f: File | null) => void;
-  errors: StudentProfileErrors;
   disabled?: boolean;
-  onValidate?: () => void;
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
@@ -66,7 +60,6 @@ export default function PersonalInfoSection({
   const onGenderChange = (val: string) => {
     if (disabled) return;
     dispatch(setField({ key: "gender", value: val }));
-    onValidate?.();
   };
 
   const handlePhoneChange = (value: string) => {
@@ -145,10 +138,8 @@ export default function PersonalInfoSection({
               onChange={(e) =>
                 dispatch(setField({ key: "name", value: e.target.value }))
               }
-              onBlur={onValidate}
               disabled={disabled}
             />
-            {errors.name && <p className="text-red-600 text-xs">{errors.name}</p>}
           </div>
 
           {/* Email & Phone */}
@@ -161,10 +152,8 @@ export default function PersonalInfoSection({
                 onChange={(e) =>
                   dispatch(setField({ key: "email", value: e.target.value }))
                 }
-                onBlur={onValidate}
                 disabled={disabled}
               />
-              {errors.email && <p className="text-red-600 text-xs">{errors.email}</p>}
             </div>
 
             <div>
@@ -173,11 +162,9 @@ export default function PersonalInfoSection({
                 placeholder="Mobile Number"
                 value={profile.altPhone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                onBlur={onValidate}
                 maxLength={10}
                 disabled={disabled}
               />
-              {errors.phone && <p className="text-red-600 text-xs">{errors.phone}</p>}
             </div>
           </div>
 
@@ -190,12 +177,8 @@ export default function PersonalInfoSection({
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine1", value: e.target.value }))
               }
-              onBlur={onValidate}
               disabled={disabled}
             />
-            {errors.addressLine1 && (
-              <p className="text-red-600 text-xs">{errors.addressLine1}</p>
-            )}
           </div>
 
           {/* City / State / Pincode */}
@@ -211,7 +194,6 @@ export default function PersonalInfoSection({
                   dispatch(setField({ key: "state", value: e.target.value }));
                   dispatch(setField({ key: "city", value: "" })); // reset city
                   dispatch(setField({ key: "pincode", value: "" })); // reset pincode
-                  onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
               >
@@ -222,8 +204,6 @@ export default function PersonalInfoSection({
                   </option>
                 ))}
               </select>
-
-              {errors.state && <p className="text-red-600 text-xs">{errors.state}</p>}
             </div>
 
             {/* City (district dropdown) */}
@@ -237,7 +217,6 @@ export default function PersonalInfoSection({
                   dispatch(setField({ key: "pincode", value: "" }));
                   dispatch(setField({ key: "city", value: e.target.value }));
                   autofillPincode(profile.state, e.target.value);
-                  onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
               >
@@ -249,8 +228,6 @@ export default function PersonalInfoSection({
                   </option>
                 ))}
               </select>
-
-              {errors.city && <p className="text-red-600 text-xs">{errors.city}</p>}
             </div>
 
 
@@ -261,14 +238,9 @@ export default function PersonalInfoSection({
                 value={profile.pincode}
                 onChange={(e) => {
                   dispatch(setField({ key: "pincode", value: e.target.value }));
-                  onValidate?.();
                 }}
-                onBlur={onValidate}
                 disabled={disabled}
               />
-              {errors.pincode && (
-                <p className="text-red-600 text-xs">{errors.pincode}</p>
-              )}
             </div>
           </div>
 
@@ -281,9 +253,6 @@ export default function PersonalInfoSection({
               onChange={onGenderChange}
               disabled={disabled}
             />
-            {errors.gender && (
-              <p className="text-red-600 text-xs">{errors.gender}</p>
-            )}
           </div>
 
           {/* Learning Mode */}
@@ -295,13 +264,9 @@ export default function PersonalInfoSection({
               onChange={(val: string) => {
                 if (disabled) return;
                 dispatch(setField({ key: "learningMode", value: val as any }));
-                onValidate?.();
               }}
               disabled={disabled}
             />
-            {errors.learningMode && (
-              <p className="text-red-600 text-xs">{errors.learningMode}</p>
-            )}
           </div>
         </div>
       </div>

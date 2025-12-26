@@ -3,11 +3,7 @@
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 
-export default function TutorAgeConfirmationSection({
-  error,
-}: {
-  error?: string;
-}) {
+export default function TutorAgeConfirmationSection() {
   const dispatch = useAppDispatch();
   const isAgeConfirmed = useAppSelector(
     (s) => s.tutorProfile.isAgeConfirmed
@@ -40,9 +36,6 @@ export default function TutorAgeConfirmationSection({
         </label>
       </div>
 
-      {error && (
-        <p className="text-xs text-red-600 mt-2">{error}</p>
-      )}
     </section>
   );
 }
