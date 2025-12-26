@@ -74,9 +74,7 @@ export default function StudentBatchDetail() {
           <div className="border rounded p-3 space-y-1 text-sm bg-white">
             <div className="font-medium">Window & Validity</div>
             <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
-            <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>            {batch.batchEndDate && (
-              <div>End Date: {new Date(batch.batchEndDate).toLocaleDateString("en-IN")}</div>
-            )}
+            <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
             {batch.myEnrollment?.validUntil && (
               <div className="mt-2 pt-2 border-t">
                 <span className="font-semibold text-green-600">Subscription Active Until:</span>

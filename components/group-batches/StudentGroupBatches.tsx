@@ -32,6 +32,7 @@ export default function StudentGroupBatches() {
   // Enrollment Modal State
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollBatch, setEnrollBatch] = useState<any>(null);
+  const [enrollMonths, setEnrollMonths] = useState(1);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
 
   // --------------------------
@@ -118,23 +119,30 @@ export default function StudentGroupBatches() {
   // --------------------------
   const openEnrollModal = (batch: any) => {
     setEnrollBatch(batch);
+    setEnrollMonths(1);
     setEnrollModalOpen(true);
   };
 
   const proceedToPay = async () => {
     if (!enrollBatch) return;
     const batchId = enrollBatch._id;
+    const isRenewal = !!(enrollBatch?.isEnrolledForCurrentUser || enrollBatch?.myEnrollment);
     
     try {
-      const res = await reserveSeat(batchId);
-      if (!res?.success) {
-        toast.error("Reservation failed");
-        return;
+      let reservationId: string | undefined;
+      if (!isRenewal) {
+        const res = await reserveSeat(batchId);
+        if (!res?.success) {
+          toast.error("Reservation failed");
+          return;
+        }
+        reservationId = res.reservationId;
       }
 
       const order = await createGroupOrder({
         batchId,
-        reservationId: res.reservationId,
+        reservationId,
+        months: enrollMonths,
         // couponCode: couponMap[batchId]?.trim(),
       });
 
@@ -271,18 +279,11 @@ export default function StudentGroupBatches() {
                   {new Date(b.batchStartDate).toLocaleDateString("en-IN")}
                 </div>
               )}
-              {b.batchEndDate && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> End{" "}{new Date(b.batchEndDate).toLocaleDateString("en-IN")}
-                </div>
-              )}
-            
-            
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
               <div className="flex items-center gap-1">
-                <IndianRupee className="w-3 h-3" /> ₹{b.pricePerStudent} (full batch)
+                <IndianRupee className="w-3 h-3" /> ₹{b.pricePerStudent} / month
               </div>
               {/* <div className="flex items-center gap-1">
                 <Video className="w-3 h-3" /> Online Class
@@ -292,39 +293,74 @@ export default function StudentGroupBatches() {
               )}
             </div>
 
+            {(() => {
+              const now = Date.now();
+              const validUntil = b.myEnrollment?.validUntil ? new Date(b.myEnrollment.validUntil).getTime() : null;
+              const daysLeft = validUntil !== null ? Math.ceil((validUntil - now) / (24 * 60 * 60 * 1000)) : null;
+              const expiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 5;
+              const expired = daysLeft !== null && daysLeft < 0;
+              if (!b.isEnrolledForCurrentUser || (!expiringSoon && !expired)) return null;
+              return (
+                <div className="text-[11px] text-red-600 bg-red-50 border border-red-100 rounded px-2 py-1">
+                  {expired
+                    ? "Subscription expired. Please renew to continue."
+                    : `Subscription ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. Please renew.`}
+                </div>
+              );
+            })()}
+
             {/* Small CTA Buttons */}
             <div className="flex flex-wrap gap-2 mt-1">
-              {!b.isEnrolledForCurrentUser ? (
-                <>
-                {/* Coupon UI disabled */}
-                <Button
-                  disabled={loading || b.liveSeats <= 0 || !b.published}
-                  onClick={() => openEnrollModal(b)}
-                  className="flex-1 h-8 px-3 text-xs bg-primary text-black"
-                >
-                  {!b.published ? "Coming Soon" : loading ? "Processing..." : "Join Now"}
-                </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="secondary"
-                    onClick={() => openSessionsModal(b._id)}
-                    className="flex-1 h-8 px-3 text-xs"
-                  >
-                    View Sessions
-                  </Button>
-                  {b.myPaymentId && (
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                      onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null })}
-                    >
-                      Refund
-                    </Button>
-                  )}
-                </>
-              )}
+              {(() => {
+                const now = Date.now();
+                const validUntil = b.myEnrollment?.validUntil ? new Date(b.myEnrollment.validUntil).getTime() : null;
+                const daysLeft = validUntil !== null ? Math.ceil((validUntil - now) / (24 * 60 * 60 * 1000)) : null;
+                const expiringSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 5;
+                const expired = daysLeft !== null && daysLeft < 0;
+                if (!b.isEnrolledForCurrentUser) {
+                  return (
+                    <>
+                      <Button
+                        disabled={loading || b.liveSeats <= 0 || !b.published}
+                        onClick={() => openEnrollModal(b)}
+                        className="flex-1 h-8 px-3 text-xs bg-primary text-black"
+                      >
+                        {!b.published ? "Coming Soon" : loading ? "Processing..." : "Join Now"}
+                      </Button>
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    {!expired && (
+                      <Button
+                        variant="secondary"
+                        onClick={() => openSessionsModal(b._id)}
+                        className="flex-1 h-8 px-3 text-xs"
+                      >
+                        View Sessions
+                      </Button>
+                    )}
+                    {(expiringSoon || expired) && (
+                      <Button
+                        className="flex-1 h-8 px-3 text-xs bg-primary text-black"
+                        onClick={() => openEnrollModal(b)}
+                      >
+                        Renew
+                      </Button>
+                    )}
+                    {b.myPaymentId && (
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null })}
+                      >
+                        Refund
+                      </Button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ))}
@@ -335,24 +371,42 @@ export default function StudentGroupBatches() {
       <Dialog open={enrollModalOpen} onOpenChange={setEnrollModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enroll in {enrollBatch?.subject}</DialogTitle>
+            <DialogTitle>
+              {(enrollBatch?.isEnrolledForCurrentUser || enrollBatch?.myEnrollment) ? "Renew" : "Enroll"} in {enrollBatch?.subject}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="flex justify-between text-sm">
-              <span>Batch price:</span>
+              <span>Monthly price:</span>
               <span className="font-medium">₹{enrollBatch?.pricePerStudent}</span>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Months</label>
+              <input
+                type="number"
+                min={2}
+                // max={60}
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={enrollMonths}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setEnrollMonths(Number.isFinite(next) && next > 0 ? next : 1);
+                }}
+              />
             </div>
 
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
               <span className="font-medium">Total Amount:</span>
               <span className="text-lg font-bold text-primary">
-                ₹{enrollBatch?.pricePerStudent || 0}
+                ₹{(enrollBatch?.pricePerStudent || 0) * enrollMonths}
               </span>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEnrollModalOpen(false)}>Cancel</Button>
-            <Button onClick={proceedToPay}>Pay & Enroll</Button>
+            <Button onClick={proceedToPay}>
+              {(enrollBatch?.isEnrolledForCurrentUser || enrollBatch?.myEnrollment) ? "Pay & Renew" : "Pay & Enroll"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

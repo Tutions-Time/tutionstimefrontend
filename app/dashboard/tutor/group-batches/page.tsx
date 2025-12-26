@@ -30,7 +30,6 @@ export default function TutorGroupBatchesPage() {
     level: "",
     batchType: "revision",
     startDate: "",
-    endDate: "",
     seatCap: 10,
     pricePerMonth: "",
     description: "",
@@ -87,9 +86,6 @@ export default function TutorGroupBatchesPage() {
     if (!form.board) errors.push("Board is required");
     if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
     if (!form.startDate) errors.push("Start date is required");
-    if (form.endDate && form.startDate && form.endDate < form.startDate) {
-      errors.push("End date must be on or after start date");
-    }
     if (!classStartTime || !classEndTime) errors.push("Start and end times are required");
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
     if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
@@ -128,7 +124,6 @@ export default function TutorGroupBatchesPage() {
           level: "",
           batchType: "revision",
           startDate: "",
-          endDate: "",
           seatCap: 10,
           pricePerMonth: "",
           description: "",
@@ -312,28 +307,6 @@ export default function TutorGroupBatchesPage() {
                         No available dates found. Please update your <a href="/dashboard/tutor/profile" className="underline">availability in your profile</a>.
                       </p>
                     )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">End Date</label>
-                    <select
-                      className="border p-2 rounded w-full"
-                      value={form.endDate}
-                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                    >
-                      <option value="">Select End Date</option>
-                      {(options.availabilityDates || [])
-                        .map((d: string) => new Date(d))
-                        .sort((a: Date, b: Date) => a.getTime() - b.getTime())
-                        .map((d: Date) => {
-                          const val = d.toISOString().split("T")[0];
-                          return (
-                            <option key={val} value={val}>
-                              {d.toDateString()}
-                            </option>
-                          );
-                        })}
-                    </select>
                   </div>
 
                   <div className="space-y-1">

@@ -38,11 +38,7 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                 <div className="font-medium">Window</div>
                 <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
                 <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
-                <div>Status: {batch.status}</div>                {batch.batchEndDate && (
-                  <div>
-                    End Date: {new Date(batch.batchEndDate).toLocaleDateString("en-IN")}
-                  </div>
-                )}
+                <div>Status: {batch.status}</div>
               </div>
             </div>
           )}
