@@ -71,8 +71,18 @@ export default function TutorProfileCompletePage() {
       ...validateTutorProfile(profile),
     };
 
+    const hasPhoto = Boolean(photoFile || profile.photoUrl);
+    if (!hasPhoto) e.photoUrl = "Profile photo is required";
+    const hasResume = Boolean(resumeFile || profile.resumeUrl);
+    if (!hasResume) e.resumeUrl = "Resume is required";
     const hasDemoVideo = Boolean(demoVideoFile || profile.demoVideoUrl);
     if (!hasDemoVideo) e.demoVideo = "Upload a demo video";
+    if (!upiId?.trim()) e.upiId = "UPI ID is required";
+    if (!accountHolderName?.trim())
+      e.accountHolderName = "Account holder name is required";
+    if (!bankAccountNumber?.trim())
+      e.bankAccountNumber = "Bank account number is required";
+    if (!ifsc?.trim()) e.ifsc = "IFSC is required";
     if (!profile.isAgeConfirmed)
       e.isAgeConfirmed = "You must confirm that you are 18+";
 
@@ -178,6 +188,7 @@ export default function TutorProfileCompletePage() {
         bio: profile.bio,
         achievements: profile.achievements,
         phone: profile.phone || "",
+        isAgeConfirmed: profile.isAgeConfirmed,
       };
 
       // Append normal fields

@@ -48,6 +48,9 @@ export default function StudentProfileCompletePage() {
   // ---------- Validation ----------
   const validate = () => {
     const e = validateStudentProfileFields(profile);
+    if (!photoFile && !profile.photoUrl) {
+      e.photoUrl = "Profile photo is required";
+    }
     if (Object.keys(e).length > 0) {
       // Show each error as toast
       Object.values(e).forEach((msg) => {

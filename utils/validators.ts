@@ -11,6 +11,7 @@ export interface TutorProfileErrors {
   gender?: string;
   teachingMode?: string;
   addressLine1?: string;
+  addressLine2?: string;
   city?: string;
   state?: string;
   pincode?: string;
@@ -18,8 +19,22 @@ export interface TutorProfileErrors {
   qualification?: string;
   experience?: string;
   subjects?: string;
+  classLevels?: string;
+  boards?: string;
+  exams?: string;
+  studentTypes?: string;
+  groupSizes?: string;
   hourlyRate?: string;
+  monthlyRate?: string;
+  availability?: string;
   bio?: string;
+  photoUrl?: string;
+  resumeUrl?: string;
+  demoVideo?: string;
+  upiId?: string;
+  accountHolderName?: string;
+  bankAccountNumber?: string;
+  ifsc?: string;
 }
 
 export interface StudentProfileErrors {
@@ -27,7 +42,10 @@ export interface StudentProfileErrors {
   name?: string;
   email?: string;
   gender?: string;
+  genderOther?: string;
+  altPhone?: string;
   addressLine1?: string;
+  addressLine2?: string;
   city?: string;
   state?: string;
   pincode?: string;
@@ -48,9 +66,16 @@ export interface StudentProfileErrors {
   yearSemOther?: string;
   exam?: string;
   examOther?: string;
+  targetYear?: string;
+  targetYearOther?: string;
   subjects?: string;
   subjectOther?: string;
+  tutorGenderPref?: string;
   tutorGenderOther?: string;
+  preferredTimes?: string;
+  availability?: string;
+  goals?: string;
+  photoUrl?: string;
 }
 
 /* -------------------------------------------------------
@@ -75,7 +100,9 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
   if (isEmpty(data.email)) errors.email = "Email is required";
   else if (!isValidEmail(data.email)) errors.email = "Enter a valid email";
 
-  if (data.phone && !isValidPhone(data.phone)) {
+  if (isEmpty(data.phone)) {
+    errors.phone = "Mobile number is required";
+  } else if (!isValidPhone(data.phone)) {
     errors.phone = "Mobile number must be exactly 10 digits";
   }
 
@@ -86,6 +113,8 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.addressLine1))
     errors.addressLine1 = "Address Line 1 is required";
+  if (isEmpty(data.addressLine2))
+    errors.addressLine2 = "Address Line 2 is required";
 
   if (isEmpty(data.city)) errors.city = "City is required";
 
@@ -105,10 +134,34 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
   if (!Array.isArray(data.subjects) || data.subjects.length === 0)
     errors.subjects = "Select at least one subject";
 
+  if (!Array.isArray(data.classLevels) || data.classLevels.length === 0)
+    errors.classLevels = "Select at least one class level";
+
+  if (!Array.isArray(data.boards) || data.boards.length === 0)
+    errors.boards = "Select at least one board";
+
+  if (!Array.isArray(data.exams) || data.exams.length === 0)
+    errors.exams = "Select at least one exam";
+
+  if (!Array.isArray(data.studentTypes) || data.studentTypes.length === 0)
+    errors.studentTypes = "Select at least one student type";
+
+  const groupSizes = Array.isArray(data.groupSizes) ? data.groupSizes : [];
+  if (!groupSizes.length && isEmpty(data.groupSize))
+    errors.groupSizes = "Select at least one group size";
+
   if (isEmpty(data.hourlyRate))
     errors.hourlyRate = "Hourly rate is required";
   else if (Number(data.hourlyRate) <= 0)
     errors.hourlyRate = "Hourly rate must be greater than 0";
+
+  if (isEmpty(data.monthlyRate))
+    errors.monthlyRate = "Monthly rate is required";
+  else if (Number(data.monthlyRate) <= 0)
+    errors.monthlyRate = "Monthly rate must be greater than 0";
+
+  if (!Array.isArray(data.availability) || data.availability.length === 0)
+    errors.availability = "Availability is required";
 
   if (isEmpty(data.bio)) errors.bio = "Bio is required";
 
@@ -130,14 +183,19 @@ export function validateStudentProfileFields(
   else if (!isValidEmail(data.email)) errors.email = "Enter a valid email";
 
   // ----- Phone Mapping (Option B) -----
-  const phoneToValidate = data.altPhone || data.phone;
-  if (phoneToValidate && !isValidPhone(phoneToValidate)) {
-    errors.phone = "Mobile number must be 10 digits";
+  if (isEmpty(data.altPhone)) {
+    errors.altPhone = "Alternate phone is required";
+  } else if (!isValidPhone(data.altPhone)) {
+    errors.altPhone = "Mobile number must be 10 digits";
   }
 
   if (isEmpty(data.gender)) errors.gender = "Gender is required";
+  if (data.gender === "Other" && isEmpty(data.genderOther))
+    errors.genderOther = "Please specify gender";
   if (isEmpty(data.addressLine1))
     errors.addressLine1 = "Address Line 1 is required";
+  if (isEmpty(data.addressLine2))
+    errors.addressLine2 = "Address Line 2 is required";
 
   if (isEmpty(data.city)) errors.city = "City is required";
   if (isEmpty(data.state)) errors.state = "State is required";
@@ -182,17 +240,30 @@ export function validateStudentProfileFields(
     if (isEmpty(data.exam)) errors.exam = "Exam is required";
     if (data.exam === "Other" && isEmpty(data.examOther))
       errors.examOther = "Please specify exam";
+    if (isEmpty(data.targetYear)) errors.targetYear = "Target year is required";
+    if (data.targetYear === "Other" && isEmpty(data.targetYearOther))
+      errors.targetYearOther = "Please specify target year";
   }
 
   if (!Array.isArray(data.subjects) || data.subjects.length === 0)
     errors.subjects = "Select at least one subject";
   if (Array.isArray(data.subjects) && data.subjects.includes("Other")) {
-    if (data.subjects.length === 1 && isEmpty(data.subjectOther))
+    if (isEmpty(data.subjectOther))
       errors.subjectOther = "Please specify subject";
   }
 
+  if (isEmpty(data.tutorGenderPref))
+    errors.tutorGenderPref = "Tutor gender preference is required";
   if (data.tutorGenderPref === "Other" && isEmpty(data.tutorGenderOther))
     errors.tutorGenderOther = "Please specify tutor gender";
+
+  if (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
+    errors.preferredTimes = "Preferred time slots are required";
+
+  if (!Array.isArray(data.availability) || data.availability.length === 0)
+    errors.availability = "Availability is required";
+
+  if (isEmpty(data.goals)) errors.goals = "Learning goals are required";
 
   return errors;
 }

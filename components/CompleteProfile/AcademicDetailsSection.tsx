@@ -23,6 +23,7 @@ const YEAR_SEM = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
 const EXAMS = [
   "JEE Main", "JEE Advanced", "NEET", "CUET", "UPSC", "SSC", "Banking", "CAT", "GATE", "Other",
 ] as const;
+const TARGET_YEARS = ["2024", "2025", "2026", "2027", "2028", "Other"] as const;
 const toOptions = (arr: readonly string[]) => arr.map(v => ({ value: v, label: v }));
 
 /* ---------------------- Component ---------------------- */
@@ -173,6 +174,13 @@ export default function AcademicDetailsSection({
               value={profile.examOther || profile.exam}
               options={toOptions(EXAMS)}
               onChange={onOtherChange("exam", "examOther", EXAMS)}
+              disabled={disabled}
+            />
+            <OtherInline
+              label="Target Year"
+              value={profile.targetYearOther || profile.targetYear}
+              options={toOptions(TARGET_YEARS)}
+              onChange={onOtherChange("targetYear", "targetYearOther", TARGET_YEARS)}
               disabled={disabled}
             />
           </>
