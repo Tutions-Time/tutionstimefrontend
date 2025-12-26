@@ -11,6 +11,12 @@ export default function StudentBatchDetail() {
   const [batch, setBatch] = useState<any | null>(null);
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const formatTime = (time?: string) => {
+    if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(0, 0, 0, h, m);
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  };
 
   const load = async () => {
     if (!id) return;
@@ -75,6 +81,7 @@ export default function StudentBatchDetail() {
             <div className="font-medium">Window & Validity</div>
             <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
             <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
+            {batch.recurring?.time && <div>Class time: {formatTime(batch.recurring.time)}</div>}
             {batch.myEnrollment?.validUntil && (
               <div className="mt-2 pt-2 border-t">
                 <span className="font-semibold text-green-600">Subscription Active Until:</span>

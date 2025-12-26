@@ -21,6 +21,12 @@ import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 
 export default function StudentGroupBatches() {
+  const formatTime = (time?: string) => {
+    if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(0, 0, 0, h, m);
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  };
   const [filters, setFilters] = useState<{ subject?: string; level?: string; date?: string }>({});
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
@@ -279,6 +285,11 @@ export default function StudentGroupBatches() {
                   {new Date(b.batchStartDate).toLocaleDateString("en-IN")}
                 </div>
               )}
+              {b.recurring?.time && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Time {formatTime(b.recurring.time)}
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
               </div>
@@ -346,7 +357,7 @@ export default function StudentGroupBatches() {
                         className="flex-1 h-8 px-3 text-xs bg-primary text-black"
                         onClick={() => openEnrollModal(b)}
                       >
-                        Renew
+                        Renew Now
                       </Button>
                     )}
                     {b.myPaymentId && (

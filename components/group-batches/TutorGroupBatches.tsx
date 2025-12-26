@@ -25,6 +25,12 @@ type TutorGroupBatchesProps = {
 
 export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesProps) {
   const { toast } = useToast();
+  const formatTime = (time?: string) => {
+    if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(0, 0, 0, h, m);
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  };
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
@@ -571,6 +577,12 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                   <span>{b.fixedDates?.length ?? 0} dates</span>
                 )}
               </div>
+              {b.recurring?.time && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  Time {formatTime(b.recurring.time)}
+                </div>
+              )}
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" />
                 Seats {b.liveSeats}/{b.seatCap}

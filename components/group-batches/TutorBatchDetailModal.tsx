@@ -9,6 +9,12 @@ type Props = {
 };
 
 export default function TutorBatchDetailModal({ open, onOpenChange, batch, roster }: Props) {
+  const formatTime = (time?: string) => {
+    if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(0, 0, 0, h, m);
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl rounded-2xl shadow-2xl">
@@ -38,6 +44,7 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                 <div className="font-medium">Window</div>
                 <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
                 <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>
+                {batch.recurring?.time && <div>Class time: {formatTime(batch.recurring.time)}</div>}
                 <div>Status: {batch.status}</div>
               </div>
             </div>
