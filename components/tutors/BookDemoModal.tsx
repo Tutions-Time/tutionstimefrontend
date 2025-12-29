@@ -117,8 +117,8 @@ export default function BookDemoModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-3 animate-fadeIn">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-w-md sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-2xl shadow-lg p-4 sm:p-6 relative">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -128,9 +128,9 @@ export default function BookDemoModal({
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-4 sm:mb-5">
           <CalendarDays className="w-5 h-5 text-[#FFD54F]" />
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
             Book Free Demo with {tutorName}
           </h2>
         </div>

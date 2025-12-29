@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Loader2, Save, Pencil } from "lucide-react";
@@ -70,9 +70,7 @@ export default function TutorProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
-  // â­ VALIDATION TRIGGER ON BLUR
-    const v = validateTutorProfile(profile);
-  };
+  // Validation trigger on blur
 
   const handleSave = async () => {
     const validation = validateTutorProfile(profile);
@@ -214,6 +212,8 @@ export default function TutorProfilePage() {
     </div>
   );
 }
+
+
 
 
 
