@@ -62,7 +62,7 @@ export default function TutorProfileCompletePage() {
 
   // ---------- VALIDATION ----------
   const validate = () => {
-    const e: Record<string, string> = {
+    const e: Record<string, string | undefined> = {
       ...validateTutorProfile(profile),
     };
 
@@ -183,7 +183,7 @@ export default function TutorProfileCompletePage() {
       // Append normal fields
       Object.entries(cleanProfile).forEach(([k, v]) => {
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
-        else fd.append(k, v ?? "");
+        else fd.append(k, String(v ?? ""));
       });
 
       // Append files
