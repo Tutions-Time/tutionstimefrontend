@@ -260,10 +260,13 @@ export const getMyBookings = async () => {
 
 export const createDemoBooking = async (data: {
   tutorId: string;
-  subject: string;
+  subject?: string;
+  subjects?: string[];
   date: string;
   time?: string;
   note?: string;
+  studentBoard?: string;
+  studentLearningMode?: string;
 }) => {
   try {
     const response = await api.post("/bookings/demo", data);
