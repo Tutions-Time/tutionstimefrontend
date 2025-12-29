@@ -127,10 +127,6 @@ export default function StudentProfileCompletePage() {
 
       // ---------- PREFERENCES ----------
       appendIf("subjects", profile.subjects);
-      // The backend expects subjectOther if 'Other' is in subjects
-      if (profile.subjects.includes("Other")) {
-        appendIf("subjectOther", profile.subjectOther);
-      }
 
       appendIf("tutorGenderPref", profile.tutorGenderPref);
       if (profile.tutorGenderPref === "Other") {

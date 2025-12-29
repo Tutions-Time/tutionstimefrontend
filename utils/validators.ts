@@ -240,10 +240,6 @@ export function validateStudentProfileFields(
 
   if (!Array.isArray(data.subjects) || data.subjects.length === 0)
     errors.subjects = "Select at least one subject";
-  if (Array.isArray(data.subjects) && data.subjects.includes("Other")) {
-    if (isEmpty(data.subjectOther))
-      errors.subjectOther = "Please specify subject";
-  }
 
   if (isEmpty(data.tutorGenderPref))
     errors.tutorGenderPref = "Tutor gender preference is required";

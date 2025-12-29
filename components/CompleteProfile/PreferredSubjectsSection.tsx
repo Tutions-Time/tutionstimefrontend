@@ -58,6 +58,7 @@ export default function PreferredSubjectsSection({
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
   const [otherInput, setOtherInput] = useState("");
+  const [showOtherInput, setShowOtherInput] = useState(false);
 
   /* ---------------------- Subject Options ---------------------- */
   const subjectOptions = useMemo(() => {
@@ -74,13 +75,18 @@ export default function PreferredSubjectsSection({
   /* ---------------------- Handlers ---------------------- */
   const toggleSubject = (subj: string) => {
     if (disabled) return;
+    if (subj === "Other") {
+      setShowOtherInput((prev) => {
+        const next = !prev;
+        if (!next) setOtherInput("");
+        return next;
+      });
+      return;
+    }
     const exists = profile.subjects.includes(subj);
     const next = exists
       ? profile.subjects.filter((s) => s !== subj)
       : [...profile.subjects, subj];
-    if (!next.includes("Other")) {
-      dispatch(setField({ key: "subjectOther", value: "" }));
-    }
     dispatch(setField({ key: "subjects", value: next }));
   };
 
@@ -94,7 +100,7 @@ export default function PreferredSubjectsSection({
       .join(" ");
 
     if (!profile.subjects.includes(formatted)) {
-      const updated = [...profile.subjects.filter((s) => s !== "Other"), formatted, "Other"];
+      const updated = [...profile.subjects, formatted];
       dispatch(setField({ key: "subjects", value: updated }));
     }
 
@@ -132,7 +138,7 @@ export default function PreferredSubjectsSection({
           {/* Subject Chips */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {subjectOptions.map((s) => {
-              const active = profile.subjects.includes(s);
+              const active = s === "Other" ? showOtherInput : profile.subjects.includes(s);
               return (
                 <label
                   key={s}
@@ -184,7 +190,7 @@ export default function PreferredSubjectsSection({
           </div>
 
           {/* "Other" Input Field */}
-          {profile.subjects.includes("Other") && (
+          {showOtherInput && (
             <div className="mt-4 max-w-md relative">
               <Label className="mb-1 block">Other Subject</Label>
               <div className="relative">

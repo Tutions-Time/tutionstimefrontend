@@ -242,11 +242,8 @@ export function validateStudentProfile(p: StudentProfileState) {
 
   if (!p.track) e.track = 'Select learning track';
 
-  const hasOther = p.subjects.includes('Other');
-  if (!p.subjects.length && !hasOther)
+  if (!p.subjects.length)
     e.subjects = 'Pick at least one subject';
-  if (hasOther && !p.subjectOther.trim())
-    e.subjectOther = 'Please enter subject';
 
   if (p.tutorGenderPref === 'Other' && !p.tutorGenderOther.trim())
     e.tutorGenderOther = 'Please specify tutor gender';
