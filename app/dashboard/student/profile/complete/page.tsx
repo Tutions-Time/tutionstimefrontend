@@ -16,9 +16,10 @@ import AcademicDetailsSection from "@/components/CompleteProfile/AcademicDetails
 import PreferredSubjectsSection from "@/components/CompleteProfile/PreferredSubjectsSection";
 import TutorPreferencesSection from "@/components/CompleteProfile/TutorPreferencesSection";
 
-import type { StudentProfileErrors } from "@/utils/validators";
 import { validateStudentProfileFields } from "@/utils/validators";
 import { toast } from "@/hooks/use-toast";
+import api from "@/lib/api";
+import { setUser } from "@/store/slices/authSlice";
 
 
 export default function StudentProfileCompletePage() {
@@ -27,8 +28,6 @@ export default function StudentProfileCompletePage() {
   const profile = useAppSelector((s) => s.studentProfile);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [errors, setErrors] = useState<StudentProfileErrors>({});
-
   // ---------- Prefill ----------
   useEffect(() => {
     try {
@@ -46,18 +45,12 @@ export default function StudentProfileCompletePage() {
     } catch { }
   }, [profile]);
 
-  // Auto-validate on key field changes to clear stale errors (state/city/pincode)
-  useEffect(() => {
-    if (Object.keys(errors || {}).length === 0) return;
-    const refreshed = validateStudentProfileFields(profile);
-    setErrors(refreshed);
-  }, [profile.state, profile.city, profile.pincode]);
-
   // ---------- Validation ----------
   const validate = () => {
     const e = validateStudentProfileFields(profile);
-    setErrors(e);
-
+    if (!photoFile && !profile.photoUrl) {
+      e.photoUrl = "Profile photo is required";
+    }
     if (Object.keys(e).length > 0) {
       // Show each error as toast
       Object.values(e).forEach((msg) => {
@@ -134,10 +127,6 @@ export default function StudentProfileCompletePage() {
 
       // ---------- PREFERENCES ----------
       appendIf("subjects", profile.subjects);
-      // The backend expects subjectOther if 'Other' is in subjects
-      if (profile.subjects.includes("Other")) {
-        appendIf("subjectOther", profile.subjectOther);
-      }
 
       appendIf("tutorGenderPref", profile.tutorGenderPref);
       if (profile.tutorGenderPref === "Other") {
@@ -154,6 +143,18 @@ export default function StudentProfileCompletePage() {
       // 🔥 IMPORTANT: unwrap = success if no error thrown
       await dispatch(updateStudentProfileThunk(fd)).unwrap();
 
+      try {
+        const response = await api.get("/auth/me");
+        dispatch(setUser(response.data.user));
+        const cookiePayload = {
+          role: response.data.user.role,
+          isProfileComplete: response.data.user.isProfileComplete,
+        };
+        document.cookie = `auth=${encodeURIComponent(
+          JSON.stringify(cookiePayload)
+        )}; path=/; max-age=2592000`;
+      } catch {}
+
       // dispatch(stopSubmitting());
 
       // ✅ ALWAYS redirect on success
@@ -163,9 +164,11 @@ export default function StudentProfileCompletePage() {
       console.error(err);
       dispatch(stopSubmitting());
 
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
       toast({
         title: "Update failed",
-        description: "Something went wrong. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }
@@ -192,12 +195,10 @@ export default function StudentProfileCompletePage() {
           <PersonalInfoSection
             photoFile={photoFile}
             setPhotoFile={setPhotoFile}
-            errors={errors}
-            onValidate={validate}
           />
 
-          <AcademicDetailsSection errors={{}} />
-          <PreferredSubjectsSection errors={{}} />
+          <AcademicDetailsSection />
+          <PreferredSubjectsSection />
           <TutorPreferencesSection />
 
           <div className="flex items-center justify-between gap-3 pt-4 border-t">

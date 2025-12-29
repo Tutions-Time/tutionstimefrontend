@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createDemoBooking } from "@/services/studentService";
 import { Button } from "@/components/ui/button";
 import { X, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getUserProfile } from "@/services/profileService";
 
 // MUI X Date Pickers + Dayjs
 import dayjs, { Dayjs } from "dayjs";
@@ -30,21 +31,48 @@ export default function BookDemoModal({
   subjects,
   availability = [],
 }: BookDemoModalProps) {
-  const [subject, setSubject] = useState("");
+  const [subjectsSelected, setSubjectsSelected] = useState<string[]>([]);
   const [date, setDate] = useState("");
   const [time, setTime] = useState<Dayjs | null>(null); // MUI time value
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [studentBoard, setStudentBoard] = useState("");
+  const [studentLearningMode, setStudentLearningMode] = useState("");
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const availableFromToday = availability.filter((d) => d >= todayStr);
+  const isTodaySelected = date === todayStr;
+  const minTime = isTodaySelected ? dayjs() : undefined;
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        if (res?.success && res?.data?.profile) {
+          setStudentBoard(res.data.profile.board || "");
+          setStudentLearningMode(res.data.profile.learningMode || "");
+        }
+      } catch {}
+    };
+    loadProfile();
+  }, []);
 
   if (!open) return null;
 
   const handleSubmit = async () => {
-    if (!subject || !date || !time) {
+    if (!subjectsSelected.length || !date || !time) {
       toast({
         title: "Missing Fields",
         description: "Please select subject, date & time before booking.",
+      });
+      return;
+    }
+
+    if (isTodaySelected && time.isBefore(dayjs())) {
+      toast({
+        title: "Invalid Time",
+        description: "Please select a future time.",
       });
       return;
     }
@@ -57,10 +85,13 @@ export default function BookDemoModal({
 
       const res = await createDemoBooking({
         tutorId,
-        subject,
+        subjects: subjectsSelected,
+        subject: subjectsSelected[0],
         date,
         time: time24,
         note,
+        studentBoard,
+        studentLearningMode,
       });
 
       if (res.success) {
@@ -86,8 +117,8 @@ export default function BookDemoModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-3 animate-fadeIn">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-w-md sm:max-h-[90vh] overflow-y-auto rounded-none sm:rounded-2xl shadow-lg p-4 sm:p-6 relative">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -97,31 +128,90 @@ export default function BookDemoModal({
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-4 sm:mb-5">
           <CalendarDays className="w-5 h-5 text-[#FFD54F]" />
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
             Book Free Demo with {tutorName}
           </h2>
         </div>
 
         <div className="space-y-4">
+          {/* Student Info */}
+          {(studentBoard || studentLearningMode) && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+              {studentBoard && (
+                <div>
+                  <span className="text-xs font-medium text-gray-600">Board:</span>{" "}
+                  {studentBoard}
+                </div>
+              )}
+              {studentLearningMode && (
+                <div>
+                  <span className="text-xs font-medium text-gray-600">Mode:</span>{" "}
+                  {studentLearningMode}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Learning Mode */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Learning Mode
+            </label>
+            <div className="flex gap-2">
+              {["Online", "Offline"].map((mode) => {
+                const active = studentLearningMode === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setStudentLearningMode(mode)}
+                    className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                      active
+                        ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Subject */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Subject <span className="text-red-500">*</span>
+              Select Subjects <span className="text-red-500">*</span>
             </label>
-            <select
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
-            >
-              <option value="">-- Select --</option>
-              {subjects?.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <div className="flex flex-wrap gap-2">
+              {subjects?.map((s) => {
+                const active = subjectsSelected.includes(s);
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      if (active) {
+                        setSubjectsSelected(
+                          subjectsSelected.filter((x) => x !== s)
+                        );
+                      } else {
+                        setSubjectsSelected([...subjectsSelected, s]);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                      active
+                        ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Date */}
@@ -130,14 +220,14 @@ export default function BookDemoModal({
               Select Date <span className="text-red-500">*</span>
             </label>
 
-            {availability.length > 0 ? (
+            {availableFromToday.length > 0 ? (
               <select
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
               >
                 <option value="">-- Select available date --</option>
-                {availability.map((d) => (
+                {availableFromToday.map((d) => (
                   <option key={d} value={d}>
                     {new Date(d).toLocaleDateString("en-IN", {
                       day: "numeric",
@@ -162,7 +252,8 @@ export default function BookDemoModal({
               <TimePicker
                 value={time}
                 onChange={(newValue) => setTime(newValue)}
-                ampm
+                 ampm
+                 minTime={minTime}
                 minutesStep={1} // ✅ every single minute available
                 viewRenderers={{
                   hours: renderTimeViewClock,

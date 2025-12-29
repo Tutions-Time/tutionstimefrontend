@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Target } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -6,10 +6,8 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 
 export default function TutorAboutSection({
-  errors,
-  disabled = false, // ✅ new prop
+  disabled = false, // âœ… new prop
 }: {
-  errors: Record<string, string>;
   disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
@@ -38,9 +36,6 @@ export default function TutorAboutSection({
             }
             placeholder="Describe your teaching style and what makes you effective."
           />
-          {errors.bio && (
-            <p className="text-rose-600 text-xs mt-1">{errors.bio}</p>
-          )}
         </div>
 
         <div>
@@ -59,3 +54,4 @@ export default function TutorAboutSection({
     </section>
   );
 }
+

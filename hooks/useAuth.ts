@@ -22,16 +22,22 @@ export const useAuth = () => {
   const { user, isLoading, error, isAuthenticated, tokens } = useSelector(
     (state: RootState) => state.auth
   );
-
   // Check authentication status on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-      
         if (isAuthenticated && tokens?.accessToken && !user) {
-         
-          const response = await api.get("/users/me");
+          const response = await api.get("/auth/me");
           dispatch(setUser(response.data.user));
+          try {
+            const cookiePayload = {
+              role: response.data.user.role,
+              isProfileComplete: response.data.user.isProfileComplete,
+            };
+            document.cookie = `auth=${encodeURIComponent(
+              JSON.stringify(cookiePayload)
+            )}; path=/; max-age=2592000`;
+          } catch {}
         }
       } catch (error: any) {
         console.error("Auth check error:", error);

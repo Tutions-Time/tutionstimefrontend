@@ -1,5 +1,6 @@
 "use client";
 
+import { getUserProfile } from "@/services/profileService";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -27,8 +28,12 @@ export default function EditNoteModal({ open, setOpen, note, onSave }: Props) {
   const [classLevel, setClassLevel] = useState("");
   const [board, setBoard] = useState("");
   const [price, setPrice] = useState("");
-  const [keywords, setKeywords] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [options, setOptions] = useState<{
+    subjects: string[];
+    classLevels: string[];
+    boards: string[];
+  }>({ subjects: [], classLevels: [], boards: [] });
 
   // Prefill form when note changes
   useEffect(() => {
@@ -38,9 +43,36 @@ export default function EditNoteModal({ open, setOpen, note, onSave }: Props) {
     setClassLevel(note.classLevel || "");
     setBoard(note.board || "");
     setPrice(note.price != null ? String(note.price) : "");
-    setKeywords((note.keywords || []).join(", "));
     setPdfFile(null);
   }, [note]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!open) return;
+      try {
+        const res = await getUserProfile();
+        const profile = res?.data?.profile;
+        const subjects = Array.isArray(profile?.subjects) ? profile.subjects : [];
+        const classLevels = Array.isArray(profile?.classLevels)
+          ? profile.classLevels
+          : [];
+        const boards = Array.isArray(profile?.boards) ? profile.boards : [];
+        const merge = (arr: string[], val: string) => {
+          const set = new Set(arr);
+          if (val) set.add(val);
+          return Array.from(set);
+        };
+        setOptions({
+          subjects: merge(subjects, note?.subject || ""),
+          classLevels: merge(classLevels, note?.classLevel || ""),
+          boards: merge(boards, note?.board || ""),
+        });
+      } catch {
+        toast({ title: "Unable to load profile options", variant: "destructive" });
+      }
+    };
+    loadProfile();
+  }, [open, note]);
 
   if (!note) return null;
 
@@ -62,7 +94,6 @@ export default function EditNoteModal({ open, setOpen, note, onSave }: Props) {
     fd.append("classLevel", classLevel);
     fd.append("board", board);
     fd.append("price", price);
-    fd.append("keywords", keywords);
 
     // Only send new PDF if user selected one
     if (pdfFile) {
@@ -94,30 +125,52 @@ export default function EditNoteModal({ open, setOpen, note, onSave }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <Input
-            placeholder="Subject *"
+          <select
+            className="w-full border rounded-lg h-10 px-3 bg-background"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-          />
-          <Input
-            placeholder="Class *"
+            disabled={options.subjects.length === 0}
+          >
+            <option value="">Select Subject *</option>
+            {options.subjects.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <select
+            className="w-full border rounded-lg h-10 px-3 bg-background"
             value={classLevel}
             onChange={(e) => setClassLevel(e.target.value)}
-          />
-          <Input
-            placeholder="Board *"
+            disabled={options.classLevels.length === 0}
+          >
+            <option value="">Select Class *</option>
+            {options.classLevels.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            className="w-full border rounded-lg h-10 px-3 bg-background"
             value={board}
             onChange={(e) => setBoard(e.target.value)}
-          />
+            disabled={options.boards.length === 0}
+          >
+            <option value="">Select Board *</option>
+            {options.boards.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
           <Input
+            type="number"
+            min="0"
+            step="1"
             placeholder="Price *"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-          />
-          <Input
-            placeholder="Keywords (comma separated)"
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
           />
           <div className="text-xs text-muted-foreground">
             Current PDF is already attached. Upload a new file only if you want to replace it.

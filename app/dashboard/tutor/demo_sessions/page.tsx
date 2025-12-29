@@ -90,7 +90,22 @@ export default function TutorDemoRequests() {
                     <div className="font-semibold">
                       {b.studentName || 'Unknown Student'}
                     </div>
-                    <div className="text-sm text-gray-500">{b.subject}</div>
+                    <div className="text-sm text-gray-500">
+                      {(b.subjects && b.subjects.length
+                        ? b.subjects.join(", ")
+                        : b.subject) || "Subject"}
+                    </div>
+                    {(b.studentBoard || b.studentLearningMode) && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        {b.studentBoard && <span>Board: {b.studentBoard}</span>}
+                        {b.studentBoard && b.studentLearningMode && (
+                          <span className="mx-2">|</span>
+                        )}
+                        {b.studentLearningMode && (
+                          <span>Mode: {b.studentLearningMode}</span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-4 h-4" />

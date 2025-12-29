@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { fetchTutorById, createDemoBooking } from "@/services/studentService";
+import { getUserProfile } from "@/services/profileService";
 
 export default function BookDemoPage() {
   const router = useRouter();
@@ -15,9 +16,11 @@ export default function BookDemoPage() {
   const [tutor, setTutor] = useState<any>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");   // ⭐ ADDED
-  const [subject, setSubject] = useState("");
+  const [subjects, setSubjects] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [studentBoard, setStudentBoard] = useState("");
+  const [studentLearningMode, setStudentLearningMode] = useState("");
 
   useEffect(() => {
     if (tutorId) {
@@ -27,8 +30,21 @@ export default function BookDemoPage() {
     }
   }, [tutorId]);
 
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        if (res?.success && res?.data?.profile) {
+          setStudentBoard(res.data.profile.board || "");
+          setStudentLearningMode(res.data.profile.learningMode || "");
+        }
+      } catch {}
+    };
+    loadProfile();
+  }, []);
+
   const handleSubmit = async () => {
-    if (!date || !subject || !time) {
+    if (!date || !subjects.length || !time) {
       toast.error("Please fill all fields");
       return;
     }
@@ -38,10 +54,13 @@ export default function BookDemoPage() {
 
       const res = await createDemoBooking({
         tutorId: tutorId!,
-        subject,
+        subjects,
+        subject: subjects[0],
         date,
-        time,     // ⭐ ADDED
+        time,     // Time in 24-hour format
         note,
+        studentBoard,
+        studentLearningMode,
       });
 
       if (res.success) {
@@ -71,16 +90,23 @@ export default function BookDemoPage() {
       <div className="space-y-3">
         {/* Subject */}
         <label className="block text-sm font-medium text-gray-700">
-          Select Subject
+          Select Subjects
         </label>
         <select
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
+          multiple
+          value={subjects}
+          onChange={(e) =>
+            setSubjects(
+              Array.from(e.target.selectedOptions, (opt) => opt.value)
+            )
+          }
           className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+          size={Math.min(6, tutor.subjects?.length || 6)}
         >
-          <option value="">-- Select --</option>
           {tutor.subjects?.map((s: string) => (
-            <option key={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
 

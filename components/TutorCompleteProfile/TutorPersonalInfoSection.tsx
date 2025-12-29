@@ -19,22 +19,15 @@ export default function TutorPersonalInfoSection({
   photoFile,
   setPhotoFile,
   photoPreview,
-  errors,
   disabled,
-  onValidate,
 }: {
   photoFile: File | null;
   setPhotoFile: (f: File | null) => void;
   photoPreview: string | null;
-  errors: Record<string, string>;
   disabled?: boolean;
-  onValidate?: () => void;
 }) {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
-
-const Err = ({ msg }: { msg?: string }) =>
-    msg ? <p className="text-xs text-red-600 mt-1">{msg}</p> : null;
 
   const currentPhotoSrc = photoFile
     ? URL.createObjectURL(photoFile)
@@ -118,10 +111,8 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               onChange={(e) =>
                 dispatch(setField({ key: "name", value: e.target.value }))
               }
-              onBlur={onValidate}
               placeholder="Full Name"
             />
-            <Err msg={errors?.name} />
           </div>
 
           {/* EMAIL */}
@@ -132,11 +123,9 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               onChange={(e) =>
                 dispatch(setField({ key: "email", value: e.target.value }))
               }
-              onBlur={onValidate}
               type="email"
               placeholder="Email"
             />
-            <Err msg={errors?.email} />
           </div>
 
           {/* GENDER + TEACHING MODE */}
@@ -154,7 +143,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                       disabled={disabled}
                       onClick={() => {
                         dispatch(setField({ key: "gender", value: g }));
-                        onValidate?.();
                       }}
                       className={`px-3 py-1.5 rounded-full text-sm border transition ${
                         selected
@@ -167,7 +155,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                   );
                 })}
               </div>
-              <Err msg={errors?.gender} />
             </div>
 
             {/* TEACHING MODE */}
@@ -177,11 +164,9 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               options={toOptions(TEACHING_MODES)}
               onChange={(v: string) => {
                 dispatch(setField({ key: "teachingMode", value: v }));
-                onValidate?.();
               }}
               disabled={disabled}
             />
-            <Err msg={errors?.teachingMode} />
           </div>
 
           {/* ADDRESS LINE 1 */}
@@ -192,10 +177,8 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine1", value: e.target.value }))
               }
-              onBlur={onValidate}
               placeholder="Address Line 1"
             />
-            <Err msg={errors?.addressLine1} />
           </div>
 
           {/* ADDRESS LINE 2 */}
@@ -206,7 +189,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine2", value: e.target.value }))
               }
-              onBlur={onValidate}
               placeholder="Address Line 2 (optional)"
             />
           </div>
@@ -224,7 +206,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                 onBlur={onValidate}
                 placeholder="City"
               />
-              <Err msg={errors?.city} />
             </div> */}
 
             {/* STATE DROPDOWN */}
@@ -236,7 +217,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                   dispatch(setField({ key: "state", value: e.target.value }));
                   dispatch(setField({ key: "city", value: "" })); // reset district
                   dispatch(setField({ key: "pincode", value: "" })); // reset pincode
-                  onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
               >
@@ -247,7 +227,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                   </option>
                 ))}
               </select>
-              <Err msg={errors?.state} />
             </div>
 
             {/* DISTRICT DROPDOWN */}
@@ -260,7 +239,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                   dispatch(setField({ key: "pincode", value: "" }));
                   dispatch(setField({ key: "city", value: e.target.value }));
                   autofillPincode(profile.state || "", e.target.value);
-                  onValidate?.();
                 }}
                 className="border rounded px-3 py-2 w-full"
               >
@@ -272,7 +250,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                   </option>
                 ))}
               </select>
-              <Err msg={errors?.district} />
             </div>
           </div>
 
@@ -283,13 +260,10 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
               value={profile.pincode || ""}
               onChange={(e) => {
                 dispatch(setField({ key: "pincode", value: e.target.value }));
-                onValidate?.();
               }}
-              onBlur={onValidate}
               placeholder="Pincode"
               inputMode="numeric"
             />
-            <Err msg={errors?.pincode} />
           </div>
         </div>
       </div>

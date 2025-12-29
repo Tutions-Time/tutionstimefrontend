@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -39,7 +39,6 @@ export default function TutorNotesPage() {
   const [total, setTotal] = useState(0);
   const [listLoading, setListLoading] = useState(false);
   const [sales, setSales] = useState<any[]>([]);
-  const [salesLoading, setSalesLoading] = useState(false);
 
   // ---- LOAD PAGINATED NOTES ----
   const load = async (pageToLoad: number, reset = false) => {
@@ -66,14 +65,21 @@ export default function TutorNotesPage() {
     load(1, true);
     (async () => {
       try {
-        setSalesLoading(true);
         const rows = await getTutorNoteHistory();
         setSales(rows);
-      } finally {
-        setSalesLoading(false);
-      }
+      } catch {}
     })();
   }, []);
+
+  const purchaseCountByNoteId = useMemo(() => {
+    const map = new Map<string, number>();
+    sales.forEach((s: any) => {
+      const id = String(s.noteId || "");
+      if (!id) return;
+      map.set(id, (map.get(id) || 0) + 1);
+    });
+    return map;
+  }, [sales]);
 
   // ---- CREATE ----
   const handleCreate = async (fd: FormData) => {
@@ -155,6 +161,7 @@ export default function TutorNotesPage() {
                 <NoteCard
                   key={n._id}
                   note={n}
+                  purchaseCount={purchaseCountByNoteId.get(String(n._id)) || 0}
                   onPreview={() => {
                     setPreviewNote(n);
                     setPreviewOpen(true);
@@ -187,37 +194,6 @@ export default function TutorNotesPage() {
               </div>
             )}
 
-            {/* Note Sales History */}
-            <div className="mt-6">
-              <div className="text-lg font-semibold mb-2">Note Sales</div>
-              <div className="overflow-x-auto rounded-xl border bg-white">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr className="text-left text-xs uppercase tracking-wider text-muted">
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Student</th>
-                      <th className="px-4 py-3">Note</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sales.map((s) => (
-                      <tr key={s._id} className="border-t">
-                        <td className="px-4 py-3 text-muted">{new Date(s.createdAt).toLocaleString()}</td>
-                        <td className="px-4 py-3">{s.studentName}</td>
-                        <td className="px-4 py-3">{s.noteTitle}</td>
-                        <td className="px-4 py-3">₹{Number(s.amount || 0).toLocaleString('en-IN')}</td>
-                        <td className="px-4 py-3">{s.status}</td>
-                      </tr>
-                    ))}
-                    {sales.length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-12 text-center text-muted">{salesLoading ? 'Loading…' : 'No sales found.'}</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </div>
         </main>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, isLoading } = useAuth();
 
   useEffect(() => {
@@ -46,7 +47,18 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
           router.push('/login');
       }
     }
-  }, [isAuthenticated, isLoading, user, allowedRoles, router]);
+
+    if (
+      user &&
+      (user.role === 'student' || user.role === 'tutor') &&
+      !user.isProfileComplete
+    ) {
+      const target = `/dashboard/${user.role}/profile/complete`;
+      if (pathname !== target) {
+        router.push(target);
+      }
+    }
+  }, [isAuthenticated, isLoading, user, allowedRoles, router, pathname]);
 
   if (isLoading) {
     return (

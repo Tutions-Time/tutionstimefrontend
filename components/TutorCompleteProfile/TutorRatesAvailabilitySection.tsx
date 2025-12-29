@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Wallet, Calendar as CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,8 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
 
 export default function TutorRatesAvailabilitySection({
-  errors,
-  disabled = false, // ✅ new prop
+  disabled = false, // âœ… new prop
 }: {
-  errors: Record<string, string>;
   disabled?: boolean;
 }) {
   const dispatch = useAppDispatch();
@@ -29,7 +27,7 @@ export default function TutorRatesAvailabilitySection({
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div>
-          <Label>Hourly Rate (₹)</Label>
+          <Label>Hourly Rate </Label>
           <Input
             disabled={disabled}
             value={profile.hourlyRate}
@@ -39,13 +37,10 @@ export default function TutorRatesAvailabilitySection({
             placeholder="e.g., 500"
             className="h-10"
           />
-          {errors.hourlyRate && (
-            <p className="text-rose-600 text-xs mt-1">{errors.hourlyRate}</p>
-          )}
         </div>
 
         <div>
-          <Label>Monthly Rate (₹)</Label>
+          <Label>Monthly Rate </Label>
           <Input
             disabled={disabled}
             value={profile.monthlyRate}
@@ -63,7 +58,7 @@ export default function TutorRatesAvailabilitySection({
         Dates)
       </Label>
 
-      {/* ✅ Disable the picker when editMode is off */}
+      {/* âœ… Disable the picker when editMode is off */}
       <div className={`${disabled ? "opacity-70 pointer-events-none" : ""}`}>
         <AvailabilityPicker
           value={(profile.availability as string[]) || []}
@@ -75,3 +70,4 @@ export default function TutorRatesAvailabilitySection({
     </section>
   );
 }
+

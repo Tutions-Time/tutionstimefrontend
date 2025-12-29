@@ -3,6 +3,15 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Link as LinkIcon,
+  MapPin,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function StudentBatchDetail() {
@@ -11,6 +20,40 @@ export default function StudentBatchDetail() {
   const [batch, setBatch] = useState<any | null>(null);
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const formatTime = (time?: string) => {
+    if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
+    const [h, m] = time.split(":").map(Number);
+    const d = new Date(0, 0, 0, h, m);
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+  };
+  const formatDate = (value?: string | Date) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+  const formatDateTime = (value?: string | Date) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+  const batchTypeLabel = (t?: string) => {
+    if (!t) return "";
+    if (t === "normal class" || t === "normal" || t === "exam") return "Normal Class";
+    if (t === "revision") return "Revision";
+    return t;
+  };
 
   const load = async () => {
     if (!id) return;
@@ -60,71 +103,152 @@ export default function StudentBatchDetail() {
   return (
     <>
       {batch && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border rounded p-3 space-y-1 text-sm bg-white">
-            <div className="font-medium">Overview</div>
-            <div>Subject: {batch.subject}</div>
-            <div>Board: {batch.board || "General"}</div>
-            <div>Level: {batch.level || "General"}</div>
-            <div>
-              Type: {batch.batchType === "normal class" || batch.batchType === "normal" || batch.batchType === "exam" ? "Normal Class" : "Revision"}
+        <div className="rounded-2xl border bg-white shadow-sm">
+          <div className="px-5 py-4 border-b bg-gradient-to-r from-amber-50 via-white to-orange-50">
+            <div className="text-lg font-semibold">Batch Details</div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-medium text-gray-900">{batch.subject || "N/A"}</span>
+              {batch.level && (
+                <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                  {batch.level}
+                </span>
+              )}
+              <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800">
+                {batchTypeLabel(batch.batchType) || "N/A"}
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs ${
+                  batch.status === "active"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {batch.status || "N/A"}
+              </span>
             </div>
-            <div>Price: ₹{batch.pricePerStudent}</div>
           </div>
-          <div className="border rounded p-3 space-y-1 text-sm bg-white">
-            <div className="font-medium">Window & Validity</div>
-            <div>Join before: {batch.accessWindow?.joinBeforeMin ?? 5} min</div>
-            <div>Expire after: {batch.accessWindow?.expireAfterMin ?? 5} min</div>            {batch.batchEndDate && (
-              <div>End Date: {new Date(batch.batchEndDate).toLocaleDateString("en-IN")}</div>
-            )}
-            {batch.myEnrollment?.validUntil && (
-              <div className="mt-2 pt-2 border-t">
-                <span className="font-semibold text-green-600">Subscription Active Until:</span>
-                <br />
-                {new Date(batch.myEnrollment.validUntil).toLocaleDateString()}
+
+          <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-xl border bg-white p-4">
+              <div className="text-sm font-semibold mb-3">Overview</div>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Board</span>
+                  <span className="ml-auto text-gray-600">{batch.board || "N/A"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Seats</span>
+                  <span className="ml-auto text-gray-600">
+                    {batch.liveSeats}/{batch.seatCap}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Price</span>
+                  <span className="ml-auto text-gray-600">
+                    Rs {batch.pricePerStudent ?? "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Status</span>
+                  <span className="ml-auto text-gray-600">
+                    {batch.published ? "Published" : "Unpublished"}
+                  </span>
+                </div>
+                {batch.meetingLink && (
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                    <a className="text-blue-600" href={batch.meetingLink} target="_blank">
+                      Meeting link
+                    </a>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            <div className="rounded-xl border bg-white p-4">
+              <div className="text-sm font-semibold mb-3">Schedule</div>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Start date</span>
+                  <span className="ml-auto text-gray-600">
+                    {formatDate(batch.recurring?.startDate) ||
+                      formatDate(batch.batchStartDate) ||
+                      "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Class time</span>
+                  <span className="ml-auto text-gray-600">
+                    {batch.recurring?.time ? formatTime(batch.recurring.time) : "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
+                  <span className="font-medium text-gray-900">Days</span>
+                  <span className="ml-auto text-gray-600 text-right">
+                    {batch.recurring?.days?.length ? batch.recurring.days.join(", ") : "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Join before</span>
+                  <span className="ml-auto text-gray-600">
+                    {batch.accessWindow?.joinBeforeMin ?? 5} min
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Expire after</span>
+                  <span className="ml-auto text-gray-600">
+                    {batch.accessWindow?.expireAfterMin ?? 5} min
+                  </span>
+                </div>
+                {batch.myEnrollment?.validUntil && (
+                  <div className="pt-2 mt-1 border-t text-sm">
+                    <span className="font-semibold text-green-700">Active until:</span>{" "}
+                    {formatDate(batch.myEnrollment.validUntil)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-white p-4 lg:col-span-2">
+              <div className="text-sm font-semibold mb-2">Description</div>
+              <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                {batch.description || "N/A"}
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-white p-4 lg:col-span-2">
+              <div className="text-sm font-semibold mb-2">Enrollment Window</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Open at</span>
+                  <span className="ml-auto text-gray-600">
+                    {formatDateTime(batch.enrollmentOpenAt) || "N/A"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium text-gray-900">Close at</span>
+                  <span className="ml-auto text-gray-600">
+                    {formatDateTime(batch.enrollmentCloseAt) || "N/A"}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
-      <div className="border rounded p-3 space-y-3 bg-white">
-        <div className="font-medium">Sessions</div>
-        {loading && <div className="text-sm text-gray-500">Loading...</div>}
-        {!loading && sessions.length === 0 && (
-          <div className="text-sm text-gray-500">No sessions found</div>
-        )}
-        {!loading && sessions.length > 0 && (
-          <ul className="space-y-3">
-            {sessions.map((s:any)=> {
-              const { canJoin, isExpired } = getSessionJoinData(s.startDateTime);
-              return (
-                <li key={s._id} className="text-sm border rounded p-3">
-                  <div className="flex items-center justify-between">
-                    <div>{new Date(s.startDateTime).toLocaleString()}</div>
-                    {!isExpired && s.status !== "completed" && (
-                      <Button size="sm" disabled={!canJoin} onClick={()=>join(s._id)}>
-                        Join
-                      </Button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
-                    <div>
-                      {s.recordingUrl && <a className="text-blue-600" href={s.recordingUrl} target="_blank">Recording</a>}
-                    </div>
-                    <div>
-                      {s.notesUrl && <a className="text-blue-600" href={s.notesUrl} target="_blank">Notes</a>}
-                    </div>
-                    <div>
-                      {s.assignmentUrl && <a className="text-blue-600" href={s.assignmentUrl} target="_blank">Assignment</a>}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
     </>
   );
 }
+
 

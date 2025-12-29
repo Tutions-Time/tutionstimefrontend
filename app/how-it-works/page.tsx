@@ -59,7 +59,7 @@ const studentSteps: Step[] = [
 
 const tutorSteps: Step[] = [
   {
-    text: "Sign up for free on Tuitionstime and join as a tutor in just a few minutes.",
+    text: "Sign up for free on Tuitions time and join as a tutor in just a few minutes.",
     icon: <UserPlus className="h-5 w-5" />,
   },
   {
@@ -116,7 +116,7 @@ export default function HowItWorksPage() {
         </button>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-          How Tuitionstime Works
+          How Tuitions time Works
         </h1>
 
         <p className="mt-3 max-w-2xl text-slate-600">
@@ -124,14 +124,14 @@ export default function HowItWorksPage() {
           and tutors.
         </p>
 
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <Link
             href="/"
             className="inline-block rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-black shadow"
           >
             Get Free Demo Class
           </Link>
-        </div>
+        </div> */}
       </section>
 
       {/* Students */}
