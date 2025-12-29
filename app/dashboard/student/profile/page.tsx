@@ -60,8 +60,10 @@ export default function StudentProfilePage() {
     const validation = validateStudentProfileFields(profile);
 
     if (Object.keys(validation).length > 0) {
+      const messages = Object.values(validation).filter(Boolean);
       toast({
-        title: "Please correct the highlighted fields",
+        title: "Validation error",
+        description: messages.join("\n"),
         variant: "destructive",
       });
       return;
