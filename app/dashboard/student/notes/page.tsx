@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, IndianRupee } from "lucide-react";
@@ -18,8 +18,6 @@ import {
   verifyNotePayment,
   getDownloadUrl,
 } from "@/services/noteService";
-import { getStudentRefunds, requestRefund, previewRefund } from "@/services/studentService";
-import { Dialog } from "@headlessui/react";
 
 export default function NotesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,33 +25,18 @@ export default function NotesPage() {
 
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [purchased, setPurchased] = useState<any[]>([]);
-  const [refunds, setRefunds] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refundModal, setRefundModal] = useState<{
-    open: boolean;
-    paymentId: string | null;
-    reasonCode: string;
-    reasonText: string;
-    submitting: boolean;
-    preview: any | null;
-  }>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
-  const [lastPaymentId, setLastPaymentId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] =
-    useState<"purchased" | "all">("purchased");
-  const [couponMap, setCouponMap] = useState<Record<string, string>>({});
+    useState<"purchased" | "all">("all");
 
-  // 🛑 Prevent multiple Razorpay popups
+  // Prevent multiple Razorpay popups
   const paymentInProgress = useRef(false);
 
   const fetchPurchased = async () => {
     try {
       const res = await getPurchasedNotes();
       setPurchased(res.data || []);
-      try {
-        const rf = await getStudentRefunds();
-        setRefunds(rf || []);
-      } catch {}
     } catch {}
   };
 
@@ -77,10 +60,9 @@ export default function NotesPage() {
     [purchased]
   );
 
-  
   const buy = async (note: any) => {
     try {
-      if (paymentInProgress.current) return; // 🛑 stop duplicate opens
+      if (paymentInProgress.current) return; // stop duplicate opens
 
       const orderRes = await createNoteOrder(String(note._id));
 
@@ -92,16 +74,14 @@ export default function NotesPage() {
 
       if ((orderRes as any)?.walletPaid) {
         toast({ title: "Purchased via wallet" });
-        if (orderRes?.paymentId) setLastPaymentId(orderRes.paymentId);
-        setRefundModal({ open: true, paymentId: orderRes?.paymentId || null, reasonCode: "", reasonText: "", submitting: false, preview: null });
         fetchPurchased();
         return;
       }
+
       if (!orderRes?.orderId || !(orderRes?.key || orderRes?.razorpayKey)) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
-      if (orderRes?.paymentId) setLastPaymentId(orderRes.paymentId);
 
       const ensureRazorpay = async () => {
         if ((window as any).Razorpay) return true;
@@ -150,7 +130,6 @@ export default function NotesPage() {
           if (verify?.success) {
             toast({ title: "Purchased" });
             fetchPurchased();
-            setRefundModal({ open: true, paymentId: lastPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
           } else {
             toast({ title: "Verification failed", variant: "destructive" });
           }
@@ -184,21 +163,6 @@ export default function NotesPage() {
     }
   };
 
-  const submitRefund = async () => {
-    if (!refundModal.paymentId || !refundModal.reasonCode) return;
-    try {
-      setRefundModal((s) => ({ ...s, submitting: true }));
-      await requestRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: refundModal.reasonText || undefined });
-      toast({ title: "Refund requested" });
-      setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
-      const rf = await getStudentRefunds();
-      setRefunds(rf || []);
-    } catch {
-      toast({ title: "Refund request failed", variant: "destructive" });
-      setRefundModal((s) => ({ ...s, submitting: false }));
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#F6F7FB]">
       <Navbar
@@ -217,12 +181,11 @@ export default function NotesPage() {
 
         <main className="p-4 lg:p-8">
           <div className="max-w-3xl mx-auto space-y-10">
-
             {/* Search */}
             <div className="p-2 rounded-2xl bg-transparent">
               <div className="flex gap-4 items-center">
                 <Input
-                  placeholder="Search by subject, class, board, title…"
+                  placeholder="Search by subject, class, board, title"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   className="h-14 flex-1 rounded-2xl bg-white/0 border border-gray-300 shadow-md text-base focus:ring-2 focus:ring-blue-300"
@@ -265,7 +228,7 @@ export default function NotesPage() {
               </div>
             </div>
 
-            {/* CONTENT */}
+            {/* Content */}
             {activeTab === "purchased" ? (
               <>
                 <div className="text-xl font-semibold">Purchased Notes</div>
@@ -290,11 +253,11 @@ export default function NotesPage() {
                         {p?.note?.title}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {p?.note?.subject} • {p?.note?.classLevel} • {p?.note?.board}
+                        {p?.note?.subject} / {p?.note?.classLevel} / {p?.note?.board}
                       </div>
 
                       <Badge className="mt-2 bg-blue-50 text-blue-700 text-xs px-2 py-1">
-                        Paid ₹{p?.purchase?.amount}
+                        Paid Rs {p?.purchase?.amount}
                       </Badge>
                     </div>
 
@@ -326,7 +289,7 @@ export default function NotesPage() {
                         {n.title}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {n.subject} • {n.classLevel} • {n.board}
+                        {n.subject} / {n.classLevel} / {n.board}
                       </div>
 
                       <div className="text-base font-semibold flex items-center gap-1 mt-1 text-blue-700">
@@ -345,12 +308,11 @@ export default function NotesPage() {
                       </Button>
                     ) : (
                       <div className="flex items-center gap-2">
-                        {/* Coupon UI disabled */}
                         <Button
-                        size="lg"
-                        className="text-sm px-5 py-2 rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 font-medium"
-                        onClick={() => buy(n)}
-                      >
+                          size="lg"
+                          className="text-sm px-5 py-2 rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 font-medium"
+                          onClick={() => buy(n)}
+                        >
                           Buy Now
                         </Button>
                       </div>
@@ -359,114 +321,9 @@ export default function NotesPage() {
                 ))}
               </>
             )}
-            <div className="mt-10 space-y-3">
-              <div className="text-xl font-semibold">My Refund Requests</div>
-              <Card className="p-6 bg-white/90 rounded-3xl border shadow">
-                {!refunds?.length ? (
-                  <div className="text-sm text-gray-600">No refund requests</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-muted">
-                          <th className="p-2">Amount</th>
-                          <th className="p-2">Status</th>
-                          <th className="p-2">Reason</th>
-                          <th className="p-2">Course</th>
-                          <th className="p-2">Tutor</th>
-                          <th className="p-2">Created</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {refunds.map((x: any) => (
-                          <tr key={x._id} className="border-t">
-                            <td className="p-2">₹{x.amount}</td>
-                            <td className="p-2 capitalize">{x.status}</td>
-                            <td className="p-2">{x.reason || ""}</td>
-                            <td className="p-2">{x.courseLabel || "—"}</td>
-                            <td className="p-2">{x.tutorName || "—"}</td>
-                            <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Card>
-            </div>
           </div>
         </main>
       </div>
-      <Dialog open={refundModal.open} onClose={() => setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null })} className="relative z-50">
-        <div className="fixed inset-0 bg-black/40" />
-        <div className="fixed inset-0 overflow-y-auto flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6 space-y-4">
-              <Dialog.Title className="text-lg font-semibold">Request Refund</Dialog.Title>
-              <div className="space-y-3">
-                <select
-                  value={refundModal.reasonCode || ""}
-                  onChange={async (e) => {
-                    const code = e.target.value;
-                    const next = { ...refundModal, reasonCode: code };
-                    setRefundModal(next as any);
-                    if (refundModal.paymentId && code) {
-                      try {
-                        const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: code, reasonText: next.reasonText || undefined });
-                        setRefundModal((s: any) => ({ ...s, preview: pv }));
-                      } catch {}
-                    }
-                  }}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                >
-                  <option value="" disabled>Select reason</option>
-                  <option value="CLASS_NOT_CONDUCTED">Class not conducted</option>
-                  <option value="TUTOR_ABSENT_OR_LATE">Tutor absent or late</option>
-                  <option value="WRONG_PURCHASE">Wrong purchase</option>
-                  <option value="QUALITY_ISSUE">Quality issue</option>
-                  <option value="TECHNICAL_ISSUE">Technical issue</option>
-                  <option value="SCHEDULE_CONFLICT">Schedule conflict</option>
-                  <option value="CONTENT_NOT_AS_DESCRIBED">Content not as described</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                {refundModal.reasonCode === "OTHER" && (
-                  <textarea
-                    value={refundModal.reasonText || ""}
-                    onChange={async (e) => {
-                      const txt = e.target.value;
-                      setRefundModal((s: any) => ({ ...s, reasonText: txt }));
-                      if (refundModal.paymentId && refundModal.reasonCode) {
-                        try {
-                          const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: txt });
-                          setRefundModal((s: any) => ({ ...s, preview: pv }));
-                        } catch {}
-                      }
-                    }}
-                    className="w-full border rounded px-3 py-2 text-sm"
-                    placeholder="Explain your reason"
-                  />
-                )}
-                {refundModal.preview && (
-                  <div className="text-sm text-gray-700 space-y-1">
-                    <div>Completion: {Math.round((refundModal.preview.completionPercentage || 0) * 100)}%</div>
-                    <div>Refundable: {Math.round((refundModal.preview.refundablePercentage || 0) * 100)}%</div>
-                    <div>Max Amount: ₹{refundModal.preview.maximumRefundableAmount || 0}</div>
-                    <div>{refundModal.preview.explanation || ""}</div>
-                    <div>Window: {refundModal.preview.refundWindowValid ? "Valid" : "Expired"}</div>
-                    <div>Method: {refundModal.preview.suggestedRefundMethod}</div>
-                  </div>
-                )}
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null })}>Cancel</Button>
-                  <Button onClick={submitRefund} disabled={refundModal.submitting || !refundModal.paymentId || !refundModal.reasonCode || (refundModal.reasonCode === "OTHER" && !(refundModal.reasonText || "").trim())}>
-                    {refundModal.submitting ? "Submitting..." : "Submit"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </div>
   );
 }
