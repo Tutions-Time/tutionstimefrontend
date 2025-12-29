@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Dayjs } from "dayjs";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/layout/Navbar";
@@ -26,7 +22,6 @@ export default function TutorGroupBatchesPage() {
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
-    boardOther: "",
     level: "",
     batchType: "revision",
     startDate: "",
@@ -35,8 +30,8 @@ export default function TutorGroupBatchesPage() {
     description: "",
     published: true,
   });
-  const [classStartTime, setClassStartTime] = useState<Dayjs | null>(null);
-  const [classEndTime, setClassEndTime] = useState<Dayjs | null>(null);
+  const [classStartTime, setClassStartTime] = useState("");
+  const [classEndTime, setClassEndTime] = useState("");
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [open, setOpen] = useState(false);
@@ -84,9 +79,9 @@ export default function TutorGroupBatchesPage() {
     if (!form.subject) errors.push("Subject is required");
     if (!form.level) errors.push("Level is required");
     if (!form.board) errors.push("Board is required");
-    if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
     if (!form.startDate) errors.push("Start date is required");
-    if (!classStartTime || !classEndTime) errors.push("Start and end times are required");
+    if (!classStartTime || !classEndTime)
+      errors.push("Start and end times are required");
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
     if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
     return errors;
@@ -105,9 +100,9 @@ export default function TutorGroupBatchesPage() {
 
     const payload = {
       ...form,
-      board: form.board === "Other" ? form.boardOther : form.board,
-      classStartTime: classStartTime ? classStartTime.format("HH:mm") : "",
-      classEndTime: classEndTime ? classEndTime.format("HH:mm") : "",
+      board: form.board,
+      classStartTime: classStartTime || "",
+      classEndTime: classEndTime || "",
       pricePerMonth: form.pricePerMonth === "" ? undefined : Number(form.pricePerMonth),
     };
 
@@ -120,7 +115,6 @@ export default function TutorGroupBatchesPage() {
         setForm({
           subject: "",
           board: "",
-          boardOther: "",
           level: "",
           batchType: "revision",
           startDate: "",
@@ -129,8 +123,8 @@ export default function TutorGroupBatchesPage() {
           description: "",
           published: true,
         });
-        setClassStartTime(null);
-        setClassEndTime(null);
+        setClassStartTime("");
+        setClassEndTime("");
         setOpen(false);
         setRefreshKey((k) => k + 1);
       } else {
@@ -197,7 +191,7 @@ export default function TutorGroupBatchesPage() {
               >
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold text-gray-900">
-                    Create Batch
+                    Create Batc
                   </DialogTitle>
                 </DialogHeader>
 
@@ -224,7 +218,6 @@ export default function TutorGroupBatchesPage() {
                       setForm({
                         ...form,
                         board: e.target.value,
-                        boardOther: e.target.value === "Other" ? form.boardOther : "",
                       })
                     }
                   >
@@ -234,19 +227,7 @@ export default function TutorGroupBatchesPage() {
                         {b}
                       </option>
                     ))}
-                    <option value="Other">Other</option>
                   </select>
-                  {form.board === "Other" && (
-                    <input
-                      type="text"
-                      className="border p-2 rounded w-full"
-                      placeholder="Enter board name"
-                      value={form.boardOther}
-                      onChange={(e) =>
-                        setForm({ ...form, boardOther: e.target.value })
-                      }
-                    />
-                  )}
 
                   <select
                     className="border p-2 rounded w-full"
@@ -291,6 +272,12 @@ export default function TutorGroupBatchesPage() {
                       <option value="">Select Start Date</option>
                       {(options.availabilityDates || [])
                         .map((d: string) => new Date(d))
+                        .filter((d: Date) => {
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          tomorrow.setHours(0, 0, 0, 0);
+                          return d >= tomorrow;
+                        })
                         .sort((a: Date, b: Date) => a.getTime() - b.getTime())
                         .map((d: Date) => {
                           const val = d.toISOString().split("T")[0];
@@ -313,62 +300,26 @@ export default function TutorGroupBatchesPage() {
                     <label className="text-sm font-medium text-gray-700">
                       Class Start Time
                     </label>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <TimePicker
-                          value={classStartTime}
-                          onChange={setClassStartTime}
-                          ampm={false}
-                          views={["hours", "minutes"]}
-                          format="HH:mm"
-                          minutesStep={1}
-                          viewRenderers={{
-                            hours: renderTimeViewClock,
-                            minutes: renderTimeViewClock,
-                          }}
-                          slotProps={{
-                            textField: {
-                              size: "small",
-                              fullWidth: true,
-                              className: "mt-1 mb-3",
-                            },
-                            popper: {
-                              disablePortal: false,
-                              sx: { zIndex: 2000 },
-                            },
-                          }}
-                        />
-                    </LocalizationProvider>
+                    <input
+                      type="time"
+                      step={60}
+                      className="border p-2 rounded w-full mt-1 mb-3"
+                      value={classStartTime}
+                      onChange={(e) => setClassStartTime(e.target.value)}
+                    />
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">
                       Class End Time
                     </label>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <TimePicker
-                          value={classEndTime}
-                          onChange={setClassEndTime}
-                          ampm={false}
-                          views={["hours", "minutes"]}
-                          format="HH:mm"
-                          minutesStep={1}
-                          viewRenderers={{
-                            hours: renderTimeViewClock,
-                            minutes: renderTimeViewClock,
-                          }}
-                          slotProps={{
-                            textField: {
-                              size: "small",
-                              fullWidth: true,
-                              className: "mt-1 mb-3",
-                            },
-                            popper: {
-                              disablePortal: false,
-                              sx: { zIndex: 2000 },
-                            },
-                          }}
-                        />
-                    </LocalizationProvider>
+                    <input
+                      type="time"
+                      step={60}
+                      className="border p-2 rounded w-full mt-1 mb-3"
+                      value={classEndTime}
+                      onChange={(e) => setClassEndTime(e.target.value)}
+                    />
                   </div>
 
                   <div className="space-y-1">

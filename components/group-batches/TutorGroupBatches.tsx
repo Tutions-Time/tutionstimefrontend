@@ -397,7 +397,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Batchhh</DialogTitle>
+            <DialogTitle>Create Batch</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-2">

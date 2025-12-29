@@ -10,6 +10,7 @@ import { requestRefund, previewRefund } from "@/services/studentService";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -331,6 +332,11 @@ export default function StudentGroupBatches() {
                 if (!b.isEnrolledForCurrentUser) {
                   return (
                     <>
+                      <Link href={`/dashboard/student/group-batches/${b._id}`} className="flex-1">
+                        <Button variant="secondary" className="w-full h-8 px-3 text-xs">
+                          Details
+                        </Button>
+                      </Link>
                       <Button
                         disabled={loading || b.liveSeats <= 0 || !b.published}
                         onClick={() => openEnrollModal(b)}
@@ -343,6 +349,11 @@ export default function StudentGroupBatches() {
                 }
                 return (
                   <>
+                    <Link href={`/dashboard/student/group-batches/${b._id}`} className="flex-1">
+                      <Button variant="secondary" className="w-full h-8 px-3 text-xs">
+                        Details
+                      </Button>
+                    </Link>
                     {!expired && (
                       <Button
                         variant="secondary"
