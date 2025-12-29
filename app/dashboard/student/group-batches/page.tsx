@@ -12,7 +12,7 @@ export default function GroupBatchesPage() {
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
-        <Topbar title="Group Batches" subtitle="Find and join group classes" />
+        <Topbar title="Group Batches" subtitle="Find and join group online classes " />
         <main className="p-4 lg:p-6 space-y-6">
           <StudentGroupBatches />
         </main>

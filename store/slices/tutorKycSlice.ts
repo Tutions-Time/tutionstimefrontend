@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface TutorKycState {
-  kycStatus: 'pending' | 'approved' | 'rejected' | 'under_review';
+  kycStatus: 'pending' | 'submitted' | 'approved' | 'rejected' | 'under_review';
   aadhaarUrls: string[];
   panUrl: string | null;
 }
