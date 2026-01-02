@@ -11,6 +11,7 @@ import { STATESDISTRICTS } from "@/app/data/StatesDistricts";
 import { lookupPincode } from "@/app/data/PincodeMap";
 import { getPincodeForCity } from "@/utils/pincodeLookup";
 
+const MAX_PHOTO_MB = 10;
 const GENDER = ["Male", "Female", "Other"];
 const TEACHING_MODES = ["Online", "Offline", "Both"];
 const toOptions = (arr: string[]) => arr.map((v) => ({ value: v, label: v }));
@@ -96,7 +97,16 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
             className="hidden"
             disabled={disabled}
             onChange={(e) => {
-              setPhotoFile(e.target.files?.[0] || null);
+              const file = e.target.files?.[0] || null;
+              if (file) {
+                const sizeMB = file.size / (1024 * 1024);
+                if (sizeMB > MAX_PHOTO_MB) {
+                  alert(`Max ${MAX_PHOTO_MB}MB allowed`);
+                  e.target.value = "";
+                  return;
+                }
+              }
+              setPhotoFile(file);
             }}
           />
         </div>
