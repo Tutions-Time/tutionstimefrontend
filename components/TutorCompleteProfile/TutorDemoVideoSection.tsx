@@ -2,7 +2,7 @@
 import { PlayCircle, Trash2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
-const MAX_VIDEO_MB = 100;
+const MAX_VIDEO_MB = 200;
 
 export default function TutorDemoVideoSection({
   demoVideoFile,
