@@ -26,24 +26,34 @@ export default function StudentProfileCompletePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
+  const userId = useAppSelector((s) => s.auth.user?.id);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   // ---------- Prefill ----------
   useEffect(() => {
     try {
-      const cache = localStorage.getItem("tt_student_prefill");
-      if (cache) dispatch(setBulk(JSON.parse(cache)));
-    } catch { }
-  }, [dispatch]);
+      const raw = localStorage.getItem("tt_student_prefill");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.userId || parsed.userId !== userId) {
+        localStorage.removeItem("tt_student_prefill");
+        return;
+      }
+      if (parsed.data) dispatch(setBulk(parsed.data));
+    } catch {
+      localStorage.removeItem("tt_student_prefill");
+    }
+  }, [dispatch, userId]);
 
   useEffect(() => {
     try {
+      if (!userId) return;
       localStorage.setItem(
         "tt_student_prefill",
-        JSON.stringify({ ...profile, isSubmitting: false })
+        JSON.stringify({ userId, data: { ...profile, isSubmitting: false } })
       );
-    } catch { }
-  }, [profile]);
+    } catch {}
+  }, [profile, userId]);
 
   // ---------- Validation ----------
   const validate = () => {
