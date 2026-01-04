@@ -327,7 +327,7 @@ export default function StudentGroupBatches() {
                 </div>
               )}
               <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
+                <Users className="w-3 h-3" /> Seats available: {b.liveSeats}/{b.seatCap}
               </div>
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-3 h-3" /> ₹{b.pricePerStudent} / month
