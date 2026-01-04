@@ -80,6 +80,11 @@ export default function BookDemoModal({
     // Convert Dayjs -> "HH:mm" (24-hour format) for backend
     const time24 = time.format("HH:mm"); // e.g. "18:30"
 
+    const normalizeBookingError = (msg: string) =>
+      msg.includes("active demo")
+        ? "You already have an active demo. Complete it before booking another."
+        : msg;
+
     try {
       setLoading(true);
 
@@ -103,13 +108,19 @@ export default function BookDemoModal({
       } else {
         toast({
           title: "Booking Failed",
-          description: res.message || "Something went wrong.",
+          description: normalizeBookingError(
+            res.message || "Something went wrong."
+          ),
+          variant: "destructive",
         });
       }
     } catch (err: any) {
       toast({
         title: "Server Error",
-        description: err.message || "Unable to create booking.",
+        description: normalizeBookingError(
+          err.message || "Unable to create booking."
+        ),
+        variant: "destructive",
       });
     } finally {
       setLoading(false);

@@ -49,6 +49,11 @@ export default function BookDemoPage() {
       return;
     }
 
+    const normalizeBookingError = (msg: string) =>
+      msg.includes("active demo")
+        ? "You already have an active demo. Complete it before booking another."
+        : msg;
+
     try {
       setLoading(true);
 
@@ -67,10 +72,14 @@ export default function BookDemoPage() {
         toast.success("Demo booked successfully!");
         router.push("/dashboard/student/bookings");
       } else {
-        toast.error(res.message || "Booking failed");
+        toast.error(
+          normalizeBookingError(res.message || "Booking failed")
+        );
       }
     } catch (err: any) {
-      toast.error(err.message || "Error booking demo");
+      toast.error(
+        normalizeBookingError(err.message || "Error booking demo")
+      );
     } finally {
       setLoading(false);
     }
