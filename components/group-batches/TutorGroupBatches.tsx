@@ -38,7 +38,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     level: "",
     batchType: "revision",
     startDate: "",
+    endDate: "",
     classStartTime: "18:00",
+    classEndTime: "19:00",
     seatCap: 10,
     pricePerMonth: "",
     description: "",
@@ -143,7 +145,15 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     if (!form.board) errors.push("Board is required");
     if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
     if (!form.startDate) errors.push("Start date is required");
+    if (!form.endDate) errors.push("End date is required");
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      errors.push("End date must be on or after start date");
+    }
     if (!form.classStartTime) errors.push("Class start time is required");
+    if (!form.classEndTime) errors.push("Class end time is required");
+    if (form.classStartTime && form.classEndTime && form.classEndTime <= form.classStartTime) {
+      errors.push("Class end time must be after start time");
+    }
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
     if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
     if (errors.length) {
@@ -172,7 +182,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           level: "",
           batchType: "revision",
           startDate: "",
+          endDate: "",
           classStartTime: "18:00",
+          classEndTime: "19:00",
           seatCap: 10,
     pricePerMonth: "",
           description: "",
@@ -492,8 +504,40 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
               <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
             </div>
             <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">End Date</label>
+              <select
+                className="border p-2 rounded w-full"
+                value={form.endDate}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+              >
+                <option value="">Select End Date</option>
+                {(options.availabilityDates || [])
+                  .map((d: string) => new Date(d))
+                  .filter((d: Date) => {
+                    if (!form.startDate) return false;
+                    const start = new Date(form.startDate);
+                    start.setHours(0, 0, 0, 0);
+                    return d >= start;
+                  })
+                  .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                  .map((d: Date) => {
+                    const val = d.toISOString().split("T")[0];
+                    return (
+                      <option key={val} value={val}>
+                        {d.toDateString()}
+                      </option>
+                    );
+                  })}
+              </select>
+              <p className="text-xs text-gray-500">End date must be on or after start date.</p>
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
               <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e) => setForm({ ...form, classStartTime: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Class End Time</label>
+              <input type="time" className="border p-2 rounded w-full" value={form.classEndTime} onChange={(e) => setForm({ ...form, classEndTime: e.target.value })} />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Seat Capacity</label>
@@ -577,6 +621,19 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                   <span>{b.fixedDates?.length ?? 0} dates</span>
                 )}
               </div>
+              {b.batchEndDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>
+                    Ends{" "}
+                    {new Date(b.batchEndDate).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+              )}
               {b.recurring?.time && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />

@@ -153,6 +153,13 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                       {batch.recurring?.time ? formatTime(batch.recurring.time) : "N/A"}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium text-gray-900">End time</span>
+                    <span className="ml-auto text-gray-600">
+                      {batch.recurring?.endTime ? formatTime(batch.recurring.endTime) : "N/A"}
+                    </span>
+                  </div>
                   <div className="flex items-start gap-2">
                     <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
                     <span className="font-medium text-gray-900">Days</span>
@@ -203,7 +210,9 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="font-medium text-gray-900">Batch end</span>
                     <span className="ml-auto text-gray-600">
-                      {formatDate(batch.batchEndDate) || "N/A"}
+                      {formatDate(batch.batchEndDate) ||
+                        formatDate(batch.recurring?.endDate) ||
+                        "N/A"}
                     </span>
                   </div>
                 </div>
