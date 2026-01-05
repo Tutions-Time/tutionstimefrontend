@@ -45,10 +45,17 @@ export default function ContactPage() {
                 <div>
                   <p className="text-sm text-slate-500">Official Contact Number</p>
                   <a
-                    href="tel:8755313291"
+                    href="tel:+918755313291"
                     className="text-lg font-semibold text-slate-900 hover:text-primary"
                   >
-                    8755313291
+                    +918755313291
+                  </a>
+                  
+                  <a
+                    href="tel:+917830652160"
+                    className="text-lg font-semibold text-slate-900 hover:text-primary ml-4"
+                  >
+                    +917830652160
                   </a>
                 </div>
               </div>

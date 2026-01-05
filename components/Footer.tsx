@@ -103,7 +103,7 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
-          <p>&copy; 2024 Tuitions time. All rights reserved.</p>
+          <p>&copy; 2024 Tuitions time (Choudhary Enterprise). All rights reserved.</p>
           <div className="mt-4 flex flex-col items-center gap-2">
             {/* <span className="text-xs text-muted">Follow us on</span> */}
             <div className="flex items-center gap-6">
