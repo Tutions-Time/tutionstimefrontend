@@ -95,8 +95,8 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-text mb-4">Address</h4>
             <ul className="space-y-2 text-sm text-muted">
-              <li>Office 1: 123 Demo Street, City, State 100001</li>
-              <li>Office 2: 45 Sample Road, City, State 100002</li>
+              <li>House Number-530 Ahmedlda pura, Beside Om Dhara Nursery, Jhalu Road, Bijnor, Uttar Pradesh, Pincode-246701</li>
+              {/* <li>Office 2: 45 Sample Road, City, State 100002</li> */}
             </ul>
           </div>
         </div>
