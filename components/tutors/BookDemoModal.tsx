@@ -58,6 +58,13 @@ export default function BookDemoModal({
     loadProfile();
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    setDate("");
+    setTime(null);
+    setNote("");
+  }, [open]);
+
   if (!open) return null;
 
   const handleSubmit = async () => {
