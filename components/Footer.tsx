@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Instagram, Linkedin, Facebook, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeInUp, useScrollAnimation } from "./animations";
 
@@ -14,7 +15,7 @@ export default function Footer() {
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
       >
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
+        <div className="grid md:grid-cols-5 gap-8 mb-8">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -91,11 +92,35 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+          <div>
+            <h4 className="font-semibold text-text mb-4">Address</h4>
+            <ul className="space-y-2 text-sm text-muted">
+              <li>Office 1: 123 Demo Street, City, State 100001</li>
+              <li>Office 2: 45 Sample Road, City, State 100002</li>
+            </ul>
+          </div>
         </div>
 
         {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
           <p>&copy; 2024 Tuitions time. All rights reserved.</p>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            {/* <span className="text-xs text-muted">Follow us on</span> */}
+            <div className="flex items-center gap-6">
+              <Link href="https://www.instagram.com/tuitionstime" target="_blank" className="hover:text-text">
+                <Instagram className="h-4 w-4 text-pink-600" />
+              </Link>
+              <Link href="https://www.linkedin.com/in/tuitionstime-tutor-s-service-00bba4386" target="_blank" className="hover:text-text">
+                <Linkedin className="h-4 w-4 text-blue-700" />
+              </Link>
+              <Link href="https://www.facebook.com/share/1FCDTPLhdd/" target="_blank" className="hover:text-text">
+                <Facebook className="h-4 w-4 text-blue-600" />
+              </Link>
+              <Link href="https://x.com/TuitionsTime" target="_blank" className="hover:text-text">
+                <Twitter className="h-4 w-4 text-slate-800" />
+              </Link>
+            </div>
+          </div>
         </div>
       </motion.div>
     </footer>

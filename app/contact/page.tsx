@@ -59,9 +59,14 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm text-slate-500">Website</p>
-                  <p className="text-slate-900 font-medium">
+                  <a
+                    href="https://www.tuitionstime.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-slate-900 font-medium hover:text-primary"
+                  >
                     www.tuitionstime.com
-                  </p>
+                  </a>
                 </div>
               </div>
             </div>
