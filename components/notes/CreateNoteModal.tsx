@@ -66,8 +66,8 @@ export default function CreateNoteModal({ open, setOpen, onCreate }: any) {
       return;
     }
 
-    if (form.pdf.size > 5 * 1024 * 1024) {
-      toast({ title: "PDF size must be under 5MB", variant: "destructive" });
+    if (form.pdf.size > 150 * 1024 * 1024) {
+      toast({ title: "PDF size must be under 150MB", variant: "destructive" });
       return;
     }
 

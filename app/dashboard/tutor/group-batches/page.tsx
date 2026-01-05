@@ -25,6 +25,7 @@ export default function TutorGroupBatchesPage() {
     level: "",
     batchType: "revision",
     startDate: "",
+    endDate: "",
     seatCap: 10,
     pricePerMonth: "",
     description: "",
@@ -80,6 +81,10 @@ export default function TutorGroupBatchesPage() {
     if (!form.level) errors.push("Level is required");
     if (!form.board) errors.push("Board is required");
     if (!form.startDate) errors.push("Start date is required");
+    if (!form.endDate) errors.push("End date is required");
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      errors.push("End date must be on or after start date");
+    }
     if (!classStartTime || !classEndTime)
       errors.push("Start and end times are required");
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
@@ -118,6 +123,7 @@ export default function TutorGroupBatchesPage() {
           level: "",
           batchType: "revision",
           startDate: "",
+          endDate: "",
           seatCap: 10,
           pricePerMonth: "",
           description: "",
@@ -174,7 +180,7 @@ export default function TutorGroupBatchesPage() {
       <div className="lg:pl-64">
         <Topbar
           title="Group Batches"
-          subtitle="Create and manage your batches"
+          subtitle="Create and manage your batches and these services only for online classes."
           action={
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -191,7 +197,7 @@ export default function TutorGroupBatchesPage() {
               >
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold text-gray-900">
-                    Create Batc
+                    Create Batch
                   </DialogTitle>
                 </DialogHeader>
 
@@ -294,6 +300,35 @@ export default function TutorGroupBatchesPage() {
                         No available dates found. Please update your <a href="/dashboard/tutor/profile" className="underline">availability in your profile</a>.
                       </p>
                     )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">End Date</label>
+                    <select
+                      className="border p-2 rounded w-full"
+                      value={form.endDate}
+                      onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                    >
+                      <option value="">Select End Date</option>
+                      {(options.availabilityDates || [])
+                        .map((d: string) => new Date(d))
+                        .filter((d: Date) => {
+                          if (!form.startDate) return false;
+                          const start = new Date(form.startDate);
+                          start.setHours(0, 0, 0, 0);
+                          return d >= start;
+                        })
+                        .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                        .map((d: Date) => {
+                          const val = d.toISOString().split("T")[0];
+                          return (
+                            <option key={val} value={val}>
+                              {d.toDateString()}
+                            </option>
+                          );
+                        })}
+                    </select>
+                    <p className="text-xs text-gray-500">End date must be on or after start date.</p>
                   </div>
 
                   <div className="space-y-1">

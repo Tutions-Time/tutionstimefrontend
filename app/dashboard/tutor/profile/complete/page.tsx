@@ -32,6 +32,7 @@ export default function TutorProfileCompletePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
+  const userId = useAppSelector((s) => s.auth.user?.id);
 
   // ---------- FILE STATES ----------
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -41,9 +42,19 @@ export default function TutorProfileCompletePage() {
 
   // Load saved data
   useEffect(() => {
-    const cache = localStorage.getItem("tt_tutor_prefill");
-    if (cache) dispatch(setBulk(JSON.parse(cache)));
-  }, [dispatch]);
+    try {
+      const raw = localStorage.getItem("tt_tutor_prefill");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.userId || parsed.userId !== userId) {
+        localStorage.removeItem("tt_tutor_prefill");
+        return;
+      }
+      if (parsed.data) dispatch(setBulk(parsed.data));
+    } catch {
+      localStorage.removeItem("tt_tutor_prefill");
+    }
+  }, [dispatch, userId]);
 
   // Preview Photo when selected
   useEffect(() => {
@@ -54,11 +65,14 @@ export default function TutorProfileCompletePage() {
 
   // Save to cache
   useEffect(() => {
-    localStorage.setItem(
-      "tt_tutor_prefill",
-      JSON.stringify({ ...profile, isSubmitting: false })
-    );
-  }, [profile]);
+    try {
+      if (!userId) return;
+      localStorage.setItem(
+        "tt_tutor_prefill",
+        JSON.stringify({ userId, data: { ...profile, isSubmitting: false } })
+      );
+    } catch {}
+  }, [profile, userId]);
 
   // ---------- VALIDATION ----------
   const validate = () => {

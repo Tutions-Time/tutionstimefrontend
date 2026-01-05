@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -41,6 +41,13 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
 
   // Auto-select all subjects (joined) for submission
   const selectedSubject = useMemo(() => subjects.join(", "), [subjects]);
+
+  useEffect(() => {
+    if (!open) return;
+    setSelectedDate("");
+    setSelectedTime(null);
+    setNote("");
+  }, [open]);
 
   const showSuccess = (msg: string) =>
     toast({

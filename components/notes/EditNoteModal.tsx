@@ -97,8 +97,8 @@ export default function EditNoteModal({ open, setOpen, note, onSave }: Props) {
 
     // Only send new PDF if user selected one
     if (pdfFile) {
-      if (pdfFile.size > 10 * 1024 * 1024) {
-        toast({ title: "PDF size must be under 10MB", variant: "destructive" });
+      if (pdfFile.size > 150 * 1024 * 1024) {
+        toast({ title: "PDF size must be under 150MB", variant: "destructive" });
         return;
       }
       fd.append("pdf", pdfFile);

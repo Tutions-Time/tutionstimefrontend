@@ -40,6 +40,8 @@ export default function StudentGroupBatches() {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollBatch, setEnrollBatch] = useState<any>(null);
   const [enrollMonths, setEnrollMonths] = useState(1);
+  const [enrollMonthsInput, setEnrollMonthsInput] = useState("1");
+  const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
 
   // --------------------------
@@ -124,9 +126,32 @@ export default function StudentGroupBatches() {
   // --------------------------
   // Reserve + Pay
   // --------------------------
+  const computeMaxMonths = (batch: any) => {
+    const startRaw = batch?.recurring?.startDate || batch?.batchStartDate;
+    const endRaw = batch?.recurring?.endDate || batch?.batchEndDate;
+    const start = startRaw ? new Date(startRaw) : null;
+    const end = endRaw ? new Date(endRaw) : null;
+    if (!start || Number.isNaN(start.getTime())) return null;
+    if (!end || Number.isNaN(end.getTime())) return null;
+    if (end < start) return 1;
+    const monthsDiff =
+      (end.getFullYear() - start.getFullYear()) * 12 +
+      (end.getMonth() - start.getMonth());
+    const addMonth = end.getDate() > start.getDate() ? 1 : 0;
+    return Math.max(1, monthsDiff + addMonth || 1);
+  };
+  const clampMonths = (val: number, max?: number | null) => {
+    const base = Number.isFinite(val) && val > 0 ? val : 1;
+    return max ? Math.min(base, max) : base;
+  };
+
   const openEnrollModal = (batch: any) => {
+    const maxMonths = computeMaxMonths(batch);
     setEnrollBatch(batch);
-    setEnrollMonths(1);
+    const nextMonths = maxMonths || 1;
+    setEnrollMonths(nextMonths);
+    setEnrollMonthsInput(String(nextMonths));
+    setMaxEnrollMonths(maxMonths);
     setEnrollModalOpen(true);
   };
 
@@ -146,10 +171,15 @@ export default function StudentGroupBatches() {
         reservationId = res.reservationId;
       }
 
+      const safeMonths = clampMonths(
+        Number(enrollMonthsInput),
+        maxEnrollMonths
+      );
+
       const order = await createGroupOrder({
         batchId,
         reservationId,
-        months: enrollMonths,
+        months: safeMonths,
         // couponCode: couponMap[batchId]?.trim(),
       });
 
@@ -286,13 +316,25 @@ export default function StudentGroupBatches() {
                   {new Date(b.batchStartDate).toLocaleDateString("en-IN")}
                 </div>
               )}
+              {b.batchEndDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> End{" "}
+                  {new Date(b.batchEndDate).toLocaleDateString("en-IN")}
+                </div>
+              )}
+              {!b.batchEndDate && b.recurring?.endDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> End{" "}
+                  {new Date(b.recurring.endDate).toLocaleDateString("en-IN")}
+                </div>
+              )}
               {b.recurring?.time && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> Time {formatTime(b.recurring.time)}
                 </div>
               )}
               <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" /> Seats Left: {b.liveSeats}
+                <Users className="w-3 h-3" /> Seats available: {b.liveSeats}/{b.seatCap}
               </div>
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-3 h-3" /> ₹{b.pricePerStudent} / month
@@ -406,21 +448,40 @@ export default function StudentGroupBatches() {
               <label className="text-sm font-medium">Months</label>
               <input
                 type="number"
-                min={2}
-                // max={60}
+                min={1}
+                max={maxEnrollMonths || undefined}
                 className="w-full border rounded px-3 py-2 text-sm"
-                value={enrollMonths}
+                value={enrollMonthsInput}
                 onChange={(e) => {
-                  const next = Number(e.target.value);
-                  setEnrollMonths(Number.isFinite(next) && next > 0 ? next : 1);
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    setEnrollMonthsInput("");
+                    return;
+                  }
+                  const parsed = Number(raw);
+                  if (!Number.isFinite(parsed)) return;
+                  const capped = clampMonths(parsed, maxEnrollMonths);
+                  setEnrollMonthsInput(String(capped));
+                  setEnrollMonths(capped);
+                }}
+                onBlur={() => {
+                  const capped = clampMonths(Number(enrollMonthsInput), maxEnrollMonths);
+                  setEnrollMonths(capped);
+                  setEnrollMonthsInput(String(capped));
                 }}
               />
+              {maxEnrollMonths && (
+                <p className="text-xs text-gray-500">
+                  Max {maxEnrollMonths} month{maxEnrollMonths === 1 ? "" : "s"} based on batch end date.
+                </p>
+              )}
             </div>
 
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
               <span className="font-medium">Total Amount:</span>
               <span className="text-lg font-bold text-primary">
-                ₹{(enrollBatch?.pricePerStudent || 0) * enrollMonths}
+                ₹{(enrollBatch?.pricePerStudent || 0) *
+                  clampMonths(Number(enrollMonthsInput), maxEnrollMonths)}
               </span>
             </div>
           </div>
