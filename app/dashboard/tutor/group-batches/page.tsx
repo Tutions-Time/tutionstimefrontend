@@ -180,7 +180,7 @@ export default function TutorGroupBatchesPage() {
       <div className="lg:pl-64">
         <Topbar
           title="Group Batches"
-          subtitle="Create and manage your batches"
+          subtitle="Create and manage your batches and these services only for online classes."
           action={
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

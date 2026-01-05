@@ -40,6 +40,7 @@ export default function StudentGroupBatches() {
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrollBatch, setEnrollBatch] = useState<any>(null);
   const [enrollMonths, setEnrollMonths] = useState(1);
+  const [enrollMonthsInput, setEnrollMonthsInput] = useState("1");
   const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
 
@@ -139,11 +140,17 @@ export default function StudentGroupBatches() {
     const addMonth = end.getDate() > start.getDate() ? 1 : 0;
     return Math.max(1, monthsDiff + addMonth || 1);
   };
+  const clampMonths = (val: number, max?: number | null) => {
+    const base = Number.isFinite(val) && val > 0 ? val : 1;
+    return max ? Math.min(base, max) : base;
+  };
 
   const openEnrollModal = (batch: any) => {
     const maxMonths = computeMaxMonths(batch);
     setEnrollBatch(batch);
-    setEnrollMonths(maxMonths || 1);
+    const nextMonths = maxMonths || 1;
+    setEnrollMonths(nextMonths);
+    setEnrollMonthsInput(String(nextMonths));
     setMaxEnrollMonths(maxMonths);
     setEnrollModalOpen(true);
   };
@@ -164,10 +171,10 @@ export default function StudentGroupBatches() {
         reservationId = res.reservationId;
       }
 
-      const safeMonths =
-        maxEnrollMonths && enrollMonths > maxEnrollMonths
-          ? maxEnrollMonths
-          : enrollMonths;
+      const safeMonths = clampMonths(
+        Number(enrollMonthsInput),
+        maxEnrollMonths
+      );
 
       const order = await createGroupOrder({
         batchId,
@@ -444,12 +451,23 @@ export default function StudentGroupBatches() {
                 min={1}
                 max={maxEnrollMonths || undefined}
                 className="w-full border rounded px-3 py-2 text-sm"
-                value={enrollMonths}
+                value={enrollMonthsInput}
                 onChange={(e) => {
-                  const next = Number(e.target.value);
-                  const base = Number.isFinite(next) && next > 0 ? next : 1;
-                  const capped = maxEnrollMonths ? Math.min(base, maxEnrollMonths) : base;
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    setEnrollMonthsInput("");
+                    return;
+                  }
+                  const parsed = Number(raw);
+                  if (!Number.isFinite(parsed)) return;
+                  const capped = clampMonths(parsed, maxEnrollMonths);
+                  setEnrollMonthsInput(String(capped));
                   setEnrollMonths(capped);
+                }}
+                onBlur={() => {
+                  const capped = clampMonths(Number(enrollMonthsInput), maxEnrollMonths);
+                  setEnrollMonths(capped);
+                  setEnrollMonthsInput(String(capped));
                 }}
               />
               {maxEnrollMonths && (
@@ -462,7 +480,8 @@ export default function StudentGroupBatches() {
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
               <span className="font-medium">Total Amount:</span>
               <span className="text-lg font-bold text-primary">
-                ₹{(enrollBatch?.pricePerStudent || 0) * enrollMonths}
+                ₹{(enrollBatch?.pricePerStudent || 0) *
+                  clampMonths(Number(enrollMonthsInput), maxEnrollMonths)}
               </span>
             </div>
           </div>
