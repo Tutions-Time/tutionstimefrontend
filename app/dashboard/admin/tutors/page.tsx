@@ -28,6 +28,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AvailabilityPicker from "@/components/forms/AvailabilityPicker";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -429,7 +435,8 @@ export default function AdminTutorsPage() {
                     <div className="text-text">{new Date(t.joinedAt).toLocaleDateString()}</div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <TooltipProvider>
+                    <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -437,40 +444,18 @@ export default function AdminTutorsPage() {
                     >
                       <Eye className="w-4 h-4 mr-2" /> View Profile
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setKycModal({ open: true, row: t })}
-                    >
-                      <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
-                    </Button>
-                    {t.kyc !== "approved" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          window.confirm(`Approve KYC for ${t.name}?`) &&
-                          setKycStatus(t.id, "approved")
-                        }
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" /> Approve
-                      </Button>
-                    )}
-                    {t.kyc !== "rejected" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const reason = prompt(
-                            `Reject KYC for ${t.name}. Enter reason:`
-                          );
-                          if (reason !== null)
-                            setKycStatus(t.id, "rejected");
-                        }}
-                      >
-                        <XCircle className="w-4 h-4 mr-2" /> Reject
-                      </Button>
-                    )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setKycModal({ open: true, row: t })}
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>View KYC</TooltipContent>
+                    </Tooltip>
                     <Button
                       variant="outline"
                       size="sm"
@@ -489,7 +474,8 @@ export default function AdminTutorsPage() {
                     <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
                       <Button size="sm">Journey</Button>
                     </Link>
-                  </div>
+                    </div>
+                  </TooltipProvider>
                 </Card>
               ))}
           </div>
@@ -580,7 +566,8 @@ export default function AdminTutorsPage() {
                         {new Date(t.joinedAt).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-4">
-                        <div className="flex justify-end gap-2">
+                        <TooltipProvider>
+                          <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -588,40 +575,18 @@ export default function AdminTutorsPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setKycModal({ open: true, row: t })}
-                          >
-                            <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
-                          </Button>
-                          {t.kyc !== "approved" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                window.confirm(`Approve KYC for ${t.name}?`) &&
-                                setKycStatus(t.id, "approved")
-                              }
-                            >
-                              <CheckCircle className="w-4 h-4 mr-2" /> Approve
-                            </Button>
-                          )}
-                          {t.kyc !== "rejected" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const reason = prompt(
-                                  `Reject KYC for ${t.name}. Enter reason:`
-                                );
-                                if (reason !== null)
-                                  setKycStatus(t.id, "rejected");
-                              }}
-                            >
-                              <XCircle className="w-4 h-4 mr-2" /> Reject
-                            </Button>
-                          )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setKycModal({ open: true, row: t })}
+                              >
+                                <ShieldCheck className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View KYC</TooltipContent>
+                          </Tooltip>
                           <Button
                             variant="outline"
                             size="sm"
@@ -640,7 +605,8 @@ export default function AdminTutorsPage() {
                           <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
                             <Button size="sm">Journey</Button>
                           </Link>
-                        </div>
+                          </div>
+                        </TooltipProvider>
                       </td>
                     </tr>
                   ))}
@@ -856,6 +822,34 @@ export default function AdminTutorsPage() {
             ))}
             {kycModal.row.panUrl && (
               <img src={getProperImageUrl(kycModal.row.panUrl)} alt="PAN" className="w-full h-32 rounded object-cover border" />
+            )}
+          </div>
+          <div className="mt-6 flex flex-wrap justify-end gap-2">
+            {kycModal.row.kyc !== "approved" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  window.confirm(`Approve KYC for ${kycModal.row?.name}?`) &&
+                  setKycStatus(kycModal.row!.id, "approved")
+                }
+              >
+                <CheckCircle className="w-4 h-4 mr-2" /> Approve
+              </Button>
+            )}
+            {kycModal.row.kyc !== "rejected" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const reason = prompt(
+                    `Reject KYC for ${kycModal.row?.name}. Enter reason:`
+                  );
+                  if (reason !== null) setKycStatus(kycModal.row!.id, "rejected");
+                }}
+              >
+                <XCircle className="w-4 h-4 mr-2" /> Reject
+              </Button>
             )}
           </div>
         </Card>
