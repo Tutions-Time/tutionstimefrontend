@@ -53,8 +53,8 @@ api.interceptors.response.use(
         document.cookie = 'auth=; Max-Age=0; path=/';
       } catch {}
       toast({
-        title: 'Account inactive',
-        description: error.response?.data?.message || 'Your account is inactive. Please contact support.',
+        title: 'Account blocked',
+        description: error.response?.data?.message || 'Your account is blocked. Please contact support.',
         variant: 'destructive',
       });
       if (window.location.pathname !== '/login') {

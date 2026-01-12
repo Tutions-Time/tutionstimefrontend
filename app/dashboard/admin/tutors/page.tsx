@@ -12,6 +12,7 @@ import {
   ToggleRight,
   Star,
   Eye,
+  Map,
 } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -52,12 +53,11 @@ type TutorRow = {
   name: string;
   email: string;
   phone?: string;
+  profilePhoto?: string | null;
   kyc: Kyc;
   aadhaarUrls: string[];
   panUrl: string | null;
   rating: number;
-  classes30d: number;
-  earnings30d: number;
   status: Status;
   joinedAt: string;
 };
@@ -393,12 +393,20 @@ export default function AdminTutorsPage() {
                 <Card key={t.id} className="p-4 rounded-2xl bg-white shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
-                        {t.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
+                      {t.profilePhoto ? (
+                        <img
+                          src={getProperImageUrl(t.profilePhoto)}
+                          alt={t.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
+                          {t.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </div>
+                      )}
                       <div>
                         <div className="font-medium text-text">{t.name}</div>
                         <div className="text-xs text-muted">{t.email}</div>
@@ -423,12 +431,6 @@ export default function AdminTutorsPage() {
                     <div className="text-text">{t.phone || "-"}</div>
                     <div>Rating</div>
                     <div className="text-text">{t.rating.toFixed(1)}</div>
-                    <div>Classes (30d)</div>
-                    <div className="text-text">{t.classes30d}</div>
-                    <div>Earnings (30d)</div>
-                    <div className="text-text">
-                      ƒ,1{t.earnings30d.toLocaleString("en-IN")}
-                    </div>
                     <div>Status</div>
                     <div className="text-text capitalize">{t.status}</div>
                     <div>Joined</div>
@@ -456,24 +458,37 @@ export default function AdminTutorsPage() {
                       </TooltipTrigger>
                       <TooltipContent>View KYC</TooltipContent>
                     </Tooltip>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        window.confirm(`Toggle status for ${t.name}?`) &&
-                        toggleStatus(t.id, t.status)
-                      }
-                    >
-                      {t.status === "active" ? (
-                        <ToggleLeft className="w-4 h-4 mr-2" />
-                      ) : (
-                        <ToggleRight className="w-4 h-4 mr-2" />
-                      )}
-                      {t.status === "active" ? "Suspend" : "Activate"}
-                    </Button>
-                    <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
-                      <Button size="sm">Journey</Button>
-                    </Link>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            window.confirm(`Toggle status for ${t.name}?`) &&
+                            toggleStatus(t.id, t.status)
+                          }
+                        >
+                          {t.status === "active" ? (
+                            <ToggleLeft className="w-4 h-4" />
+                          ) : (
+                            <ToggleRight className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {t.status === "active" ? "Suspend" : "Activate"}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
+                          <Button size="sm">
+                            <Map className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent>Journey</TooltipContent>
+                    </Tooltip>
                     </div>
                   </TooltipProvider>
                 </Card>
@@ -494,8 +509,6 @@ export default function AdminTutorsPage() {
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">KYC</th>
                     <th className="px-4 py-3">Rating</th>
-                    <th className="px-4 py-3">Classes (30d)</th>
-                    <th className="px-4 py-3">Earnings (30d)</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Joined</th>
                     <th className="px-4 py-3 text-right">Actions</th>
@@ -506,12 +519,20 @@ export default function AdminTutorsPage() {
                     <tr key={t.id} className="border-t">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
-                            {t.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </div>
+                          {t.profilePhoto ? (
+                            <img
+                              src={getProperImageUrl(t.profilePhoto)}
+                              alt={t.name}
+                              className="w-9 h-9 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
+                              {t.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </div>
+                          )}
                           <div>
                             <div className="font-medium text-text">
                               {t.name}
@@ -522,34 +543,20 @@ export default function AdminTutorsPage() {
                       </td>
                       <td className="px-4 py-4">{t.phone ?? "-"}</td>
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <Badge
-                            className={cn(
-                              "border capitalize",
-                              t.kyc === "approved"
-                                ? "bg-green-100 text-green-700 border-green-300"
-                                : t.kyc === "pending"
-                                ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                                : "bg-red-100 text-red-700 border-red-300"
-                            )}
-                          >
-                            {t.kyc}
-                          </Badge>
-                          <div className="flex items-center gap-2">
-                            {(t.aadhaarUrls || []).slice(0, 2).map((src, i) => (
-                              <img key={i} src={getProperImageUrl(src)} alt={`aadhaar-${i}`} className="w-8 h-8 rounded object-cover border" />
-                            ))}
-                            {t.panUrl && (
-                              <img src={getProperImageUrl(t.panUrl)} alt="PAN" className="w-8 h-8 rounded object-cover border" />
-                            )}
-                          </div>
-                        </div>
+                        <Badge
+                          className={cn(
+                            "border capitalize",
+                            t.kyc === "approved"
+                              ? "bg-green-100 text-green-700 border-green-300"
+                              : t.kyc === "pending"
+                              ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                              : "bg-red-100 text-red-700 border-red-300"
+                          )}
+                        >
+                          {t.kyc}
+                        </Badge>
                       </td>
                       <td className="px-4 py-4">{t.rating.toFixed(1)}</td>
-                      <td className="px-4 py-4">{t.classes30d}</td>
-                      <td className="px-4 py-4">
-                        ₹{t.earnings30d.toLocaleString("en-IN")}
-                      </td>
                       <td className="px-4 py-4">
                         <Badge
                           className={cn(
@@ -587,24 +594,37 @@ export default function AdminTutorsPage() {
                             </TooltipTrigger>
                             <TooltipContent>View KYC</TooltipContent>
                           </Tooltip>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              window.confirm(`Toggle status for ${t.name}?`) &&
-                              toggleStatus(t.id, t.status)
-                            }
-                          >
-                            {t.status === "active" ? (
-                              <ToggleLeft className="w-4 h-4 mr-2" />
-                            ) : (
-                              <ToggleRight className="w-4 h-4 mr-2" />
-                            )}
-                            {t.status === "active" ? "Suspend" : "Activate"}
-                          </Button>
-                          <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
-                            <Button size="sm">Journey</Button>
-                          </Link>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  window.confirm(`Toggle status for ${t.name}?`) &&
+                                  toggleStatus(t.id, t.status)
+                                }
+                              >
+                                {t.status === "active" ? (
+                                  <ToggleLeft className="w-4 h-4" />
+                                ) : (
+                                  <ToggleRight className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {t.status === "active" ? "Suspend" : "Activate"}
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
+                                <Button size="sm">
+                                  <Map className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>Journey</TooltipContent>
+                          </Tooltip>
                           </div>
                         </TooltipProvider>
                       </td>
