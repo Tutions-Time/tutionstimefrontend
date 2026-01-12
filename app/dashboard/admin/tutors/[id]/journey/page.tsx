@@ -15,6 +15,37 @@ import { toast } from "@/hooks/use-toast";
 import { getTutorJourney } from "@/services/adminService";
 import { cn } from "@/lib/utils";
 
+type StudentInfo = {
+  id?: string;
+  userId?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  photoUrl?: string | null;
+  altPhone?: string;
+};
+
+type BatchInfo = {
+  id?: string;
+  subject?: string;
+  batchType?: string;
+  status?: string;
+  batchStartDate?: string;
+  batchEndDate?: string;
+  seatCap?: number;
+  enrolledCount?: number;
+  students?: StudentInfo[];
+};
+
+type NoteItem = {
+  title?: string;
+  subject?: string;
+  classLevel?: string;
+  board?: string;
+  price?: number;
+  createdAt?: string;
+};
+
 type JourneyData = {
   tutor: {
     id: string;
@@ -39,10 +70,47 @@ type JourneyData = {
   notes: { total: number };
   payments: { revenue: number; payouts: number; refunds: number };
   recent: {
-    demos: any[];
-    sessions: any[];
-    batches: any[];
-    payments: any[];
+    demos: Array<{
+      subject?: string;
+      status?: string;
+      preferredDate?: string;
+      preferredTime?: string;
+      regularClassId?: string;
+      createdAt?: string;
+      note?: string;
+      student?: StudentInfo | null;
+    }>;
+    sessions: Array<{
+      status?: string;
+      startDateTime?: string;
+      groupBatchId?: string;
+      regularClassId?: string;
+      createdAt?: string;
+      student?: StudentInfo | null;
+      batch?: BatchInfo | null;
+    }>;
+    batches: Array<{
+      subject?: string;
+      batchType?: string;
+      status?: string;
+      batchStartDate?: string;
+      batchEndDate?: string;
+      seatCap?: number;
+      enrolledCount?: number;
+      students?: StudentInfo[];
+      createdAt?: string;
+    }>;
+    payments: Array<{
+      type?: string;
+      status?: string;
+      amount?: number;
+      currency?: string;
+      refundTotal?: number;
+      createdAt?: string;
+      reason?: string;
+      student?: StudentInfo | null;
+    }>;
+    notes: NoteItem[];
   };
 };
 
@@ -144,6 +212,19 @@ export default function TutorJourneyPage() {
         <span className="text-xs text-muted ml-1">{safe.toFixed(1)}</span>
       </div>
     );
+  };
+
+  const formatStudentLabel = (student?: StudentInfo | null) => {
+    if (!student) return "Unknown Student";
+    const parts = [student.name || "Unknown Student"];
+    if (student.phone) parts.push(student.phone);
+    if (student.email) parts.push(student.email);
+    return parts.join(" | ");
+  };
+
+  const formatStudentNames = (students?: StudentInfo[]) => {
+    if (!students?.length) return "No students";
+    return students.map((s) => s.name || "Unknown").join(", ");
   };
 
   return (
@@ -279,13 +360,15 @@ export default function TutorJourneyPage() {
                     {data.recent.demos.length === 0 ? (
                       <div className="text-sm text-muted">No demos yet.</div>
                     ) : (
-                      data.recent.demos.map((d: any, idx: number) => (
+                      data.recent.demos.map((d, idx) => (
                         <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
                           <div>
                             <div className="font-medium text-text">{d.subject || "Demo"}</div>
+                            <div className="text-xs text-muted">Student: {formatStudentLabel(d.student)}</div>
                             <div className="text-xs text-muted">
                               Preferred: {formatDate(d.preferredDate)} {d.preferredTime || ""}
                             </div>
+                            {d.note ? <div className="text-xs text-muted">Note: {d.note}</div> : null}
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={cn("capitalize", statusTone(d.status))}>
@@ -312,13 +395,22 @@ export default function TutorJourneyPage() {
                     {data.recent.sessions.length === 0 ? (
                       <div className="text-sm text-muted">No sessions yet.</div>
                     ) : (
-                      data.recent.sessions.map((s: any, idx: number) => (
+                      data.recent.sessions.map((s, idx) => (
                         <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
                           <div>
                             <div className="font-medium text-text">{formatDateTime(s.startDateTime)}</div>
                             <div className="text-xs text-muted">
                               {s.groupBatchId ? "Group" : "1:1"} · {s.regularClassId ? "Regular" : "Demo/Adhoc"}
                             </div>
+                            {s.student ? (
+                              <div className="text-xs text-muted">Student: {formatStudentLabel(s.student)}</div>
+                            ) : s.batch ? (
+                              <div className="text-xs text-muted">
+                                Batch: {s.batch.subject || "Batch"} | Students: {formatStudentNames(s.batch.students)}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-muted">Student: -</div>
+                            )}
                           </div>
                           <Badge className={cn("capitalize", statusTone(s.status))}>
                             {s.status}
@@ -340,12 +432,15 @@ export default function TutorJourneyPage() {
                     {data.recent.batches.length === 0 ? (
                       <div className="text-sm text-muted">No batches yet.</div>
                     ) : (
-                      data.recent.batches.map((b: any, idx: number) => (
+                      data.recent.batches.map((b, idx) => (
                         <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
                           <div>
                             <div className="font-medium text-text">{b.subject || "Batch"}</div>
                             <div className="text-xs text-muted">
-                              {(b.batchType === "normal" || b.batchType === "exam") ? "Normal Class" : "Revision"} · Seats {b.enrolled?.length || 0}/{b.seatCap || 0}
+                              {(b.batchType === "normal" || b.batchType === "exam") ? "Normal Class" : "Revision"} · Seats {b.enrolledCount || 0}/{b.seatCap || 0}
+                            </div>
+                            <div className="text-xs text-muted">
+                              Students ({b.enrolledCount || 0}): {formatStudentNames(b.students)}
                             </div>
                           </div>
                           <Badge className={cn("capitalize", statusTone(b.status))}>
@@ -366,13 +461,15 @@ export default function TutorJourneyPage() {
                     {data.recent.payments.length === 0 ? (
                       <div className="text-sm text-muted">No payments yet.</div>
                     ) : (
-                      data.recent.payments.map((p: any, idx: number) => (
+                      data.recent.payments.map((p, idx) => (
                         <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
                           <div>
                             <div className="font-medium text-text capitalize">
                               {p.type} · {formatMoney(p.amount)}
                             </div>
                             <div className="text-xs text-muted">{formatDateTime(p.createdAt)}</div>
+                            <div className="text-xs text-muted">Paid by: {formatStudentLabel(p.student)}</div>
+                            {p.reason ? <div className="text-xs text-muted">Reason: {p.reason}</div> : null}
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={cn("capitalize", statusTone(p.status))}>
@@ -390,12 +487,31 @@ export default function TutorJourneyPage() {
               </div>
 
               <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
-                <div className="flex items-center gap-2 text-sm text-muted mb-2">
-                  <Notebook className="w-4 h-4" />
-                  Notes
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-sm text-muted">
+                    <Notebook className="w-4 h-4" />
+                    Notes
+                  </div>
+                  <Badge variant="outline">Total {data.notes.total}</Badge>
                 </div>
-                <div className="text-2xl font-semibold text-text">{data.notes.total}</div>
-                <div className="text-sm text-muted">Total notes published by this tutor</div>
+                <div className="space-y-3">
+                  {data.recent.notes.length === 0 ? (
+                    <div className="text-sm text-muted">No notes yet.</div>
+                  ) : (
+                    data.recent.notes.map((n, idx) => (
+                      <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
+                        <div>
+                          <div className="font-medium text-text">{n.title || "Note"}</div>
+                          <div className="text-xs text-muted">
+                            Subject: {n.subject || "-"} | Class: {n.classLevel || "-"} | Board: {n.board || "-"}
+                          </div>
+                          <div className="text-xs text-muted">{formatDateTime(n.createdAt)}</div>
+                        </div>
+                        <Badge variant="secondary">{formatMoney(n.price || 0)}</Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
               </Card>
             </>
           ) : (
