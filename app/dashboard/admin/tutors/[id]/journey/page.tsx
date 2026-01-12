@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CalendarClock, Notebook, PlayCircle, Star, Users, Wallet } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -117,7 +117,17 @@ type JourneyData = {
 export default function TutorJourneyPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tutorId = useMemo(() => (params?.id ? String(params.id) : ""), [params]);
+  const section = useMemo(
+    () => (searchParams?.get("section") || "").toLowerCase(),
+    [searchParams]
+  );
+  const activeSection = useMemo(() => {
+    const allowed = ["demos", "sessions", "batches", "payments", "notes"];
+    return allowed.includes(section) ? section : "";
+  }, [section]);
+  const isAllView = Boolean(activeSection);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -128,7 +138,8 @@ export default function TutorJourneyPage() {
       if (!tutorId) return;
       try {
         setLoading(true);
-        const res = await getTutorJourney(tutorId);
+        const params = isAllView ? { section: activeSection, limit: "all" as const } : undefined;
+        const res = await getTutorJourney(tutorId, params);
         if (res.success) {
           setData(res.data);
         } else {
@@ -149,7 +160,7 @@ export default function TutorJourneyPage() {
       }
     };
     fetchData();
-  }, [tutorId]);
+  }, [tutorId, activeSection, isAllView]);
 
   const formatDate = (v?: string) => {
     if (!v) return "-";
@@ -227,6 +238,30 @@ export default function TutorJourneyPage() {
     return students.map((s) => s.name || "Unknown").join(", ");
   };
 
+  const sectionTitles: Record<string, string> = {
+    demos: "All Demos",
+    sessions: "All Sessions",
+    batches: "All Batches",
+    payments: "All Payments",
+    notes: "All Notes",
+  };
+
+  const openSection = (name: string) => {
+    if (!tutorId) return;
+    router.push(`/dashboard/admin/tutors/${tutorId}/journey?section=${name}`);
+  };
+
+  const closeAllView = () => {
+    if (!tutorId) return;
+    router.push(`/dashboard/admin/tutors/${tutorId}/journey`);
+  };
+
+  const showDemos = !isAllView || activeSection === "demos";
+  const showSessions = !isAllView || activeSection === "sessions";
+  const showBatches = !isAllView || activeSection === "batches";
+  const showPayments = !isAllView || activeSection === "payments";
+  const showNotes = !isAllView || activeSection === "notes";
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -239,13 +274,22 @@ export default function TutorJourneyPage() {
 
       <div className="lg:pl-64">
         <Topbar
-          title="Tutor Journey"
-          subtitle="Full lifecycle: demos, sessions, batches, notes, payments"
+          title={isAllView ? sectionTitles[activeSection] || "Tutor Journey" : "Tutor Journey"}
+          subtitle={
+            isAllView
+              ? "Full list for this tutor"
+              : "Full lifecycle: demos, sessions, batches, notes, payments"
+          }
           greeting={false}
+          actionPosition="left"
           action={
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => (isAllView ? closeAllView() : router.back())}
+              aria-label={isAllView ? "Back to journey" : "Back"}
+            >
+              <ArrowLeft className="w-4 h-4" />
             </Button>
           }
         />
@@ -298,7 +342,8 @@ export default function TutorJourneyPage() {
                 </div>
               </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {!isAllView ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <Card className="p-4 rounded-xl shadow-sm bg-gradient-to-br from-amber-50 via-white to-white border border-amber-100">
                   <div className="flex items-center gap-2 text-sm text-muted mb-2">
                     <PlayCircle className="w-4 h-4" />
@@ -348,14 +393,24 @@ export default function TutorJourneyPage() {
                     Payouts {formatMoney(data.payments.payouts)} · Refunds {formatMoney(data.payments.refunds)}
                   </div>
                 </Card>
-              </div>
+                </div>
+              ) : null}
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-text">Recent Demos</div>
-                    <Badge variant="outline">Total {data.demos.total}</Badge>
-                  </div>
+              {showDemos || showSessions ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {showDemos ? (
+                  <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-semibold text-text">{isAllView ? "All Demos" : "Recent Demos"}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Total {data.demos.total}</Badge>
+                        {!isAllView ? (
+                          <Button variant="ghost" size="sm" onClick={() => openSection("demos")}>
+                            See all
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
                   <div className="space-y-3">
                     {data.recent.demos.length === 0 ? (
                       <div className="text-sm text-muted">No demos yet.</div>
@@ -384,13 +439,22 @@ export default function TutorJourneyPage() {
                       ))
                     )}
                   </div>
-                </Card>
+                  </Card>
+                  ) : null}
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm border border-blue-100/60">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-text">Recent Sessions</div>
-                    <Badge variant="outline">Total {data.sessions.total}</Badge>
-                  </div>
+                  {showSessions ? (
+                  <Card className="p-4 rounded-xl bg-white shadow-sm border border-blue-100/60">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-semibold text-text">{isAllView ? "All Sessions" : "Recent Sessions"}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Total {data.sessions.total}</Badge>
+                        {!isAllView ? (
+                          <Button variant="ghost" size="sm" onClick={() => openSection("sessions")}>
+                            See all
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
                   <div className="space-y-3">
                     {data.recent.sessions.length === 0 ? (
                       <div className="text-sm text-muted">No sessions yet.</div>
@@ -419,15 +483,26 @@ export default function TutorJourneyPage() {
                       ))
                     )}
                   </div>
-                </Card>
-              </div>
+                  </Card>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <Card className="p-4 rounded-xl bg-white shadow-sm border border-emerald-100/60">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-text">Recent Batches</div>
-                    <Badge variant="outline">Total {data.batches.total}</Badge>
-                  </div>
+              {showBatches || showPayments ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {showBatches ? (
+                  <Card className="p-4 rounded-xl bg-white shadow-sm border border-emerald-100/60">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-semibold text-text">{isAllView ? "All Batches" : "Recent Batches"}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Total {data.batches.total}</Badge>
+                        {!isAllView ? (
+                          <Button variant="ghost" size="sm" onClick={() => openSection("batches")}>
+                            See all
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
                   <div className="space-y-3">
                     {data.recent.batches.length === 0 ? (
                       <div className="text-sm text-muted">No batches yet.</div>
@@ -450,13 +525,22 @@ export default function TutorJourneyPage() {
                       ))
                     )}
                   </div>
-                </Card>
+                  </Card>
+                  ) : null}
 
-                <Card className="p-4 rounded-xl bg-white shadow-sm border border-rose-100/60">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-semibold text-text">Recent Payments</div>
-                    <Badge variant="outline">Revenue {formatMoney(data.payments.revenue)}</Badge>
-                  </div>
+                  {showPayments ? (
+                  <Card className="p-4 rounded-xl bg-white shadow-sm border border-rose-100/60">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-semibold text-text">{isAllView ? "All Payments" : "Recent Payments"}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Revenue {formatMoney(data.payments.revenue)}</Badge>
+                        {!isAllView ? (
+                          <Button variant="ghost" size="sm" onClick={() => openSection("payments")}>
+                            See all
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
                   <div className="space-y-3">
                     {data.recent.payments.length === 0 ? (
                       <div className="text-sm text-muted">No payments yet.</div>
@@ -483,36 +567,47 @@ export default function TutorJourneyPage() {
                       ))
                     )}
                   </div>
-                </Card>
-              </div>
+                  </Card>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-sm text-muted">
-                    <Notebook className="w-4 h-4" />
-                    Notes
+              {showNotes ? (
+                <Card className="p-4 rounded-xl bg-white shadow-sm border border-amber-100/60">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-sm text-muted">
+                      <Notebook className="w-4 h-4" />
+                      {isAllView ? "All Notes" : "Notes"}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">Total {data.notes.total}</Badge>
+                      {!isAllView ? (
+                        <Button variant="ghost" size="sm" onClick={() => openSection("notes")}>
+                          See all
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
-                  <Badge variant="outline">Total {data.notes.total}</Badge>
-                </div>
-                <div className="space-y-3">
-                  {data.recent.notes.length === 0 ? (
-                    <div className="text-sm text-muted">No notes yet.</div>
-                  ) : (
-                    data.recent.notes.map((n, idx) => (
-                      <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
-                        <div>
-                          <div className="font-medium text-text">{n.title || "Note"}</div>
-                          <div className="text-xs text-muted">
-                            Subject: {n.subject || "-"} | Class: {n.classLevel || "-"} | Board: {n.board || "-"}
+                  <div className="space-y-3">
+                    {data.recent.notes.length === 0 ? (
+                      <div className="text-sm text-muted">No notes yet.</div>
+                    ) : (
+                      data.recent.notes.map((n, idx) => (
+                        <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
+                          <div>
+                            <div className="font-medium text-text">{n.title || "Note"}</div>
+                            <div className="text-xs text-muted">
+                              Subject: {n.subject || "-"} | Class: {n.classLevel || "-"} | Board: {n.board || "-"}
+                            </div>
+                            <div className="text-xs text-muted">{formatDateTime(n.createdAt)}</div>
                           </div>
-                          <div className="text-xs text-muted">{formatDateTime(n.createdAt)}</div>
+                          <Badge variant="secondary">{formatMoney(n.price || 0)}</Badge>
                         </div>
-                        <Badge variant="secondary">{formatMoney(n.price || 0)}</Badge>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </Card>
+                      ))
+                    )}
+                  </div>
+                </Card>
+              ) : null}
             </>
           ) : (
             <Card className="p-6 rounded-2xl bg-white shadow-sm">

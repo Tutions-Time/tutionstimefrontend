@@ -6,10 +6,11 @@ interface TopbarProps {
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  actionPosition?: 'left' | 'right';
   greeting?: boolean;
 }
 
-export function Topbar({ title, subtitle, action, greeting }: TopbarProps) {
+export function Topbar({ title, subtitle, action, actionPosition = 'right', greeting }: TopbarProps) {
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -23,13 +24,23 @@ export function Topbar({ title, subtitle, action, greeting }: TopbarProps) {
         {greeting && (
           <p className="text-sm text-muted mb-1">{getGreeting()},</p>
         )}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-text">{title}</h1>
-            {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
+        {action && actionPosition === 'left' ? (
+          <div className="flex items-start gap-4">
+            <div className="shrink-0">{action}</div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-text">{title}</h1>
+              {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
+            </div>
           </div>
-          {action && <div className="shrink-0">{action}</div>}
-        </div>
+        ) : (
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-text">{title}</h1>
+              {subtitle && <p className="text-sm text-muted mt-1">{subtitle}</p>}
+            </div>
+            {action && <div className="shrink-0">{action}</div>}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -15,7 +16,16 @@ export default function StudentBatchDetailPage() {
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pl-64">
-        <Topbar title="Batch Sessions" subtitle="View and join your sessions" action={<Button variant="outline" onClick={()=>router.back()}>Back</Button>} />
+        <Topbar
+          title="Batch Sessions"
+          subtitle="View and join your sessions"
+          actionPosition="left"
+          action={
+            <Button variant="outline" size="icon" onClick={() => router.back()} aria-label="Back">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          }
+        />
         <main className="p-4 lg:p-6 space-y-4">
           <StudentBatchDetail />
         </main>
