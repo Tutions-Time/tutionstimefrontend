@@ -2,6 +2,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { store } from '../store/store';
 import { clearTokens, setTokens } from '../store/slices/authSlice';
+import { toast } from '@/hooks/use-toast';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -42,6 +43,25 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config;
+    const inactive =
+      error.response?.data?.error === 'INACTIVE' ||
+      String(error.response?.data?.message || '').toLowerCase().includes('inactive');
+
+    if (inactive && typeof window !== 'undefined') {
+      store.dispatch(clearTokens());
+      try {
+        document.cookie = 'auth=; Max-Age=0; path=/';
+      } catch {}
+      toast({
+        title: 'Account inactive',
+        description: error.response?.data?.message || 'Your account is inactive. Please contact support.',
+        variant: 'destructive',
+      });
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
 
     if (
       error.response?.status === 401 &&
