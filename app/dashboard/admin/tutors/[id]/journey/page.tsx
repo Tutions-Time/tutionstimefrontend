@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, CalendarClock, Notebook, PlayCircle, Users, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarClock, Notebook, PlayCircle, Star, Users, Wallet } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -22,6 +22,7 @@ type JourneyData = {
     name: string;
     email: string;
     phone: string;
+    rating?: number;
     status: string;
     joinedAt?: string;
   };
@@ -121,6 +122,30 @@ export default function TutorJourneyPage() {
     }
   };
 
+  const renderRatingStars = (rating?: number) => {
+    const safe = Number.isFinite(rating) ? Math.max(0, Math.min(5, Number(rating))) : 0;
+    const full = Math.floor(safe);
+    const half = safe - full >= 0.5;
+    return (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const active = i < full;
+          const halfActive = !active && half && i === full;
+          return (
+            <Star
+              key={i}
+              className={cn(
+                "w-4 h-4",
+                active ? "text-yellow-500 fill-yellow-500" : halfActive ? "text-yellow-500" : "text-slate-300"
+              )}
+            />
+          );
+        })}
+        <span className="text-xs text-muted ml-1">{safe.toFixed(1)}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -178,7 +203,10 @@ export default function TutorJourneyPage() {
                       <div className="text-sm text-muted">{data.tutor.phone || "No phone"}</div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="border-indigo-200 text-indigo-900 bg-indigo-50">
+                      {renderRatingStars(data.tutor.rating)}
+                    </Badge>
                     <Badge variant="outline" className="capitalize border-amber-200 text-amber-900 bg-amber-50">
                       Status: {data.tutor.status}
                     </Badge>
