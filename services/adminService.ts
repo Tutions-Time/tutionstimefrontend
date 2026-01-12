@@ -26,7 +26,7 @@ export const getAllUsers = async (params?: {
 export const getUserById = async (userId: string) => {
   try {
     const response = await api.get(`/admin/users/${userId}`);
-    return response.data.user;
+    return response.data?.data || {};
   } catch (error) {
     throw new Error(handleApiError(error));
   }
