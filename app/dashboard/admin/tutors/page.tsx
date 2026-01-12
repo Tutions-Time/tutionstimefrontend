@@ -10,7 +10,6 @@ import {
   Search as SearchIcon,
   ToggleLeft,
   ToggleRight,
-  Star,
   Eye,
   Map,
 } from "lucide-react";
@@ -54,10 +53,10 @@ type TutorRow = {
   email: string;
   phone?: string;
   profilePhoto?: string | null;
+  profileComplete?: boolean;
   kyc: Kyc;
   aadhaarUrls: string[];
   panUrl: string | null;
-  rating: number;
   status: Status;
   joinedAt: string;
 };
@@ -67,9 +66,8 @@ export default function AdminTutorsPage() {
   const [query, setQuery] = useState("");
   const [kyc, setKyc] = useState<Kyc | "all">("all");
   const [status, setStatus] = useState<Status | "all">("all");
-  const [minRating, setMinRating] = useState<number>(0);
   const [sort, setSort] = useState<
-    "joined_desc" | "joined_asc" | "rating_desc" | "rating_asc" | "name_asc" | "name_desc"
+    "joined_desc" | "joined_asc" | "name_asc" | "name_desc"
   >("joined_desc");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -160,7 +158,6 @@ export default function AdminTutorsPage() {
           q: query,
           kyc,
           status,
-          minRating,
           sort,
         });
         if (res.success) {
@@ -184,11 +181,11 @@ export default function AdminTutorsPage() {
       }
     };
     fetchTutors();
-  }, [page, limit, query, kyc, status, minRating, sort]);
+  }, [page, limit, query, kyc, status, sort]);
 
   useEffect(() => {
     setPage(1);
-  }, [query, kyc, status, minRating, sort, limit]);
+  }, [query, kyc, status, sort, limit]);
 
   const showing = useMemo(() => {
     if (total === 0) return "0";
@@ -310,20 +307,6 @@ export default function AdminTutorsPage() {
                 <option value="suspended">Suspended</option>
               </select>
 
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                <input
-                  type="number"
-                  min={0}
-                  max={5}
-                  step={0.1}
-                  value={minRating}
-                  onChange={(e) => setMinRating(Number(e.target.value))}
-                  className="h-10 w-full rounded-md border px-3 text-sm"
-                  placeholder="Min rating"
-                />
-              </div>
-
               <select
                 className="h-10 rounded-md border px-3 text-sm"
                 value={sort}
@@ -331,8 +314,6 @@ export default function AdminTutorsPage() {
               >
                 <option value="joined_desc">Joined (newest)</option>
                 <option value="joined_asc">Joined (oldest)</option>
-                <option value="rating_desc">Rating (high → low)</option>
-                <option value="rating_asc">Rating (low → high)</option>
                 <option value="name_asc">Name (A → Z)</option>
                 <option value="name_desc">Name (Z → A)</option>
               </select>
@@ -429,8 +410,6 @@ export default function AdminTutorsPage() {
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted">
                     <div>Phone</div>
                     <div className="text-text">{t.phone || "-"}</div>
-                    <div>Rating</div>
-                    <div className="text-text">{t.rating.toFixed(1)}</div>
                     <div>Status</div>
                     <div className="text-text capitalize">{t.status}</div>
                     <div>Joined</div>
@@ -508,7 +487,7 @@ export default function AdminTutorsPage() {
                     <th className="px-4 py-3">Tutor</th>
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">KYC</th>
-                    <th className="px-4 py-3">Rating</th>
+                    <th className="px-4 py-3">Profile</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Joined</th>
                     <th className="px-4 py-3 text-right">Actions</th>
@@ -556,7 +535,18 @@ export default function AdminTutorsPage() {
                           {t.kyc}
                         </Badge>
                       </td>
-                      <td className="px-4 py-4">{t.rating.toFixed(1)}</td>
+                      <td className="px-4 py-4">
+                        <Badge
+                          className={cn(
+                            "border",
+                            t.profileComplete
+                              ? "bg-success/10 text-success border-success/20"
+                              : "bg-danger/10 text-danger border-danger/20"
+                          )}
+                        >
+                          {t.profileComplete ? "Complete" : "Incomplete"}
+                        </Badge>
+                      </td>
                       <td className="px-4 py-4">
                         <Badge
                           className={cn(
