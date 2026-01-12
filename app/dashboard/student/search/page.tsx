@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -62,6 +62,8 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
   const router = useRouter();
   const params = useSearchParams();
   const pathname = usePathname();
+  const hydratedRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Hydrate
   useEffect(() => {
@@ -84,11 +86,14 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
       if (val) next[key] = val;
     }
     if (Object.keys(next).length) setState({ ...state, ...next });
+    hydratedRef.current = true;
+    setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Push to URL whenever state changes
   useEffect(() => {
+    if (!hydratedRef.current) return;
     const controller = setTimeout(() => {
       const sp = new URLSearchParams();
       Object.entries(state).forEach(([k, v]) => {
@@ -98,6 +103,8 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
     }, 120);
     return () => clearTimeout(controller);
   }, [JSON.stringify(state), pathname, router]);
+
+  return hydrated;
 }
 
 export default function SearchTutors() {
@@ -143,26 +150,46 @@ export default function SearchTutors() {
   const [mode, setMode] = useState("");
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [profileReady, setProfileReady] = useState(false);
 
-  useUrlSync(filter, (next) => setFilter(next));
+  const hydrated = useUrlSync(filter, (next) => setFilter(next));
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        if (filter.classLevel) return;
+        if (filter.classLevel || filter.subject || filter.board) {
+          if (alive) setProfileReady(true);
+          return;
+        }
         const up = await getUserProfile();
         const classLevel = up?.profile?.classLevel;
-        if (alive && classLevel) {
-          setFilter((f) => ({ ...f, classLevel, page: "1" }));
+        const board = up?.profile?.board;
+        const subjects = Array.isArray(up?.profile?.subjects) ? up.profile.subjects : [];
+        if (!alive) return;
+        if (classLevel) {
+          setFilter((f) => ({
+            ...f,
+            classLevel,
+            board: board || "",
+            page: "1",
+          }));
+        } else if (subjects.length) {
+          setFilter((f) => ({
+            ...f,
+            subject: subjects[0],
+            page: "1",
+          }));
         }
       } catch {
+      } finally {
+        if (alive) setProfileReady(true);
       }
     })();
     return () => {
       alive = false;
     };
-  }, [filter.classLevel]);
+  }, [filter.classLevel, filter.subject, filter.board]);
 
   /* ---------- Query Builder ---------- */
   const params = useMemo(() => {
@@ -222,9 +249,10 @@ export default function SearchTutors() {
   };
 
   useEffect(() => {
+    if (!hydrated || !profileReady) return;
     loadTutors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(params)]);
+  }, [JSON.stringify(params), hydrated, profileReady]);
 
   const clearAllFilters = () => {
     setFilter({
