@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
                             ) : (
                               <ToggleRight className="w-4 h-4 mr-2" />
                             )}
-                            {/* {u.status === 'active' ? 'Deactivate' : 'Activate'} */}
+                            
                           </Button>
                         </div>
                       </td>

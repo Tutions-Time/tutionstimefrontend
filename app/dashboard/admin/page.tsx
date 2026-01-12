@@ -98,14 +98,7 @@ function AdminDashboardContent() {
           title="Analytics Overview"
           subtitle="Key platform metrics and recent activity"
           greeting
-          action={
-            <Link href="/dashboard/admin">
-              <Button className="bg-primary hover:bg-primary/90 text-text font-semibold">
-                <Search className="w-4 h-4 mr-2" />
-                Explore Data
-              </Button>
-            </Link>
-          }
+         
         />
 
         {/* MAIN CONTENT */}
