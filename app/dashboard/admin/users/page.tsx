@@ -271,9 +271,6 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3 hidden md:table-cell">Role</th>
                     <th className="px-4 py-3 hidden md:table-cell">Profile</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Referral</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Referral Used</th>
-                    <th className="px-4 py-3 hidden lg:table-cell">Referrer</th>
                     <th className="px-4 py-3">Status</th>
                     {/* <th className="px-4 py-3 hidden md:table-cell">Sign Up</th>
                     <th className="px-4 py-3 hidden md:table-cell">Last Login</th> */}
@@ -321,9 +318,6 @@ export default function AdminUsersPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="px-4 py-4 hidden lg:table-cell">{u.referralCode || '—'}</td>
-                      <td className="px-4 py-4 hidden lg:table-cell">{u.referralCodeUsed || '—'}</td>
-                      <td className="px-4 py-4 hidden lg:table-cell">{u.referrerName ? `${u.referrerName} (${u.referrerRole})` : '—'}</td>
                       <td className="px-4 py-4">
                         <Badge
                           className={cn(
@@ -372,7 +366,7 @@ export default function AdminUsersPage() {
                   {rows.length === 0 && (
                     <tr>
                       <td
-                        colSpan={11}
+                        colSpan={8}
                         className="px-4 py-12 text-center text-muted"
                       >
                         No students found.
@@ -442,6 +436,14 @@ export default function AdminUsersPage() {
                   <div>
                     <div className="text-muted">Referral Code</div>
                     <div>{formatText(profileReferralCode || selectedUser?.referralCode)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Referral Used</div>
+                    <div>{formatText(selectedUser?.referralCodeUsed)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Referrer</div>
+                    <div>{formatText(selectedUser?.referrerName ? `${selectedUser?.referrerName} (${selectedUser?.referrerRole})` : null)}</div>
                   </div>
                 </div>
               </div>

@@ -63,7 +63,7 @@ const tutorLinks: NavLink[] = [
 
 const adminLinks: NavLink[] = [
   { href: '/dashboard/admin', label: 'Analytics', icon: BarChart3, exact: true },
-  { href: '/dashboard/admin/users', label: 'Users', icon: Users },
+  { href: '/dashboard/admin/users', label: 'Students', icon: Users },
   { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
   // { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },
   { href: '/dashboard/admin/revenue', label: 'Revenue', icon: Wallet },
