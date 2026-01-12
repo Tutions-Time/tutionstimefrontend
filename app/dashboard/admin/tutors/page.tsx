@@ -11,6 +11,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Star,
+  Eye,
 } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -20,10 +21,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AvailabilityPicker from "@/components/forms/AvailabilityPicker";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import {
   getAllTutors,
+  getUserById,
   updateTutorKyc,
   updateTutorStatus,
 } from "@/services/adminService";
@@ -62,6 +72,11 @@ export default function AdminTutorsPage() {
   const [rows, setRows] = useState<TutorRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [kycModal, setKycModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [selectedTutor, setSelectedTutor] = useState<TutorRow | null>(null);
 
   const getProperImageUrl = (path?: string | null) => {
     if (!path) return "";
@@ -73,6 +88,59 @@ export default function AdminTutorsPage() {
     const base = (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://127.0.0.1:5000").replace(/\/$/, "");
     const rel = cleaned.replace(/^\//, "");
     return `${base}/${rel}`;
+  };
+
+  const formatText = (value?: string | number | null) =>
+    value === undefined || value === null || value === "" ? "-" : String(value);
+  const formatArray = (value?: string[] | string | null) => {
+    if (!value) return "-";
+    if (Array.isArray(value)) return value.length ? value.join(", ") : "-";
+    const parts = String(value)
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+    return parts.length ? parts.join(", ") : "-";
+  };
+
+  const normalizeUserResponse = (res: any) => {
+    if (!res) return { user: null, profile: null };
+    if (res.data && (res.data.user || res.data.profile)) {
+      return { user: res.data.user || null, profile: res.data.profile || null };
+    }
+    if (res.user || res.profile) return { user: res.user || null, profile: res.profile || null };
+    return { user: res, profile: null };
+  };
+
+  const openProfileModal = async (row: TutorRow) => {
+    setSelectedTutor(row);
+    setProfileOpen(true);
+    setProfileLoading(true);
+    setProfileUser(null);
+    setProfileData(null);
+    try {
+      const res = await getUserById(row.id);
+      const normalized = normalizeUserResponse(res);
+      setProfileUser(normalized.user);
+      setProfileData(normalized.profile);
+    } catch (err: any) {
+      toast({
+        title: "Failed to load tutor profile",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleProfileOpenChange = (open: boolean) => {
+    setProfileOpen(open);
+    if (!open) {
+      setSelectedTutor(null);
+      setProfileUser(null);
+      setProfileData(null);
+      setProfileLoading(false);
+    }
   };
 
   // ✅ Fetch tutors from backend
@@ -365,6 +433,13 @@ export default function AdminTutorsPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => openProfileModal(t)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" /> View Profile
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setKycModal({ open: true, row: t })}
                     >
                       <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
@@ -509,6 +584,13 @@ export default function AdminTutorsPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => openProfileModal(t)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setKycModal({ open: true, row: t })}
                           >
                             <ShieldCheck className="w-4 h-4 mr-2" /> View KYC
@@ -578,6 +660,189 @@ export default function AdminTutorsPage() {
           </Card>
         </main>
       </div>
+      <Dialog open={profileOpen} onOpenChange={handleProfileOpenChange}>
+        <DialogContent className="max-w-5xl rounded-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tutor Profile</DialogTitle>
+            <DialogDescription>Full profile details</DialogDescription>
+          </DialogHeader>
+
+          {profileLoading ? (
+            <div className="py-10 text-center text-muted">Loading tutor profile...</div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                {getProperImageUrl(profileData?.photoUrl) ? (
+                  <img
+                    src={getProperImageUrl(profileData?.photoUrl)}
+                    alt={profileData?.name || selectedTutor?.name || "Tutor"}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-semibold text-primary">
+                    {(profileData?.name || selectedTutor?.name || "T").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="text-xl font-semibold">
+                    {formatText(profileData?.name || selectedTutor?.name)}
+                  </div>
+                  <div className="text-sm text-muted">
+                    {formatText(profileData?.email || selectedTutor?.email)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Personal Information</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Full Name</div>
+                    <div>{formatText(profileData?.name)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Email</div>
+                    <div>{formatText(profileData?.email)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Gender</div>
+                    <div>{formatText(profileData?.gender)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Teaching Mode</div>
+                    <div>{formatText(profileData?.teachingMode)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Address Line 1</div>
+                    <div>{formatText(profileData?.addressLine1)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Address Line 2</div>
+                    <div>{formatText(profileData?.addressLine2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">State</div>
+                    <div>{formatText(profileData?.state)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">City</div>
+                    <div>{formatText(profileData?.city)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Pincode</div>
+                    <div>{formatText(profileData?.pincode)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Academic & Teaching</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Highest Qualification</div>
+                    <div>{formatText(profileData?.qualification)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Specialization</div>
+                    <div>{formatText(profileData?.specialization)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Experience (Years)</div>
+                    <div>{formatText(profileData?.experience)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Subjects & Classes</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Student Types</div>
+                    <div>{formatArray(profileData?.studentTypes)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Subjects</div>
+                    <div>{formatArray(profileData?.subjects)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Classes</div>
+                    <div>{formatArray(profileData?.classLevels)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Boards / Curriculums</div>
+                    <div>{formatArray(profileData?.boards)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Group Size Preference</div>
+                    <div>{formatArray(profileData?.groupSizes || profileData?.groupSize)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Rates & Availability</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Hourly Rate</div>
+                    <div>{formatText(profileData?.hourlyRate)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Monthly Rate</div>
+                    <div>{formatText(profileData?.monthlyRate)}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-muted mb-2">Availability</div>
+                    <AvailabilityPicker value={profileData?.availability || []} onChange={() => {}} readOnly />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">About & Highlights</div>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <div className="text-muted">Short Bio</div>
+                    <div>{formatText(profileData?.bio)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Teaching Highlights / Achievements</div>
+                    <div>{formatText(profileData?.achievements)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Demo Video</div>
+                {profileData?.demoVideoUrl ? (
+                  <video
+                    controls
+                    className="w-full max-h-[360px] rounded-lg border"
+                    src={getProperImageUrl(profileData?.demoVideoUrl)}
+                  />
+                ) : (
+                  <div className="text-sm text-muted">No demo video uploaded.</div>
+                )}
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Resume</div>
+                {profileData?.resumeUrl ? (
+                  <a
+                    href={getProperImageUrl(profileData?.resumeUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    View / Download Resume
+                  </a>
+                ) : (
+                  <div className="text-sm text-muted">No resume uploaded.</div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     {kycModal.open && kycModal.row && (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
         <Card className="p-6 rounded-2xl bg-white shadow-lg w-[90vw] max-w-2xl">
