@@ -132,6 +132,7 @@ export default function TutorJourneyPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<JourneyData | null>(null);
+  const [sessionTab, setSessionTab] = useState<"one" | "batch">("one");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -261,6 +262,10 @@ export default function TutorJourneyPage() {
   const showBatches = !isAllView || activeSection === "batches";
   const showPayments = !isAllView || activeSection === "payments";
   const showNotes = !isAllView || activeSection === "notes";
+  const sessionItems = data?.recent.sessions || [];
+  const oneToOneSessions = sessionItems.filter((s) => !s.groupBatchId);
+  const batchSessions = sessionItems.filter((s) => s.groupBatchId);
+  const showSessionTabs = showSessions;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -390,7 +395,7 @@ export default function TutorJourneyPage() {
                   </div>
                   <div className="text-2xl font-semibold text-text">{formatMoney(data.payments.revenue)}</div>
                   <div className="text-sm text-muted mt-1">
-                    Payouts {formatMoney(data.payments.payouts)} · Refunds {formatMoney(data.payments.refunds)}
+                    Payouts {formatMoney(data.payments.payouts)} - Refunds {formatMoney(data.payments.refunds)}
                   </div>
                 </Card>
                 </div>
@@ -455,34 +460,83 @@ export default function TutorJourneyPage() {
                         ) : null}
                       </div>
                     </div>
-                  <div className="space-y-3">
-                    {data.recent.sessions.length === 0 ? (
-                      <div className="text-sm text-muted">No sessions yet.</div>
-                    ) : (
-                      data.recent.sessions.map((s, idx) => (
-                        <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
-                          <div>
-                            <div className="font-medium text-text">{formatDateTime(s.startDateTime)}</div>
-                            <div className="text-xs text-muted">
-                              {s.groupBatchId ? "Group" : "1:1"} · {s.regularClassId ? "Regular" : "Demo/Adhoc"}
-                            </div>
-                            {s.student ? (
-                              <div className="text-xs text-muted">Student: {formatStudentLabel(s.student)}</div>
-                            ) : s.batch ? (
-                              <div className="text-xs text-muted">
-                                Batch: {s.batch.subject || "Batch"} | Students: {formatStudentNames(s.batch.students)}
-                              </div>
-                            ) : (
-                              <div className="text-xs text-muted">Student: -</div>
-                            )}
-                          </div>
-                          <Badge className={cn("capitalize", statusTone(s.status))}>
-                            {s.status}
-                          </Badge>
+                  {showSessionTabs ? (
+                    <>
+                      <div className="flex justify-center mb-3">
+                        <div className="flex p-2 bg-white/60 rounded-full border gap-1">
+                          <button
+                            onClick={() => setSessionTab("one")}
+                            className={`px-6 py-2 text-sm font-medium rounded-full ${
+                              sessionTab === "one"
+                                ? "bg-white shadow text-blue-700"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            1:1 Sessions
+                          </button>
+                          <button
+                            onClick={() => setSessionTab("batch")}
+                            className={`px-6 py-2 text-sm font-medium rounded-full ${
+                              sessionTab === "batch"
+                                ? "bg-white shadow text-blue-700"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            Batch Sessions
+                          </button>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      </div>
+                      <div className="space-y-3">
+                        {sessionTab === "one" ? (
+                          oneToOneSessions.length === 0 ? (
+                            <div className="text-sm text-muted">No 1:1 sessions yet.</div>
+                          ) : (
+                            oneToOneSessions.map((s, idx) => (
+                              <div key={`one-${idx}`} className="flex items-center justify-between border rounded-lg p-3">
+                                <div>
+                                  <div className="font-medium text-text">{formatDateTime(s.startDateTime)}</div>
+                                  <div className="text-xs text-muted">
+                                    1:1 - {s.regularClassId ? "Regular" : "Demo/Adhoc"}
+                                  </div>
+                                  {s.student ? (
+                                    <div className="text-xs text-muted">Student: {formatStudentLabel(s.student)}</div>
+                                  ) : (
+                                    <div className="text-xs text-muted">Student: -</div>
+                                  )}
+                                </div>
+                                <Badge className={cn("capitalize", statusTone(s.status))}>
+                                  {s.status}
+                                </Badge>
+                              </div>
+                            ))
+                          )
+                        ) : batchSessions.length === 0 ? (
+                          <div className="text-sm text-muted">No batch sessions yet.</div>
+                        ) : (
+                          batchSessions.map((s, idx) => (
+                            <div key={`batch-${idx}`} className="flex items-center justify-between border rounded-lg p-3">
+                              <div>
+                                <div className="font-medium text-text">{formatDateTime(s.startDateTime)}</div>
+                                <div className="text-xs text-muted">
+                                  Group - {s.regularClassId ? "Regular" : "Demo/Adhoc"}
+                                </div>
+                                {s.batch ? (
+                                  <div className="text-xs text-muted">
+                                    Batch: {s.batch.subject || "Batch"} | Students: {formatStudentNames(s.batch.students)}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-muted">Batch: -</div>
+                                )}
+                              </div>
+                              <Badge className={cn("capitalize", statusTone(s.status))}>
+                                {s.status}
+                              </Badge>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  ) : null}
                   </Card>
                   ) : null}
                 </div>
@@ -512,7 +566,7 @@ export default function TutorJourneyPage() {
                           <div>
                             <div className="font-medium text-text">{b.subject || "Batch"}</div>
                             <div className="text-xs text-muted">
-                              {(b.batchType === "normal" || b.batchType === "exam") ? "Normal Class" : "Revision"} · Seats {b.enrolledCount || 0}/{b.seatCap || 0}
+                              {(b.batchType === "normal" || b.batchType === "exam") ? "Normal Class" : "Revision"} - Seats {b.enrolledCount || 0}/{b.seatCap || 0}
                             </div>
                             <div className="text-xs text-muted">
                               Students ({b.enrolledCount || 0}): {formatStudentNames(b.students)}
@@ -549,7 +603,7 @@ export default function TutorJourneyPage() {
                         <div key={idx} className="flex items-center justify-between border rounded-lg p-3">
                           <div>
                             <div className="font-medium text-text capitalize">
-                              {p.type} · {formatMoney(p.amount)}
+                              {p.type} - {formatMoney(p.amount)}
                             </div>
                             <div className="text-xs text-muted">{formatDateTime(p.createdAt)}</div>
                             <div className="text-xs text-muted">Paid by: {formatStudentLabel(p.student)}</div>
