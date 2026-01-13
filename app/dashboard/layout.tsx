@@ -23,6 +23,8 @@ export default function DashboardLayout({
     allowedRoles = ['tutor'];
   } else if (pathname.startsWith('/dashboard/student')) {
     allowedRoles = ['student'];
+  } else if (pathname.startsWith('/dashboard/meeting')) {
+    allowedRoles = ['student', 'tutor', 'admin'];
   }
 
 

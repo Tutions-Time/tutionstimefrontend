@@ -62,3 +62,30 @@ export const startRegularFromDemo = async (
     throw new Error(handleApiError(error));
   }
 };
+
+export const getBookingById = async (bookingId: string) => {
+  try {
+    const res = await api.get(`/bookings/${bookingId}`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const recordDemoJoin = async (bookingId: string) => {
+  try {
+    const res = await api.post(`/bookings/${bookingId}/demo/join`);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const recordDemoEnd = async (bookingId: string) => {
+  try {
+    const res = await api.post(`/bookings/${bookingId}/demo/end`);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};

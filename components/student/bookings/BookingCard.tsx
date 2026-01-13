@@ -9,8 +9,7 @@ import {
   Video,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useAppDispatch } from "@/store/store";
-import { markJoiningDemo } from "@/store/slices/reviewSlice";
+import { useRouter } from "next/navigation";
 import BookingStatusTag from "./BookingStatusTag";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 
@@ -41,7 +40,7 @@ export default function BookingCard({
 }) {
   console.log("BOOKING RECEIVED:", booking);
 
-  const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const sessionStart = useMemo(() => {
     const base = new Date(booking.preferredDate);
@@ -60,6 +59,15 @@ export default function BookingCard({
 
   const [canJoin, setCanJoin] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const autoExpireMessages = [
+    "Student was not available for the demo.",
+    "Tutor did not join the demo.",
+    "Demo expired because no one joined.",
+  ];
+  const isExpired =
+    booking.status === "cancelled" &&
+    !!booking.demoFeedback?.comment &&
+    autoExpireMessages.includes(booking.demoFeedback.comment);
 
   useEffect(() => {
     const EARLY_JOIN_MINUTES = 5;
@@ -114,7 +122,7 @@ export default function BookingCard({
               ? `Demo booking with ${booking.tutorName}`
               : `Regular Class with ${booking.tutorName}`}
           </h2>
-          <BookingStatusTag status={booking.status} />
+          <BookingStatusTag status={booking.status} isExpired={isExpired} />
         </div>
 
         {/* SUBJECT */}
@@ -166,19 +174,7 @@ export default function BookingCard({
                 onClick={() => {
                   if (!canJoin) return;
 
-                  dispatch(
-                    markJoiningDemo({
-                      bookingId: booking._id,
-                      tutorId: booking.tutorId,
-                      tutorName: booking.tutorName,
-                    })
-                  );
-
-                  window.open(
-                    booking.meetingLink,
-                    "_blank",
-                    "noopener,noreferrer"
-                  );
+                  router.push(`/dashboard/meeting/demo/${booking._id}`);
                 }}
                 className={`inline-flex items-center gap-2 font-semibold text-sm
                   px-4 py-2 rounded-full w-fit transition
@@ -220,6 +216,7 @@ export default function BookingCard({
         {/* ⭐ START REGULAR CLASSES BUTTON ⭐ */}
         {booking.type === "demo" &&
           booking.status === "completed" &&
+          booking.demoFeedback?.likedTutor !== false &&
           !canJoin && (
             <button
               onClick={() => setShowUpgradeModal(true)}

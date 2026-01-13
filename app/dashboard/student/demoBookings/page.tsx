@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -66,23 +66,32 @@ export default function StudentBookingsPage() {
     return `${base}/${rel}`;
   };
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [list, regular] = await Promise.all([
-          getStudentBookings(),
-          getStudentRegularClasses(),
-        ]);
-        setBookings(list);
-        setRegularClasses(regular);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = useCallback(async () => {
+    try {
+      const [list, regular] = await Promise.all([
+        getStudentBookings(),
+        getStudentRegularClasses(),
+      ]);
+      setBookings(list);
+      setRegularClasses(regular);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      loadData();
+    };
+    window.addEventListener("demo-feedback-submitted", handleRefresh);
+    return () => window.removeEventListener("demo-feedback-submitted", handleRefresh);
+  }, [loadData]);
 
   // Filter bookings based on active tab
   const filtered = bookings.filter((b) => {

@@ -3,10 +3,17 @@
 import BookingCard from "./BookingCard";
 
 export default function BookingList({ bookings }: { bookings: any[] }) {
-  // 🔥 REMOVE all cancelled bookings
-  const activeBookings = bookings.filter(
-    (b) => b.status?.toLowerCase() !== "cancelled"
-  );
+  const autoExpireMessages = [
+    "Student was not available for the demo.",
+    "Tutor did not join the demo.",
+    "Demo expired because no one joined.",
+  ];
+  const activeBookings = bookings.filter((b) => {
+    const isCancelled = b.status?.toLowerCase() === "cancelled";
+    if (!isCancelled) return true;
+    const comment = b.demoFeedback?.comment;
+    return comment && autoExpireMessages.includes(comment);
+  });
 
   if (!activeBookings.length) {
     return (

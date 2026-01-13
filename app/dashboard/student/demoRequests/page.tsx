@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -19,6 +20,7 @@ export default function StudentDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Load Requests
   const loadRequests = async () => {
@@ -195,15 +197,16 @@ export default function StudentDemoRequests() {
 
                   {/* Join Demo */}
                   {req.status === "confirmed" && req.meetingLink && (
-                    <a
-                      href={req.meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        router.push(`/dashboard/meeting/demo/${req._id}`);
+                      }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
                       <Video className="w-4 h-4" />
                       Join Demo
-                    </a>
+                    </button>
                   )}
                 </div>
               </Card>

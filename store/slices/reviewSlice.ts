@@ -30,21 +30,21 @@ const reviewSlice = createSlice({
       state.tutorId = action.payload.tutorId;
       state.tutorName = action.payload.tutorName;
 
-      // store timestamp so we know student left the website
-      localStorage.setItem("student_left_meeting", Date.now().toString());
+      localStorage.setItem("active_demo_booking_id", action.payload.bookingId);
     },
 
-    checkReturnForReview: (state) => {
-      const left = localStorage.getItem("student_left_meeting");
-      if (!left) return;
-
-      const NOW = Date.now();
-      const diff = NOW - Number(left);
-
-      // If student was gone for more than 20 seconds, assume meeting happened
-      if (diff > 20000) {
-        state.shouldShowReview = true;
-      }
+    openReviewModal: (
+      state,
+      action: PayloadAction<{
+        bookingId: string;
+        tutorId: string;
+        tutorName: string;
+      }>
+    ) => {
+      state.bookingId = action.payload.bookingId;
+      state.tutorId = action.payload.tutorId;
+      state.tutorName = action.payload.tutorName;
+      state.shouldShowReview = true;
     },
 
     closeReviewModal: (state) => {
@@ -52,14 +52,13 @@ const reviewSlice = createSlice({
       state.bookingId = null;
       state.tutorId = null;
       state.tutorName = null;
-      localStorage.removeItem("student_left_meeting");
     },
   },
 });
 
 export const {
   markJoiningDemo,
-  checkReturnForReview,
+  openReviewModal,
   closeReviewModal,
 } = reviewSlice.actions;
 

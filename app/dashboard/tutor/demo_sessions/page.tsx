@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -15,6 +16,12 @@ export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const autoExpireMessages = [
+    "Student was not available for the demo.",
+    "Tutor did not join the demo.",
+    "Demo expired because no one joined.",
+  ];
 
   // Load demo requests
   const loadBookings = async () => {
@@ -22,9 +29,13 @@ export default function TutorDemoRequests() {
       setLoading(true);
       const res = await getTutorDemoRequests();
       if (res.success) {
-  const filtered = (res.data || []).filter((b: any) => b.status !== "cancelled");
-  setBookings(filtered);
-}
+        const filtered = (res.data || []).filter((b: any) => {
+          if (b.status !== "cancelled") return true;
+          const comment = b.demoFeedback?.comment;
+          return comment && autoExpireMessages.includes(comment);
+        });
+        setBookings(filtered);
+      }
       else toast({ title: 'Error', description: res.message || 'Failed to load demo requests' });
     } catch (err: any) {
       toast({ title: 'Server Error', description: err.message });
@@ -123,19 +134,45 @@ export default function TutorDemoRequests() {
                   </div>
 
                   {/* Status Badge */}
-                  {b.status === 'confirmed' ? (
-                    <Badge className="bg-green-100 text-green-700 border-green-200">
-                      <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
-                    </Badge>
-                  ) : b.status === 'cancelled' ? (
-                    <Badge className="bg-red-100 text-red-700 border-red-200">Cancelled</Badge>
-                  ) : b.status === 'completed' ? (
-                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">Completed</Badge>
-                  ) : (
-                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                      Pending
-                    </Badge>
-                  )}
+                  {(() => {
+                    const isExpired =
+                      b.status === "cancelled" &&
+                      b.demoFeedback?.comment &&
+                      autoExpireMessages.includes(b.demoFeedback.comment);
+                    if (isExpired) {
+                      return (
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+                          Expired
+                        </Badge>
+                      );
+                    }
+
+                    if (b.status === 'confirmed') {
+                      return (
+                        <Badge className="bg-green-100 text-green-700 border-green-200">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
+                        </Badge>
+                      );
+                    }
+
+                    if (b.status === 'cancelled') {
+                      return (
+                        <Badge className="bg-red-100 text-red-700 border-red-200">Cancelled</Badge>
+                      );
+                    }
+
+                    if (b.status === 'completed') {
+                      return (
+                        <Badge className="bg-gray-100 text-gray-700 border-gray-200">Completed</Badge>
+                      );
+                    }
+
+                    return (
+                      <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
+                        Pending
+                      </Badge>
+                    );
+                  })()}
                 </div>
 
                 {/* Actions */}
@@ -162,15 +199,16 @@ export default function TutorDemoRequests() {
                   )}
 
                   {b.status === 'confirmed' && b.meetingLink && (
-                    <a
-                      href={b.meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        router.push(`/dashboard/meeting/demo/${b._id}`);
+                      }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
                       <Video className="w-4 h-4" />
                       Join Demo
-                    </a>
+                    </button>
                   )}
                 </div>
               </Card>

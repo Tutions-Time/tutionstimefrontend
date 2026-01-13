@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { closeReviewModal } from "@/store/slices/reviewSlice";
@@ -29,10 +29,29 @@ export default function ReviewModal() {
   const [couponCode, setCouponCode] = useState("");
   const router = useRouter();
 
+  useEffect(() => {
+    if (!shouldShowReview) return;
+    setTeaching(0);
+    setCommunication(0);
+    setUnderstanding(0);
+    setComment("");
+    setLikedTutor(null);
+    setStep(1);
+  }, [shouldShowReview]);
+
   if (!shouldShowReview) return null;
 
   const sendReview = async () => {
     if (!bookingId) return;
+
+    if (!teaching || !communication || !understanding) {
+      toast.error("Please rate all categories.");
+      return;
+    }
+    if (likedTutor === null) {
+      toast.error("Please select Yes or No for liking the tutor.");
+      return;
+    }
 
     const res = await submitReview(bookingId, {
       teaching,
@@ -41,6 +60,8 @@ export default function ReviewModal() {
       comment,
       likedTutor: likedTutor ?? false,
     });
+
+    window.dispatchEvent(new Event("demo-feedback-submitted"));
 
     // If user liked tutor → Go to step 2
     if (res?.data?.tutorRates && likedTutor === true) {
@@ -177,13 +198,15 @@ export default function ReviewModal() {
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="relative bg-white w-[90%] max-w-md rounded-2xl p-6 space-y-5 shadow-xl">
 
-        {/* Close button */}
-        <button
-          onClick={() => dispatch(closeReviewModal())}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <X className="w-6 h-6" />
-        </button>
+        {/* Close button (after feedback submission) */}
+        {step !== 1 ? (
+          <button
+            onClick={() => dispatch(closeReviewModal())}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        ) : null}
 
         {/* ---------------- STEP 1 ---------------- */}
         {step === 1 && (

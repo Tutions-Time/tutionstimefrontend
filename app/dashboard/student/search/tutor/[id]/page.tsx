@@ -167,12 +167,12 @@ export default function TutorDetailPage() {
               >
                 Book Free Demo
               </button>
-              <button
+              {/* <button
                 className={`${buttonBase} ${outlinePrimary}`}
                 onClick={() => setShowEnquiryModal(true)}
               >
                 Send Enquiry
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
