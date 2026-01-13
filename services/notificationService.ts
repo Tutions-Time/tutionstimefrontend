@@ -18,9 +18,45 @@ export const listNotifications = async () => {
   }
 };
 
+export const listAdminNotifications = async () => {
+  try {
+    const res = await api.get("/admin/notifications");
+    return res.data?.data || [];
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const markNotificationRead = async (id: string) => {
   try {
     const res = await api.patch(`/notifications/${id}/read`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const markAdminNotificationRead = async (id: string) => {
+  try {
+    const res = await api.patch(`/admin/notifications/${id}/read`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const markAllNotificationsRead = async () => {
+  try {
+    const res = await api.patch(`/notifications/read-all`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const markAllAdminNotificationsRead = async () => {
+  try {
+    const res = await api.patch(`/admin/notifications/read-all`);
     return res.data?.data;
   } catch (error: any) {
     throw new Error(handleApiError(error));

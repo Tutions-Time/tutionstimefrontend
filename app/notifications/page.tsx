@@ -6,19 +6,41 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { listNotifications, markNotificationRead, getNotificationPreferences, updateNotificationPreferences } from "@/services/notificationService";
+import {
+  listNotifications,
+  listAdminNotifications,
+  markNotificationRead,
+  markAdminNotificationRead,
+  markAllNotificationsRead,
+  markAllAdminNotificationsRead,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from "@/services/notificationService";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { setUnreadCount } from "@/store/slices/notificationSlice";
 
 export default function NotificationsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [prefs, setPrefs] = useState<{ email: boolean; push: boolean; inapp: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const role = useAppSelector((s) => s.auth.user?.role);
+  const isAdmin = role === "admin";
 
   const load = async () => {
     setLoading(true);
     try {
-      const [list, p] = await Promise.all([listNotifications(), getNotificationPreferences()]);
-      setItems(list);
-      setPrefs(p);
+      if (isAdmin) {
+        const list = await listAdminNotifications();
+        setItems(list);
+        setPrefs(null);
+        dispatch(setUnreadCount(list.filter((n) => !(n.read ?? n.isRead)).length));
+      } else {
+        const [list, p] = await Promise.all([listNotifications(), getNotificationPreferences()]);
+        setItems(list);
+        setPrefs(p);
+        dispatch(setUnreadCount(list.filter((n) => !(n.read ?? n.isRead)).length));
+      }
     } finally {
       setLoading(false);
     }
@@ -36,8 +58,31 @@ export default function NotificationsPage() {
   };
 
   const markRead = async (id: string) => {
-    await markNotificationRead(id);
-    setItems((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
+    if (isAdmin) {
+      await markAdminNotificationRead(id);
+    } else {
+      await markNotificationRead(id);
+    }
+    setItems((prev) => {
+      const next = prev.map((n) =>
+        n._id === id ? { ...n, read: true, isRead: true } : n
+      );
+      dispatch(setUnreadCount(next.filter((n) => !(n.read ?? n.isRead)).length));
+      return next;
+    });
+  };
+
+  const markAllRead = async () => {
+    if (isAdmin) {
+      await markAllAdminNotificationsRead();
+    } else {
+      await markAllNotificationsRead();
+    }
+    setItems((prev) => {
+      const next = prev.map((n) => ({ ...n, read: true, isRead: true }));
+      dispatch(setUnreadCount(0));
+      return next;
+    });
   };
 
   return (
@@ -47,10 +92,17 @@ export default function NotificationsPage() {
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <Button variant={prefs?.email ? "default" : "outline"} onClick={() => togglePref("email")}>Email</Button>
-            <Button variant={prefs?.push ? "default" : "outline"} onClick={() => togglePref("push")}>Push</Button>
-            <Button variant={prefs?.inapp ? "default" : "outline"} onClick={() => togglePref("inapp")}>In-App</Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {!isAdmin && (
+              <>
+                <Button variant={prefs?.email ? "default" : "outline"} onClick={() => togglePref("email")}>Email</Button>
+                <Button variant={prefs?.push ? "default" : "outline"} onClick={() => togglePref("push")}>Push</Button>
+                <Button variant={prefs?.inapp ? "default" : "outline"} onClick={() => togglePref("inapp")}>In-App</Button>
+              </>
+            )}
+            {items.length > 0 && (
+              <Button variant="outline" onClick={markAllRead}>Mark all read</Button>
+            )}
           </div>
           {loading && <div>Loading...</div>}
           {items.map((n) => (
