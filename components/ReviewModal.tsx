@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { closeReviewModal } from "@/store/slices/reviewSlice";
 import { submitReview } from "@/services/reviewService";
-import { Star, X } from "lucide-react";
+import { Star } from "lucide-react";
 import { startRegularFromDemo } from "@/services/bookingService";
 import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
@@ -33,6 +33,14 @@ export default function ReviewModal() {
 
   const sendReview = async () => {
     if (!bookingId) return;
+    if (!teaching || !communication || !understanding) {
+      toast.error("Please rate all sections.");
+      return;
+    }
+    if (likedTutor === null) {
+      toast.error("Please select if you liked the tutor.");
+      return;
+    }
 
     const res = await submitReview(bookingId, {
       teaching,
@@ -176,14 +184,6 @@ export default function ReviewModal() {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="relative bg-white w-[90%] max-w-md rounded-2xl p-6 space-y-5 shadow-xl">
-
-        {/* Close button */}
-        <button
-          onClick={() => dispatch(closeReviewModal())}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <X className="w-6 h-6" />
-        </button>
 
         {/* ---------------- STEP 1 ---------------- */}
         {step === 1 && (

@@ -18,6 +18,19 @@ const reviewSlice = createSlice({
   name: "review",
   initialState,
   reducers: {
+    openReviewModal: (
+      state,
+      action: PayloadAction<{
+        bookingId: string;
+        tutorId?: string;
+        tutorName?: string;
+      }>
+    ) => {
+      state.shouldShowReview = true;
+      state.bookingId = action.payload.bookingId;
+      state.tutorId = action.payload.tutorId || null;
+      state.tutorName = action.payload.tutorName || null;
+    },
     markJoiningDemo: (
       state,
       action: PayloadAction<{
@@ -37,6 +50,7 @@ const reviewSlice = createSlice({
     checkReturnForReview: (state) => {
       const left = localStorage.getItem("student_left_meeting");
       if (!left) return;
+      if (!state.bookingId) return;
 
       const NOW = Date.now();
       const diff = NOW - Number(left);
@@ -58,6 +72,7 @@ const reviewSlice = createSlice({
 });
 
 export const {
+  openReviewModal,
   markJoiningDemo,
   checkReturnForReview,
   closeReviewModal,

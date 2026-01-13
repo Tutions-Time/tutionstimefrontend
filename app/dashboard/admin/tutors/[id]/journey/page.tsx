@@ -78,6 +78,12 @@ type JourneyData = {
       regularClassId?: string;
       createdAt?: string;
       note?: string;
+      demoFeedback?: {
+        overall?: number;
+        comment?: string;
+        likedTutor?: boolean;
+        createdAt?: string;
+      };
       student?: StudentInfo | null;
     }>;
     sessions: Array<{
@@ -429,6 +435,12 @@ export default function TutorJourneyPage() {
                               Preferred: {formatDate(d.preferredDate)} {d.preferredTime || ""}
                             </div>
                             {d.note ? <div className="text-xs text-muted">Note: {d.note}</div> : null}
+                            {d.demoFeedback ? (
+                              <div className="text-xs text-muted">
+                                Feedback: {d.demoFeedback.overall ?? "-"} / 5
+                                {d.demoFeedback.comment ? ` • ${d.demoFeedback.comment}` : ""}
+                              </div>
+                            ) : null}
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={cn("capitalize", statusTone(d.status))}>
