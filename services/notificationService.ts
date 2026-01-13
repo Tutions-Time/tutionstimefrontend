@@ -63,6 +63,42 @@ export const markAllAdminNotificationsRead = async () => {
   }
 };
 
+export const deleteNotification = async (id: string) => {
+  try {
+    const res = await api.delete(`/notifications/${id}`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteAllNotifications = async () => {
+  try {
+    const res = await api.delete(`/notifications`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteAdminNotification = async (id: string) => {
+  try {
+    const res = await api.delete(`/admin/notifications/${id}`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteAllAdminNotifications = async () => {
+  try {
+    const res = await api.delete(`/admin/notifications`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const getNotificationPreferences = async () => {
   try {
     const res = await api.get("/notifications/preferences");

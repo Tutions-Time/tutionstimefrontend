@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, User, Menu } from 'lucide-react';
+import { Bell, User, Menu, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
@@ -25,6 +25,10 @@ import {
   markAdminNotificationRead,
   markAllNotificationsRead,
   markAllAdminNotificationsRead,
+  deleteNotification,
+  deleteAdminNotification,
+  deleteAllNotifications,
+  deleteAllAdminNotifications,
 } from '@/services/notificationService';
 
 interface NavbarProps {
@@ -131,6 +135,29 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
     dispatch(setUnreadCount(0));
   };
 
+  const handleDelete = async (id: string) => {
+    if (isAdmin) {
+      await deleteAdminNotification(id);
+    } else {
+      await deleteNotification(id);
+    }
+    setDrawerItems((prev) => {
+      const next = prev.filter((n) => n._id !== id);
+      dispatch(setUnreadCount(next.filter((n) => !(n.read ?? n.isRead)).length));
+      return next;
+    });
+  };
+
+  const handleDeleteAll = async () => {
+    if (isAdmin) {
+      await deleteAllAdminNotifications();
+    } else {
+      await deleteAllNotifications();
+    }
+    setDrawerItems([]);
+    dispatch(setUnreadCount(0));
+  };
+
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
@@ -223,9 +250,14 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
               <div className="text-sm font-semibold">Notifications</div>
               <div className="flex items-center gap-2">
                 {drawerItems.length > 0 && (
-                  <Button size="sm" variant="outline" onClick={handleMarkAllRead}>
-                    Mark all read
-                  </Button>
+                  <>
+                    <Button size="sm" variant="outline" onClick={handleMarkAllRead}>
+                      Mark all read
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={handleDeleteAll}>
+                      Delete all
+                    </Button>
+                  </>
                 )}
                 <Button size="icon" variant="ghost" onClick={() => setDrawerOpen(false)} aria-label="Close notifications">
                   ✕
@@ -246,11 +278,21 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
                       <div className="text-sm font-semibold">{n.title}</div>
                       <div className="text-xs text-muted-foreground">{n.body || n.message}</div>
                     </div>
-                    {!isRead && (
-                      <Button size="sm" variant="outline" onClick={() => handleMarkRead(n._id)}>
-                        Mark read
+                    <div className="flex items-center gap-2">
+                      {!isRead && (
+                        <Button size="sm" variant="outline" onClick={() => handleMarkRead(n._id)}>
+                          Mark read
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Delete notification"
+                        onClick={() => handleDelete(n._id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               )})}
