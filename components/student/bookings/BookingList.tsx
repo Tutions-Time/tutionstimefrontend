@@ -4,9 +4,11 @@ import BookingCard from "./BookingCard";
 
 export default function BookingList({ bookings }: { bookings: any[] }) {
   // 🔥 REMOVE all cancelled bookings
-  const activeBookings = bookings.filter(
-    (b) => b.status?.toLowerCase() !== "cancelled"
-  );
+  const activeBookings = bookings.filter((b) => {
+    if (b.status?.toLowerCase() === "cancelled") return false;
+    if (b.type === "demo" && b.demoFeedback?.likedTutor === false) return false;
+    return true;
+  });
 
   if (!activeBookings.length) {
     return (
