@@ -68,7 +68,7 @@ const BOARDS: Record<string, string[]> = {
   Working_Professional: ["N/A", "Other"],
 };
 
-const STUDENT_TYPES = ["School", "College", "Working Professional"];
+const STUDENT_TYPES = ["School", "College", "Working_Professional"];
 const GROUP_SIZES = ["One-to-One", "Small Batch (2–5)", "Large Batch (6+)"];
 
 export default function TutorSubjectsSection({
