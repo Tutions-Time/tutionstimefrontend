@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { getAdminRefunds, updateRefundStatus } from '@/services/adminService';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 import {
   Dialog,
   DialogContent,
@@ -26,14 +27,24 @@ export default function AdminRefundsPage() {
   const [selected, setSelected] = useState<any | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     setLoading(true);
     getAdminRefunds()
       .then((data) => setItems(data || []))
       .finally(() => setLoading(false));
+  }, []);
+
+  const isRefundNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return title.includes("refund") || Boolean(meta.refundRequestId);
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); }, [refresh]);
+
+  useNotificationRefresh(() => {
+    refresh();
+  }, isRefundNotification);
 
   const act = async (id: string, status: 'approved' | 'rejected' | 'processed', method?: 'provider' | 'payout') => {
     setUpdating(id);

@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { incrementUnread, setUnreadCount } from "@/store/slices/notificationSlice";
 import { listAdminNotifications, listNotifications } from "@/services/notificationService";
 import { toast } from "@/hooks/use-toast";
+import { emitNotificationEvent } from "@/hooks/useNotificationRefresh";
 
 const getWsUrl = (token: string) => {
   const apiBase =
@@ -74,6 +75,11 @@ export default function NotificationSocket() {
           const description = msg?.data?.body || msg?.data?.message || "";
           toast({ title, description });
           playBeep();
+          emitNotificationEvent({
+            type: msg.type,
+            data: msg.data,
+            role: role || undefined,
+          });
           if (msg?.data?._id) seenIdsRef.current.add(String(msg.data._id));
         }
       } catch {}
@@ -103,11 +109,18 @@ export default function NotificationSocket() {
 
         const fresh = items.filter((n: any) => n?._id && !seenIdsRef.current.has(String(n._id)));
         if (fresh.length) {
+          const eventType =
+            role === "admin" ? "admin_notification" : "notification";
           fresh.forEach((n: any) => seenIdsRef.current.add(String(n._id)));
           fresh.forEach((n: any) => {
             const title = n?.title || "Notification";
             const description = n?.body || n?.message || "";
             toast({ title, description });
+            emitNotificationEvent({
+              type: eventType,
+              data: n,
+              role: role || undefined,
+            });
           });
           playBeep();
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -14,6 +14,7 @@ import {
   getStudentDemoRequests,
   updateStudentDemoRequestStatus,
 } from "@/services/studentDemoService";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function StudentDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,7 +22,7 @@ export default function StudentDemoRequests() {
   const [loading, setLoading] = useState(true);
 
   // Load Requests
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getStudentDemoRequests();
@@ -45,11 +46,21 @@ export default function StudentDemoRequests() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const isDemoNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return title.includes("demo") || Boolean(meta.bookingId);
   };
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [loadRequests]);
+
+  useNotificationRefresh(() => {
+    loadRequests();
+  }, isDemoNotification);
 
   // Change Status
   const handleStatus = async (

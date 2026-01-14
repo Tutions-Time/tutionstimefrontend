@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -18,6 +18,7 @@ import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { submitSessionFeedback } from "@/services/progressService";
 import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,23 +67,42 @@ export default function StudentBookingsPage() {
     return `${base}/${rel}`;
   };
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [list, regular] = await Promise.all([
-          getStudentBookings(),
-          getStudentRegularClasses(),
-        ]);
-        setBookings(list);
-        setRegularClasses(regular);
-      } catch (err) {
-        console.error("Error fetching bookings:", err);
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    try {
+      const [list, regular] = await Promise.all([
+        getStudentBookings(),
+        getStudentRegularClasses(),
+      ]);
+      setBookings(list);
+      setRegularClasses(regular);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, []);
+
+  const isBookingsNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("demo") ||
+      title.includes("payment") ||
+      title.includes("refund") ||
+      Boolean(meta.bookingId) ||
+      Boolean(meta.regularClassId) ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId)
+    );
+  };
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useNotificationRefresh(() => {
+    load();
+  }, isBookingsNotification);
 
   // Filter bookings based on active tab
   const filtered = bookings.filter((b) => {

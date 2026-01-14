@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { Calendar, Users, IndianRupee } from "lucide-react";
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailModal";
 import EditBatchModal from "@/components/group-batches/EditBatchModal";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 type TutorGroupBatchesProps = {
   refreshToken?: number;
@@ -83,18 +84,35 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   // ----------------------------
   // Fetch List
   // ----------------------------
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const data = await getMyBatches();
       setList(data || []);
     } catch {
       // handled silently
     }
+  }, []);
+
+  const isBatchNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("batch") ||
+      title.includes("payment") ||
+      title.includes("student enrolled") ||
+      Boolean(meta.batchId) ||
+      Boolean(meta.groupBatchId) ||
+      Boolean(meta.paymentId)
+    );
   };
 
   useEffect(() => {
     load();
-  }, [refreshToken]);
+  }, [load, refreshToken]);
+
+  useNotificationRefresh(() => {
+    load();
+  }, isBatchNotification);
 
   // ----------------------------
   // Load Creation Options

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Wallet, CheckCircle, Clock, IndianRupee, TrendingUp } from 'lucide-react';
 
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
 import { settleAdminPayout, getAdminAllPaymentHistory, getAdminRevenueTimeseries } from '@/services/razorpayService';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ComposedChart, Bar } from 'recharts';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 /* Real UI */
 
@@ -91,17 +92,14 @@ export default function AdminRevenuePage() {
 
 
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const w = await getMyWallet();
-        setAdminWallet(w);
-      } catch { }
-    })();
+  const refreshWallet = useCallback(async () => {
+    try {
+      const w = await getMyWallet();
+      setAdminWallet(w);
+    } catch { }
   }, []);
 
-
-  async function refreshTx() {
+  const refreshTx = useCallback(async () => {
     setTxLoading(true);
     try {
       const params: any = { page: txPage, limit: txLimit };
@@ -123,25 +121,48 @@ export default function AdminRevenuePage() {
     } finally {
       setTxLoading(false);
     }
-  }
+  }, [txFrom, txLimit, txPage, txStatus, txStudent, txTo, txTutor, txType]);
+
+  const refreshSeries = useCallback(async () => {
+    try {
+      const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
+      setRevSeries(data?.series || []);
+      setRevTotals(data?.totals || null);
+    } catch { }
+  }, [txFrom, txTo]);
+
+  const isRevenueNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("payment") ||
+      title.includes("refund") ||
+      title.includes("referral") ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId)
+    );
+  };
+
+  useEffect(() => {
+    refreshWallet();
+  }, [refreshWallet]);
 
   useEffect(() => {
     refreshTx();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshTx]);
 
   useEffect(() => { refreshTx(); }, [txPage, txLimit, txStatus, txType]);
   useEffect(() => { setTxPage(1); const c = debounce(refreshTx); return c; }, [txFrom, txTo, txTutor, txStudent]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
-        setRevSeries(data?.series || []);
-        setRevTotals(data?.totals || null);
-      } catch { }
-    })();
-  }, [txFrom, txTo]);
+    refreshSeries();
+  }, [refreshSeries]);
+
+  useNotificationRefresh(() => {
+    refreshWallet();
+    refreshTx();
+    refreshSeries();
+  }, isRevenueNotification);
 
   useEffect(() => {
     const now = new Date();

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   listBatches,
   reserveSeat,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function StudentGroupBatches() {
   const formatTime = (time?: string) => {
@@ -107,7 +108,7 @@ export default function StudentGroupBatches() {
   // --------------------------
   // Fetch Batches
   // --------------------------
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await listBatches(filters as any);
@@ -117,11 +118,29 @@ export default function StudentGroupBatches() {
     } finally {
       setLoading(false);
     }
+  }, [filters]);
+
+  const isBatchNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("batch") ||
+      title.includes("payment") ||
+      title.includes("refund") ||
+      Boolean(meta.batchId) ||
+      Boolean(meta.groupBatchId) ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId)
+    );
   };
 
   useEffect(() => {
     fetchData();
   }, [filters.subject, filters.level, filters.date]);
+
+  useNotificationRefresh(() => {
+    fetchData();
+  }, isBatchNotification);
 
   // --------------------------
   // Reserve + Pay

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Wallet as WalletIcon, Download, IndianRupee } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -13,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,28 +31,45 @@ export default function WalletPage() {
   const [savingPayoutMethod, setSavingPayoutMethod] = useState(false);
 
   // ✅ Fetch wallet + transactions on load
-  useEffect(() => {
-    const fetchWalletData = async () => {
-      try {
-        setLoading(true);
-        const walletRes = await getMyWallet();
-        const txRes = await getMyTransactions();
-        setWallet(walletRes);
-        setTransactions(txRes);
-      } catch (err: any) {
-        console.error('Wallet fetch error:', err);
-        toast({
-          title: 'Failed to load wallet data',
-          description: err.message || 'Something went wrong.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchWalletData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const walletRes = await getMyWallet();
+      const txRes = await getMyTransactions();
+      setWallet(walletRes);
+      setTransactions(txRes);
+    } catch (err: any) {
+      console.error('Wallet fetch error:', err);
+      toast({
+        title: 'Failed to load wallet data',
+        description: err.message || 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
+  const isWalletNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("payment") ||
+      title.includes("refund") ||
+      title.includes("referral") ||
+      title.includes("payout") ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId)
+    );
+  };
+
+  useEffect(() => {
     fetchWalletData();
-  }, []);
+  }, [fetchWalletData]);
+
+  useNotificationRefresh(() => {
+    fetchWalletData();
+  }, isWalletNotification);
 
   const balance = wallet?.balance ?? 0;
   const pendingBalance = wallet?.pendingBalance ?? 0;

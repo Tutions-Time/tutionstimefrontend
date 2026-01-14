@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -19,6 +19,7 @@ import {
 } from "@/services/tutorService";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -134,7 +135,7 @@ const TutorRegularClasses = () => {
   // ------------------------------------------------------
   // Load classes
   // ------------------------------------------------------
-  const loadClasses = async () => {
+  const loadClasses = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getTutorRegularClasses();
@@ -145,11 +146,28 @@ const TutorRegularClasses = () => {
     } finally {
       setLoading(false);
     }
+  }, [toast]);
+
+  const isClassNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("payment") ||
+      title.includes("class") ||
+      title.includes("feedback") ||
+      Boolean(meta.regularClassId) ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.sessionId)
+    );
   };
 
   useEffect(() => {
     loadClasses();
-  }, []);
+  }, [loadClasses]);
+
+  useNotificationRefresh(() => {
+    loadClasses();
+  }, isClassNotification);
 
   const openScheduleModal = (id: string) => {
     setSelectedClassId(id);

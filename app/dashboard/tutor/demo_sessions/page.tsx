@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Clock, Video, CheckCircle } from 'lucide-react';
 import { getTutorDemoRequests, updateDemoRequestStatus } from '@/services/tutorService';
 import { toast } from '@/hooks/use-toast';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,7 +18,7 @@ export default function TutorDemoRequests() {
   const [loading, setLoading] = useState(true);
 
   // Load demo requests
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getTutorDemoRequests();
@@ -31,11 +32,21 @@ export default function TutorDemoRequests() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const isDemoNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return title.includes("demo") || Boolean(meta.bookingId);
   };
 
   useEffect(() => {
     loadBookings();
-  }, []);
+  }, [loadBookings]);
+
+  useNotificationRefresh(() => {
+    loadBookings();
+  }, isDemoNotification);
 
   // Accept / Reject actions
   const handleStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
