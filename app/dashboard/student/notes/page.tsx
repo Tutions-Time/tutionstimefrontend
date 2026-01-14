@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, IndianRupee } from "lucide-react";
+import { Search, IndianRupee, FileText } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -244,8 +244,8 @@ export default function NotesPage() {
                     key={p?.note?._id}
                     className="p-6 bg-white/90 rounded-3xl border shadow flex items-center gap-6"
                   >
-                    <div className="w-20 h-20 overflow-hidden border bg-gray-100">
-                      <iframe src={p?.note?.pdfUrl} className="w-full h-full" />
+                    <div className="w-20 h-20 overflow-hidden border bg-gray-100 flex items-center justify-center rounded-lg">
+                      <FileText className="w-8 h-8 text-gray-500" />
                     </div>
 
                     <div className="flex-1">
@@ -280,8 +280,8 @@ export default function NotesPage() {
                     key={n._id}
                     className="p-6 bg-white/90 rounded-3xl border shadow flex items-center gap-6"
                   >
-                    <div className="w-20 h-20 overflow-hidden border bg-gray-100">
-                      <iframe src={n.pdfUrl} className="w-full h-full" />
+                    <div className="w-20 h-20 overflow-hidden border bg-gray-100 flex items-center justify-center rounded-lg">
+                      <FileText className="w-8 h-8 text-gray-500" />
                     </div>
 
                     <div className="flex-1 space-y-1">
