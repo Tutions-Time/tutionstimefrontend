@@ -33,6 +33,7 @@ export const bookStudentDemo = async (payload: {
   date: string;
   time: string;
   note?: string;
+  studentLearningMode?: string;
 }) => {
   try {
     const res = await api.post("/bookings/tutor/demo", payload);

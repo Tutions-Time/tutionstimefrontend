@@ -65,6 +65,9 @@ export default function TutorList({
   getImageUrl,
 }: TutorListProps) {
   const currentPage = Number(filter.page || "1");
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const getUpcomingAvailability = (dates?: string[]) =>
+    (dates || []).filter((d) => d >= todayStr);
 
   // Modal States
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -246,7 +249,7 @@ export default function TutorList({
           tutorId={selectedTutor.userId?._id ?? ""}
           tutorName={selectedTutor.name}
           subjects={selectedTutor.subjects || []}
-          availability={selectedTutor.availability || []}
+          availability={getUpcomingAvailability(selectedTutor.availability)}
         />
       )}
     </section>

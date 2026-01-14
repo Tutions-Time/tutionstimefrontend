@@ -137,6 +137,9 @@ export default function StudentDemoRequests() {
                     </div>
 
                     <div className="text-sm text-gray-500">{req.subject}</div>
+                    <div className="text-sm text-gray-500">
+                      Mode: {req.studentLearningMode || "N/A"}
+                    </div>
 
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       {/* Date */}
