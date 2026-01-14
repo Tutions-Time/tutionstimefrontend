@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, Video, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { markDemoJoin } from "@/services/bookingService";
 
 import {
   getStudentDemoRequests,
@@ -172,6 +173,10 @@ export default function StudentDemoRequests() {
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                       Completed
                     </Badge>
+                  ) : req.status === "expired" ? (
+                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+                      Expired
+                    </Badge>
                   ) : (
                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
                       Pending
@@ -206,15 +211,18 @@ export default function StudentDemoRequests() {
 
                   {/* Join Demo */}
                   {req.status === "confirmed" && req.meetingLink && (
-                    <a
-                      href={req.meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={async () => {
+                        try {
+                          await markDemoJoin(req._id);
+                        } catch {}
+                        window.open(req.meetingLink, "_blank", "noopener,noreferrer");
+                      }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
                       <Video className="w-4 h-4" />
                       Join Demo
-                    </a>
+                    </button>
                   )}
                 </div>
               </Card>

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { checkReturnForReview, openReviewModal } from "@/store/slices/reviewSlice";
+import { openReviewModal } from "@/store/slices/reviewSlice";
 import { getStudentBookings } from "@/services/bookingService";
 
 export default function ReviewChecker() {
@@ -34,7 +34,6 @@ export default function ReviewChecker() {
     };
 
     const handleFocus = () => {
-      dispatch(checkReturnForReview());
       checkPendingFeedback();
     };
 

@@ -13,6 +13,7 @@ import { useAppDispatch } from "@/store/store";
 import { markJoiningDemo } from "@/store/slices/reviewSlice";
 import BookingStatusTag from "./BookingStatusTag";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
+import { markDemoJoin } from "@/services/bookingService";
 
 type BookingType = {
   _id: string;
@@ -163,8 +164,12 @@ export default function BookingCard({
               <button
                 type="button"
                 disabled={!canJoin}
-                onClick={() => {
+                onClick={async () => {
                   if (!canJoin) return;
+
+                  try {
+                    await markDemoJoin(booking._id);
+                  } catch {}
 
                   dispatch(
                     markJoiningDemo({

@@ -225,6 +225,18 @@ export const updateDemoRequestStatus = async (
   }
 };
 
+/**
+ * Tutor marks demo join
+ */
+export const markTutorDemoJoin = async (bookingId: string) => {
+  try {
+    const res = await api.post(`/bookings/${bookingId}/tutor-join`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 export const getTutorRegularClasses = async () => {
   try {

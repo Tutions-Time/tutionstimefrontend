@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Clock, Video, CheckCircle } from 'lucide-react';
-import { getTutorDemoRequests, updateDemoRequestStatus } from '@/services/tutorService';
+import { getTutorDemoRequests, markTutorDemoJoin, updateDemoRequestStatus } from '@/services/tutorService';
 import { toast } from '@/hooks/use-toast';
 import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
@@ -142,6 +142,8 @@ export default function TutorDemoRequests() {
                     <Badge className="bg-red-100 text-red-700 border-red-200">Cancelled</Badge>
                   ) : b.status === 'completed' ? (
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">Completed</Badge>
+                  ) : b.status === 'expired' ? (
+                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">Expired</Badge>
                   ) : (
                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
                       Pending
@@ -173,15 +175,18 @@ export default function TutorDemoRequests() {
                   )}
 
                   {b.status === 'confirmed' && b.meetingLink && (
-                    <a
-                      href={b.meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={async () => {
+                        try {
+                          await markTutorDemoJoin(b._id);
+                        } catch {}
+                        window.open(b.meetingLink, "_blank", "noopener,noreferrer");
+                      }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
                       <Video className="w-4 h-4" />
                       Join Demo
-                    </a>
+                    </button>
                   )}
                 </div>
               </Card>
