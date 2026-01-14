@@ -26,6 +26,7 @@ type TutorGroupBatchesProps = {
 
 export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesProps) {
   const { toast } = useToast();
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const formatTime = (time?: string) => {
     if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
     const [h, m] = time.split(":").map(Number);
@@ -40,6 +41,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     batchType: "revision",
     startDate: "",
     endDate: "",
+    recurringDays: [],
     classStartTime: "18:00",
     classEndTime: "19:00",
     seatCap: 10,
@@ -167,6 +169,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     if (form.startDate && form.endDate && form.endDate < form.startDate) {
       errors.push("End date must be on or after start date");
     }
+    if (!Array.isArray(form.recurringDays) || form.recurringDays.length === 0) {
+      errors.push("Please select at least one weekday");
+    }
     if (!form.classStartTime) errors.push("Class start time is required");
     if (!form.classEndTime) errors.push("Class end time is required");
     if (form.classStartTime && form.classEndTime && form.classEndTime <= form.classStartTime) {
@@ -201,6 +206,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           batchType: "revision",
           startDate: "",
           endDate: "",
+          recurringDays: [],
           classStartTime: "18:00",
           classEndTime: "19:00",
           seatCap: 10,
@@ -501,53 +507,49 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             {/* Start Date */}
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Start Date</label>
-              <select
+              <input
+                type="date"
                 className="border p-2 rounded w-full"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-              >
-                <option value="">Select Start Date</option>
-                {(options.availabilityDates || [])
-                  .map((d: string) => new Date(d))
-                  .sort((a: Date, b: Date) => a.getTime() - b.getTime())
-                  .map((d: Date) => {
-                    const val = d.toISOString().split("T")[0]; // YYYY-MM-DD
-                    return (
-                      <option key={val} value={val}>
-                        {d.toDateString()}
-                      </option>
-                    );
-                  })}
-              </select>
-              <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">End Date</label>
-              <select
+              <input
+                type="date"
                 className="border p-2 rounded w-full"
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              >
-                <option value="">Select End Date</option>
-                {(options.availabilityDates || [])
-                  .map((d: string) => new Date(d))
-                  .filter((d: Date) => {
-                    if (!form.startDate) return false;
-                    const start = new Date(form.startDate);
-                    start.setHours(0, 0, 0, 0);
-                    return d >= start;
-                  })
-                  .sort((a: Date, b: Date) => a.getTime() - b.getTime())
-                  .map((d: Date) => {
-                    const val = d.toISOString().split("T")[0];
-                    return (
-                      <option key={val} value={val}>
-                        {d.toDateString()}
-                      </option>
-                    );
-                  })}
-              </select>
+              />
               <p className="text-xs text-gray-500">End date must be on or after start date.</p>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Weekdays</label>
+              <div className="flex flex-wrap gap-2">
+                {weekdays.map((day) => {
+                  const active = (form.recurringDays || []).includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        const next = active
+                          ? form.recurringDays.filter((d: string) => d !== day)
+                          : [...(form.recurringDays || []), day];
+                        setForm({ ...form, recurringDays: next });
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs border ${
+                        active
+                          ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
+                          : "bg-white border-gray-300 text-gray-700"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>

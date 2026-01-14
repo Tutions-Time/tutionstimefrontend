@@ -19,6 +19,7 @@ import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
 
 export default function TutorGroupBatchesPage() {
   const { toast } = useToast();
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
@@ -26,6 +27,7 @@ export default function TutorGroupBatchesPage() {
     batchType: "revision",
     startDate: "",
     endDate: "",
+    recurringDays: [],
     seatCap: 10,
     pricePerMonth: "",
     description: "",
@@ -85,6 +87,9 @@ export default function TutorGroupBatchesPage() {
     if (form.startDate && form.endDate && form.endDate < form.startDate) {
       errors.push("End date must be on or after start date");
     }
+    if (!Array.isArray(form.recurringDays) || form.recurringDays.length === 0) {
+      errors.push("Please select at least one weekday");
+    }
     if (!classStartTime || !classEndTime)
       errors.push("Start and end times are required");
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
@@ -124,6 +129,7 @@ export default function TutorGroupBatchesPage() {
           batchType: "revision",
           startDate: "",
           endDate: "",
+          recurringDays: [],
           seatCap: 10,
           pricePerMonth: "",
           description: "",
@@ -270,65 +276,51 @@ export default function TutorGroupBatchesPage() {
 
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">Start Date</label>
-                    <select
+                    <input
+                      type="date"
                       className="border p-2 rounded w-full"
                       value={form.startDate}
                       onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    >
-                      <option value="">Select Start Date</option>
-                      {(options.availabilityDates || [])
-                        .map((d: string) => new Date(d))
-                        .filter((d: Date) => {
-                          const tomorrow = new Date();
-                          tomorrow.setDate(tomorrow.getDate() + 1);
-                          tomorrow.setHours(0, 0, 0, 0);
-                          return d >= tomorrow;
-                        })
-                        .sort((a: Date, b: Date) => a.getTime() - b.getTime())
-                        .map((d: Date) => {
-                          const val = d.toISOString().split("T")[0];
-                          return (
-                            <option key={val} value={val}>
-                              {d.toDateString()}
-                            </option>
-                          );
-                        })}
-                    </select>
-                    <p className="text-xs text-gray-500">Select a start date from your availability. Recurring days will be auto-calculated.</p>
-                    {(!options.availabilityDates || options.availabilityDates.length === 0) && (
-                      <p className="text-xs text-red-500 mt-1">
-                        No available dates found. Please update your <a href="/dashboard/tutor/profile" className="underline">availability in your profile</a>.
-                      </p>
-                    )}
+                    />
                   </div>
 
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">End Date</label>
-                    <select
+                    <input
+                      type="date"
                       className="border p-2 rounded w-full"
                       value={form.endDate}
                       onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                    >
-                      <option value="">Select End Date</option>
-                      {(options.availabilityDates || [])
-                        .map((d: string) => new Date(d))
-                        .filter((d: Date) => {
-                          if (!form.startDate) return false;
-                          const start = new Date(form.startDate);
-                          start.setHours(0, 0, 0, 0);
-                          return d >= start;
-                        })
-                        .sort((a: Date, b: Date) => a.getTime() - b.getTime())
-                        .map((d: Date) => {
-                          const val = d.toISOString().split("T")[0];
-                          return (
-                            <option key={val} value={val}>
-                              {d.toDateString()}
-                            </option>
-                          );
-                        })}
-                    </select>
+                    />
                     <p className="text-xs text-gray-500">End date must be on or after start date.</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Weekdays</label>
+                    <div className="flex flex-wrap gap-2">
+                      {weekdays.map((day) => {
+                        const active = (form.recurringDays || []).includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              const next = active
+                                ? form.recurringDays.filter((d: string) => d !== day)
+                                : [...(form.recurringDays || []), day];
+                              setForm({ ...form, recurringDays: next });
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs border ${
+                              active
+                                ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
+                                : "bg-white border-gray-300 text-gray-700"
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="space-y-1">

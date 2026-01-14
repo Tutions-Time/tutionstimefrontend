@@ -12,9 +12,19 @@ type Props = {
 };
 
 export default function EditBatchModal({ open, onOpenChange, batch, options, onSubmit }: Props) {
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const toInputDate = (val?: string | Date | null) => {
+    if (!val) return "";
+    const d = new Date(val);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toISOString().split("T")[0];
+  };
   const [form, setForm] = useState<any>({
-    fixedDates: [],
+    recurringDays: [],
+    startDate: "",
+    endDate: "",
     classStartTime: "18:00",
+    classEndTime: "19:00",
     seatCap: 10,
     pricePerStudent: 500,
     description: "",
@@ -24,11 +34,15 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
 
   useEffect(() => {
     if (!batch) return;
-    const startTime = "18:00";
+    const startTime = batch?.recurring?.time || "18:00";
+    const endTime = batch?.recurring?.endTime || "19:00";
 
     setForm({
-      fixedDates: batch.fixedDates || [],
+      recurringDays: batch?.recurring?.days || [],
+      startDate: toInputDate(batch?.recurring?.startDate),
+      endDate: toInputDate(batch?.recurring?.endDate),
       classStartTime: startTime,
+      classEndTime: endTime,
       seatCap: batch.seatCap || 10,
       pricePerStudent: batch.pricePerStudent || 500,
       description: batch.description || "",
@@ -40,23 +54,13 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     });
   }, [batch]);
 
-  const toggleDate = (iso: string) => {
-    const exists = form.fixedDates.some(
-      (d: string | Date) => new Date(d).toISOString() === new Date(iso).toISOString()
-    );
-
-    const next = exists
-      ? form.fixedDates.filter(
-          (d: string | Date) => new Date(d).toISOString() !== new Date(iso).toISOString()
-        )
-      : [...form.fixedDates, new Date(iso).toISOString()];
-
-    setForm({ ...form, fixedDates: next });
-  };
-
   const onSave = async () => {
     const payload = {
-      fixedDates: form.fixedDates,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      recurringDays: form.recurringDays,
+      classStartTime: form.classStartTime,
+      classEndTime: form.classEndTime,
       seatCap: Number(form.seatCap),
       pricePerStudent: Number(form.pricePerStudent),
       description: String(form.description || ""),
@@ -87,19 +91,73 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
         <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Schedule Info</label>
-            <div className="text-sm bg-gray-50 p-2 rounded border">
-              {batch?.recurring?.days?.length ? (
-                <>
-                  <div>Days: {batch.recurring.days.join(", ")}</div>
-                  <div>Time: {batch.recurring.time}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Schedule is based on your availability at creation time.
-                  </div>
-                </>
-              ) : (
-                <div className="text-gray-500">No recurring schedule found.</div>
-              )}
+            <label className="text-sm font-medium">Schedule</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-sm">Start Date</label>
+                <input
+                  type="date"
+                  value={form.startDate}
+                  onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                  className="border rounded p-2 w-full"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm">End Date</label>
+                <input
+                  type="date"
+                  value={form.endDate}
+                  onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                  className="border rounded p-2 w-full"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm">Weekdays</label>
+              <div className="flex flex-wrap gap-2">
+                {weekdays.map((day) => {
+                  const active = (form.recurringDays || []).includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        const next = active
+                          ? form.recurringDays.filter((d: string) => d !== day)
+                          : [...(form.recurringDays || []), day];
+                        setForm({ ...form, recurringDays: next });
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs border ${
+                        active
+                          ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
+                          : "bg-white border-gray-300 text-gray-700"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-sm">Class Start Time</label>
+                <input
+                  type="time"
+                  value={form.classStartTime}
+                  onChange={(e) => setForm({ ...form, classStartTime: e.target.value })}
+                  className="border rounded p-2 w-full"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm">Class End Time</label>
+                <input
+                  type="time"
+                  value={form.classEndTime}
+                  onChange={(e) => setForm({ ...form, classEndTime: e.target.value })}
+                  className="border rounded p-2 w-full"
+                />
+              </div>
             </div>
           </div>
 
