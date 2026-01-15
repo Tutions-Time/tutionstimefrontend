@@ -22,16 +22,17 @@ import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 /* --------------------------------- Utils --------------------------------- */
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
-const adminShareFor = (h: any) => {
-  const amount = Number(h.amount || 0);
-  if (!amount) return 0;
-  if (h.type === 'payout' || h.type === 'referral') return 0;
-  return Math.round((amount * 25) / 100);
+const formatReleaseDate = (value: any) =>
+  value ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+const releaseLabel = (h: any) => {
+  if (h.fundReleaseStatus === "released") {
+    return `Released ${formatReleaseDate(h.fundReleasedAt)}`;
+  }
+  const dateValue = h.fundReleaseDate || h.releaseAt;
+  const formatted = formatReleaseDate(dateValue);
+  return formatted !== "—" ? `Pending until ${formatted}` : "Pending";
 };
-
-const refundAmountFor = (h: any) => Math.max(0, Number(h.refundTotal || 0));
-
-
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -72,13 +73,14 @@ export default function AdminRevenuePage() {
   };
 
 function exportHistoryCsv() {
-  const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'ClassPlan', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
+  const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Release', 'ClassPlan', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
   const rows = txItems.map((h: any) => [
     new Date(h.createdAt).toISOString(),
     h.studentName,
     h.tutorName,
     String(h.amount || 0),
-    String(adminShareFor(h)),
+    String(h.adminAmount || 0),
+    releaseLabel(h),
     h.planType ? `${h.planType}${h.classCount ? ` (${h.classCount} classes)` : ''}` : (h.noteTitle || ''),
     h.couponCode || '',
     String(h.couponDiscount || 0),
@@ -281,28 +283,32 @@ function exportHistoryCsv() {
                   <option value="trading">Trading</option>
                 </select>
               </div>
-              <div className="grid md:grid-cols-4 gap-4">
-                  <div>
-                    <div className="text-sm text-muted">Subscriptions (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted">Notes (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted">Referrals (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div>
+                  <div className="text-sm text-muted">Subscriptions (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Notes (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
+                </div>
                 <div>
                   <div className="text-sm text-muted">Referrals (sum)</div>
                   <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
                 </div>
                 <div>
+                  <div className="text-sm text-muted">Refunds (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.refundTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Pending release</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.pendingReleaseTotal || 0))}</div>
+                </div>
+                <div>
                   <div className="text-sm text-muted">Commission (est.)</div>
                   <div className="text-2xl font-bold">{inr(Number(revTotals?.commissionTotal || 0))}</div>
                 </div>
-                </div>
+              </div>
               <div className="mt-6">
                 {/* Scroll wrapper for mobile */}
                 <div className="w-full overflow-x-auto">
@@ -387,19 +393,17 @@ function exportHistoryCsv() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50">
-                  <tr className="text-left text-xs uppercase tracking-wider text-muted">
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Student</th>
-                    <th className="px-4 py-3">Tutor</th>
-                    <th className="px-4 py-3">Amount</th>
-                    <th className="px-4 py-3">Admin Amount</th>
-                    <th className="px-4 py-3">Class / Plan</th>
-                    {/* <th className="px-4 py-3">Coupon</th>
-                    <th className="px-4 py-3">Discount</th> */}
-                    <th className="px-4 py-3">Referral</th>
-                    {/* <th className="px-4 py-3">Gateway</th> */}
-                    <th className="px-4 py-3">Status</th>
-                  </tr>
+                    <tr className="text-left text-xs uppercase tracking-wider text-muted">
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Student</th>
+                      <th className="px-4 py-3">Tutor</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Admin Amount</th>
+                      <th className="px-4 py-3">Release</th>
+                      <th className="px-4 py-3">Class / Plan</th>
+                      <th className="px-4 py-3">Referral</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
                 </thead>
                 <tbody>
                   {txItems.map((h: any) => (
@@ -407,8 +411,9 @@ function exportHistoryCsv() {
                       <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3">{h.studentName || h.studentId || '—'}</td>
                       <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
-                      <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-3">{inr(adminShareFor(h))}</td>
+                      <td className="px-4 py-3">{inr(Number(h.amount || 0))}</td>
+                      <td className="px-4 py-3">{inr(Number(h.adminAmount || 0))}</td>
+                      <td className="px-4 py-3">{releaseLabel(h)}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
                       {/* <td className="px-4 py-3">{h.couponCode || '—'}</td> */}
                       {/* <td className="px-4 py-3">{h.couponDiscount ? `ƒ,1${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td> */}
@@ -428,7 +433,7 @@ function exportHistoryCsv() {
                   ))}
                   {txItems.length === 0 && (
                     <tr>
-                      <td colSpan={14} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
+                      <td colSpan={9} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
                     </tr>
                   )}
                 </tbody>
