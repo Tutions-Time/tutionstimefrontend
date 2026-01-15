@@ -29,6 +29,8 @@ const adminShareFor = (h: any) => {
   return Math.round((amount * 25) / 100);
 };
 
+const refundAmountFor = (h: any) => Math.max(0, Number(h.refundTotal || 0));
+
 
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
@@ -47,7 +49,7 @@ export default function AdminRevenuePage() {
   const [txPages, setTxPages] = useState<number>(1);
   const [txTotal, setTxTotal] = useState<number>(0);
   const [revSeries, setRevSeries] = useState<{ date: string; subscriptionTotal: number; subscriptionCount: number; noteTotal: number; noteCount: number; commissionTotal: number }[]>([]);
-  const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number } | null>(null);
+  const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number; refundTotal?: number } | null>(null);
   const [rangeQuick, setRangeQuick] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
   const [viewMode, setViewMode] = useState<'classic' | 'trading'>('classic');
   const tradingData = useMemo(() => revSeries.map(d => ({ ...d, combinedTotal: (Number(d.subscriptionTotal || 0)) + (Number(d.noteTotal || 0)), volume: (Number(d.subscriptionCount || 0)) + (Number(d.noteCount || 0)) })), [revSeries]);
@@ -69,26 +71,22 @@ export default function AdminRevenuePage() {
     return () => clearTimeout(id);
   };
 
-  function exportHistoryCsv() {
-const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
-    const rows = txItems.map((h: any) => [
-      new Date(h.createdAt).toISOString(),
-      h.studentName,
-      h.tutorName,
-      String(h.amount || 0),
-      String(adminShareFor(h)),
-      h.currency || 'INR',
-      h.planType || h.noteTitle || '',
-      String(h.classCount ?? ''),
-      h.couponCode || '',
-      String(h.couponDiscount || 0),
-      h.referralCode || '',
-      String(h.referralAmount || 0),
-      (h.gateway || '').toUpperCase(),
-      h.gatewayOrderId || '',
-      h.gatewayPaymentId || '',
-      h.status || ''
-    ]);
+function exportHistoryCsv() {
+  const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'ClassPlan', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
+  const rows = txItems.map((h: any) => [
+    new Date(h.createdAt).toISOString(),
+    h.studentName,
+    h.tutorName,
+    String(h.amount || 0),
+    String(adminShareFor(h)),
+    h.planType ? `${h.planType}${h.classCount ? ` (${h.classCount} classes)` : ''}` : (h.noteTitle || ''),
+    h.couponCode || '',
+    String(h.couponDiscount || 0),
+    h.referralCode || '',
+    String(h.referralAmount || 0),
+    (h.gateway || '').toUpperCase(),
+    h.status || ''
+  ]);
     const csv = [header, ...rows].map((r: any[]) => r.map((v: any) => `${String(v).replace(/"/g, '""')}`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -365,10 +363,10 @@ const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currenc
                 <select className="h-8 rounded-md border px-2 text-xs" value={txStatus} onChange={(e) => setTxStatus(e.target.value)}>
                   <option value="">All Status</option>
                   <option value="paid">Paid</option>
-                  <option value="failed">Failed</option>
+                  {/* <option value="failed">Failed</option> */}
                   <option value="pending">Pending</option>
                   <option value="settled">Settled</option>
-                  <option value="created">Created</option>
+                  {/* <option value="created">Created</option> */}
                 </select>
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txFrom} onChange={(e) => setTxFrom(e.target.value)} />
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txTo} onChange={(e) => setTxTo(e.target.value)} />
@@ -384,12 +382,7 @@ const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currenc
                 <Button variant="outline" size="sm" onClick={exportHistoryCsv}>Export CSV</Button>
               </div>
             </div>
-            {/* <div className="px-4 pb-2 text-xs text-muted flex flex-wrap items-center gap-3">
-              <span>Total Amount (page): <span className="font-semibold">{inr(txSummary.total)}</span></span>
-              <span>Count (page): <span className="font-semibold">{txSummary.count}</span></span>
-              <span>Paid: <span className="font-semibold">{txSummary.byStatus['paid'] || 0}</span></span>
-              <span>Failed: <span className="font-semibold">{txSummary.byStatus['failed'] || 0}</span></span>
-            </div> */}
+        
 
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
@@ -401,8 +394,10 @@ const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currenc
                     <th className="px-4 py-3">Amount</th>
                     <th className="px-4 py-3">Admin Amount</th>
                     <th className="px-4 py-3">Class / Plan</th>
-                    
-                   
+                    {/* <th className="px-4 py-3">Coupon</th>
+                    <th className="px-4 py-3">Discount</th> */}
+                    <th className="px-4 py-3">Referral</th>
+                    {/* <th className="px-4 py-3">Gateway</th> */}
                     <th className="px-4 py-3">Status</th>
                   </tr>
                 </thead>
@@ -415,9 +410,12 @@ const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currenc
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3">{inr(adminShareFor(h))}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
-
+                      {/* <td className="px-4 py-3">{h.couponCode || '—'}</td> */}
+                      {/* <td className="px-4 py-3">{h.couponDiscount ? `ƒ,1${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td> */}
+                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(ƒ,1${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
+                      {/* <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td> */}
                       <td className="px-4 py-3">
-                        <Badge className={cn(
+                      <Badge className={cn(
                           h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :
                             h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
                               h.status === 'settled' ? 'bg-blue-100 text-blue-700 border-blue-200' :
@@ -425,13 +423,6 @@ const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currenc
                         )}>
                           {h.status}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        {h.type === 'payout' && h.status === 'created' && (
-                          <Button size="sm" variant="outline" onClick={async () => { try { await settleAdminPayout(h._id); refreshTx(); } catch { } }}>
-                            <CheckCircle className="w-4 h-4 mr-2" /> Settle
-                          </Button>
-                        )}
                       </td>
                     </tr>
                   ))}
