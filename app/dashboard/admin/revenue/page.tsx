@@ -70,7 +70,7 @@ export default function AdminRevenuePage() {
   };
 
   function exportHistoryCsv() {
-    const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
+const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
     const rows = txItems.map((h: any) => [
       new Date(h.createdAt).toISOString(),
       h.studentName,
@@ -119,7 +119,8 @@ export default function AdminRevenuePage() {
       if (txTutor.trim()) params.tutor = txTutor.trim();
       if (txStudent.trim()) params.student = txStudent.trim();
       const res = await getAdminAllPaymentHistory(params);
-      setTxItems(res.data);
+      const filtered = (res.data || []).filter((h: any) => h.status !== 'failed' && h.status !== 'created');
+      setTxItems(filtered);
       const p = res.pagination;
       if (p) {
         setTxTotal(p.total || 0);
@@ -400,14 +401,9 @@ export default function AdminRevenuePage() {
                     <th className="px-4 py-3">Amount</th>
                     <th className="px-4 py-3">Admin Amount</th>
                     <th className="px-4 py-3">Class / Plan</th>
-                    <th className="px-4 py-3">Coupon</th>
-                    <th className="px-4 py-3">Discount</th>
-                    <th className="px-4 py-3">Referral</th>
-                    <th className="px-4 py-3">Gateway</th>
-                    <th className="px-4 py-3">Order ID</th>
-                    <th className="px-4 py-3">Payment ID</th>
+                    
+                   
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -419,12 +415,7 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3">{inr(adminShareFor(h))}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
-                      <td className="px-4 py-3">{h.couponCode || '—'}</td>
-                      <td className="px-4 py-3">{h.couponDiscount ? `₹${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td>
-                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(₹${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
-                      <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>
+
                       <td className="px-4 py-3">
                         <Badge className={cn(
                           h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :

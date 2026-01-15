@@ -134,7 +134,7 @@ export default function ContactPage() {
 
           {/* Footer */}
           <div className="mt-12 pt-6 border-t border-slate-200 text-sm text-slate-500">
-            © TuitionsTime (Choudhary Enterprise). All Rights Reserved.
+            2026 Tuitions time (Choudhary Enterprise). All rights reserved.
           </div>
         </div>
       </section>
