@@ -22,6 +22,14 @@ import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 /* --------------------------------- Utils --------------------------------- */
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
+const adminShareFor = (h: any) => {
+  const amount = Number(h.amount || 0);
+  if (!amount) return 0;
+  if (h.type === 'payout' || h.type === 'referral') return 0;
+  return Math.round((amount * 25) / 100);
+};
+
+
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,12 +70,13 @@ export default function AdminRevenuePage() {
   };
 
   function exportHistoryCsv() {
-    const header = ['Date', 'Student', 'Tutor', 'Amount', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
+    const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
     const rows = txItems.map((h: any) => [
       new Date(h.createdAt).toISOString(),
       h.studentName,
       h.tutorName,
       String(h.amount || 0),
+      String(adminShareFor(h)),
       h.currency || 'INR',
       h.planType || h.noteTitle || '',
       String(h.classCount ?? ''),
@@ -389,6 +398,7 @@ export default function AdminRevenuePage() {
                     <th className="px-4 py-3">Student</th>
                     <th className="px-4 py-3">Tutor</th>
                     <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Admin Amount</th>
                     <th className="px-4 py-3">Class / Plan</th>
                     <th className="px-4 py-3">Coupon</th>
                     <th className="px-4 py-3">Discount</th>
@@ -407,6 +417,7 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3">{h.studentName || h.studentId || '—'}</td>
                       <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
                       <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">{inr(adminShareFor(h))}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
                       <td className="px-4 py-3">{h.couponCode || '—'}</td>
                       <td className="px-4 py-3">{h.couponDiscount ? `₹${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td>
@@ -435,7 +446,7 @@ export default function AdminRevenuePage() {
                   ))}
                   {txItems.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
+                      <td colSpan={14} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
                     </tr>
                   )}
                 </tbody>
