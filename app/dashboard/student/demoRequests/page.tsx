@@ -22,6 +22,11 @@ export default function StudentDemoRequests() {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 Per-request action loading
+  const [actionLoading, setActionLoading] = useState<{
+    [key: string]: "confirmed" | "cancelled" | null;
+  }>({});
+
   // Load Requests
   const loadRequests = useCallback(async () => {
     try {
@@ -50,7 +55,9 @@ export default function StudentDemoRequests() {
   }, []);
 
   const isDemoNotification = (detail: any) => {
-    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const title = String(
+      detail?.data?.title || detail?.data?.message || ""
+    ).toLowerCase();
     const meta = detail?.data?.meta || {};
     return title.includes("demo") || Boolean(meta.bookingId);
   };
@@ -63,12 +70,14 @@ export default function StudentDemoRequests() {
     loadRequests();
   }, isDemoNotification);
 
-  // Change Status
+  // Accept / Reject
   const handleStatus = async (
     id: string,
     status: "confirmed" | "cancelled"
   ) => {
     try {
+      setActionLoading((prev) => ({ ...prev, [id]: status }));
+
       const res = await updateStudentDemoRequestStatus(id, status);
 
       if (res.success) {
@@ -82,6 +91,8 @@ export default function StudentDemoRequests() {
       }
     } catch (err: any) {
       toast({ title: "Error", description: err.message });
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: null }));
     }
   };
 
@@ -101,13 +112,11 @@ export default function StudentDemoRequests() {
       />
 
       <div className="lg:pl-64">
-        {/* Topbar */}
         <Topbar
           title="Demo Requests"
           subtitle="Accept or reject demo requests from tutors"
         />
 
-        {/* Main */}
         <main className="p-4 lg:p-6 space-y-4">
           {/* Loading */}
           {loading && (
@@ -123,7 +132,7 @@ export default function StudentDemoRequests() {
             </Card>
           )}
 
-          {/* Requests List */}
+          {/* Requests */}
           {!loading &&
             requests.map((req) => (
               <Card
@@ -142,20 +151,14 @@ export default function StudentDemoRequests() {
                     </div>
 
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      {/* Date */}
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-4 h-4" />
                         {new Date(req.preferredDate).toLocaleDateString(
                           "en-IN",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          }
+                          { day: "numeric", month: "short", year: "numeric" }
                         )}
                       </span>
 
-                      {/* Time */}
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
                         {req.preferredTime || "Scheduled"}
@@ -163,18 +166,10 @@ export default function StudentDemoRequests() {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
+                  {/* Status */}
                   {req.status === "confirmed" ? (
                     <Badge className="bg-green-100 text-green-700 border-green-200">
                       <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
-                    </Badge>
-                  ) : req.status === "cancelled" ? (
-                    <Badge className="bg-red-100 text-red-700 border-red-200">
-                      Cancelled
-                    </Badge>
-                  ) : req.status === "completed" ? (
-                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">
-                      Completed
                     </Badge>
                   ) : req.status === "expired" ? (
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">
@@ -187,39 +182,70 @@ export default function StudentDemoRequests() {
                   )}
                 </div>
 
-                {/* ACTION BUTTONS */}
+                {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {/* Accept / Reject */}
                   {req.status === "pending" && req.requestedBy === "tutor" && (
                     <>
+                      {/* Accept */}
                       <Button
-                        onClick={() => handleStatus(req._id, "confirmed")}
-                        className="bg-green-500 hover:bg-green-600 text-white rounded-full px-4 py-2"
+                        onClick={() =>
+                          handleStatus(req._id, "confirmed")
+                        }
+                        disabled={
+                          actionLoading[req._id] === "confirmed"
+                        }
+                        className="bg-green-500 hover:bg-green-600 text-white rounded-full px-4 py-2 disabled:opacity-70"
                       >
-                        Accept
+                        {actionLoading[req._id] === "confirmed" ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Accepting...
+                          </span>
+                        ) : (
+                          "Accept"
+                        )}
                       </Button>
 
+                      {/* Reject */}
                       <Button
-                        onClick={() => handleStatus(req._id, "cancelled")}
-                        className="bg-red-500 hover:bg-red-600 text-white rounded-full px-4 py-2"
+                        onClick={() =>
+                          handleStatus(req._id, "cancelled")
+                        }
+                        disabled={
+                          actionLoading[req._id] === "cancelled"
+                        }
+                        className="bg-red-500 hover:bg-red-600 text-white rounded-full px-4 py-2 disabled:opacity-70"
                       >
-                        Reject
+                        {actionLoading[req._id] === "cancelled" ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Rejecting...
+                          </span>
+                        ) : (
+                          "Reject"
+                        )}
                       </Button>
                     </>
                   )}
 
-                  {req.status === "pending" && req.requestedBy === "student" && (
-                    <span className="text-xs text-gray-500 italic">Pending Tutor Approval</span>
-                  )}
+                  {req.status === "pending" &&
+                    req.requestedBy === "student" && (
+                      <span className="text-xs text-gray-500 italic">
+                        Pending Tutor Approval
+                      </span>
+                    )}
 
-                  {/* Join Demo */}
                   {req.status === "confirmed" && req.meetingLink && (
                     <button
                       onClick={async () => {
                         try {
                           await markDemoJoin(req._id);
                         } catch {}
-                        window.open(req.meetingLink, "_blank", "noopener,noreferrer");
+                        window.open(
+                          req.meetingLink,
+                          "_blank",
+                          "noopener,noreferrer"
+                        );
                       }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
