@@ -23,12 +23,15 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     subjects = [],
     availability = [],
     board,
+    learningMode,
+    studentLearningMode,
   } = student;
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const resolvedLearningMode = learningMode || studentLearningMode || "";
 
   const validAvailability = useMemo(() => {
     const today = new Date();
@@ -77,6 +80,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         date: selectedDate,
         time: selectedTime.format("HH:mm"),
         note,
+        studentLearningMode: resolvedLearningMode,
       });
 
       if (res?.success) {
@@ -117,6 +121,12 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
           <p className="mb-3 text-sm text-gray-700">
             <span className="text-xs font-medium text-gray-600 mr-1.5">Board:</span>
             {board}
+          </p>
+        )}
+        {resolvedLearningMode && (
+          <p className="mb-3 text-sm text-gray-700">
+            <span className="text-xs font-medium text-gray-600 mr-1.5">Mode:</span>
+            {resolvedLearningMode}
           </p>
         )}
 

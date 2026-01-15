@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { closeReviewModal } from "@/store/slices/reviewSlice";
 import { submitReview } from "@/services/reviewService";
-import { Star, X } from "lucide-react";
+import { Star } from "lucide-react";
 import { startRegularFromDemo } from "@/services/bookingService";
 import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
@@ -27,33 +27,49 @@ export default function ReviewModal() {
   const [tutorRates, setTutorRates] = useState<any>(null);
   const [loadingPay, setLoadingPay] = useState(false);
   const [couponCode, setCouponCode] = useState("");
+  const [hourlyCount, setHourlyCount] = useState(4);
   const router = useRouter();
 
   if (!shouldShowReview) return null;
 
   const sendReview = async () => {
     if (!bookingId) return;
-
-    const res = await submitReview(bookingId, {
-      teaching,
-      communication,
-      understanding,
-      comment,
-      likedTutor: likedTutor ?? false,
-    });
-
-    // If user liked tutor → Go to step 2
-    if (res?.data?.tutorRates && likedTutor === true) {
-      setTutorRates(res.data.tutorRates);
-      setStep(2);
+    if (!teaching || !communication || !understanding) {
+      toast.error("Please rate all sections.");
+      return;
+    }
+    if (likedTutor === null) {
+      toast.error("Please select if you liked the tutor.");
       return;
     }
 
-    // Otherwise simply close modal
-    dispatch(closeReviewModal());
+    try {
+      const res = await submitReview(bookingId, {
+        teaching,
+        communication,
+        understanding,
+        comment,
+        likedTutor: likedTutor ?? false,
+      });
+
+      if (res?.data?.tutorRates && likedTutor === true) {
+        setTutorRates(res.data.tutorRates);
+        setStep(2);
+        return;
+      }
+
+      dispatch(closeReviewModal());
+    } catch (err: any) {
+      const message = (err?.message || "").toLowerCase();
+      if (message.includes("already submitted")) {
+        toast.error("Feedback already submitted.");
+        dispatch(closeReviewModal());
+        return;
+      }
+      toast.error(err?.message || "Failed to submit feedback");
+    }
   };
 
-  // ⭐ reusable star component
   const Stars = ({ value, setter }: { value: number; setter: (n: number) => void }) => (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((n) => (
@@ -68,27 +84,51 @@ export default function ReviewModal() {
     </div>
   );
 
+  const hourlyRate = Number(tutorRates?.hourlyRate || 0);
+  const monthlyRate = Number(tutorRates?.monthlyRate || 0);
+  const hourlyTotal = hourlyRate * Math.max(1, Number(hourlyCount || 0));
+
   const PaymentStep = () => (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">
         How would you like to pay?
       </h2>
 
-      <button
-        className="w-full border p-3 rounded-lg text-left"
-        onClick={() => handlePaymentType("hourly")}
-      >
-        <span className="font-semibold">Hourly</span> – ₹{tutorRates?.hourlyRate}
-      </button>
+      <div className="w-full border p-3 rounded-lg space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Hourly</span>
+          <span className="text-sm text-gray-600">₹{hourlyRate}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-600">Classes</label>
+          <input
+            type="number"
+            min={1}
+            value={hourlyCount}
+            onChange={(e) => setHourlyCount(Number(e.target.value || 1))}
+            className="w-24 border rounded-md px-2 py-1 text-sm"
+          />
+          <div className="text-sm text-gray-600">Total ₹{hourlyTotal}</div>
+        </div>
+        <button
+          className="w-full bg-primary text-black font-semibold py-2 rounded-lg"
+          onClick={() => handlePaymentType("hourly")}
+          disabled={loadingPay}
+        >
+          Continue Hourly
+        </button>
+      </div>
 
       <button
         className="w-full border p-3 rounded-lg text-left"
         onClick={() => handlePaymentType("monthly")}
+        disabled={loadingPay}
       >
-        <span className="font-semibold">Monthly</span> – ₹{tutorRates?.monthlyRate}
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Monthly</span>
+          <span className="text-sm text-gray-600">₹{monthlyRate}</span>
+        </div>
       </button>
-
-      {/* Coupon UI disabled */}
     </div>
   );
 
@@ -144,7 +184,7 @@ export default function ReviewModal() {
         billingType: type,
       };
       if (type === "hourly") {
-        payload.numberOfClasses = 4;
+        payload.numberOfClasses = Math.max(1, Number(hourlyCount || 1));
       }
       const res = await startRegularFromDemo(bookingId, payload);
       if (!res?.success) {
@@ -176,16 +216,6 @@ export default function ReviewModal() {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="relative bg-white w-[90%] max-w-md rounded-2xl p-6 space-y-5 shadow-xl">
-
-        {/* Close button */}
-        <button
-          onClick={() => dispatch(closeReviewModal())}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        {/* ---------------- STEP 1 ---------------- */}
         {step === 1 && (
           <>
             <h2 className="text-xl font-semibold text-gray-900">
@@ -216,35 +246,33 @@ export default function ReviewModal() {
               placeholder="Write your feedback..."
             />
 
-          {/* Liked Tutor Question */}
-<div className="mt-4">
-  <p className="font-medium text-gray-900 mb-2">Did you like the tutor?</p>
+            <div className="mt-4">
+              <p className="font-medium text-gray-900 mb-2">Did you like the tutor?</p>
 
-  <div className="grid grid-cols-2 gap-3">
-    <button
-      onClick={() => setLikedTutor(true)}
-      className={`py-3 rounded-lg border font-semibold transition ${
-        likedTutor === true
-          ? "bg-green-500 text-white border-green-600"
-          : "bg-white text-gray-700 hover:bg-gray-100"
-      }`}
-    >
-      Yes 👍
-    </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setLikedTutor(true)}
+                  className={`py-3 rounded-lg border font-semibold transition ${
+                    likedTutor === true
+                      ? "bg-green-500 text-white border-green-600"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Yes
+                </button>
 
-    <button
-      onClick={() => setLikedTutor(false)}
-      className={`py-3 rounded-lg border font-semibold transition ${
-        likedTutor === false
-          ? "bg-red-500 text-white border-red-600"
-          : "bg-white text-gray-700 hover:bg-gray-100"
-      }`}
-    >
-      No 👎
-    </button>
-  </div>
-</div>
-
+                <button
+                  onClick={() => setLikedTutor(false)}
+                  className={`py-3 rounded-lg border font-semibold transition ${
+                    likedTutor === false
+                      ? "bg-red-500 text-white border-red-600"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  No
+                </button>
+              </div>
+            </div>
 
             <button
               onClick={sendReview}
@@ -255,31 +283,7 @@ export default function ReviewModal() {
           </>
         )}
 
-        {/* ---------------- STEP 2 ---------------- */}
-        {step === 2 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Do you want to continue regular classes with {tutorName}?
-            </h2>
-
-            <button
-              className="w-full bg-primary text-black font-bold py-3 rounded-lg"
-              onClick={() => setStep(3)}
-            >
-              Continue Regular Classes
-            </button>
-
-            <button
-              className="w-full border py-3 rounded-lg"
-              onClick={() => dispatch(closeReviewModal())}
-            >
-              Find Another Tutor
-            </button>
-          </div>
-        )}
-
-        {/* ---------------- STEP 3 ---------------- */}
-        {step === 3 && <PaymentStep />}
+        {step === 2 && <PaymentStep />}
       </div>
     </div>
   );

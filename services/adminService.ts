@@ -151,9 +151,12 @@ export const getAllTutors = async (params?: {
   }
 };
 
-export const getTutorJourney = async (id: string) => {
+export const getTutorJourney = async (
+  id: string,
+  params?: { section?: string; limit?: number | 'all' }
+) => {
   try {
-    const res = await api.get(`/admin/tutors/${id}/journey`);
+    const res = await api.get(`/admin/tutors/${id}/journey`, { params });
     return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));

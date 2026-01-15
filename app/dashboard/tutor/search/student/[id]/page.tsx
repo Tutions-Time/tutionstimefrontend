@@ -129,6 +129,15 @@ export default function StudentDetailPage() {
 
   // Track Logic
   const track = student.track;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const upcomingAvailability = Array.isArray(student.availability)
+    ? student.availability.filter((dateStr: string) => {
+        const parsed = new Date(dateStr);
+        if (Number.isNaN(parsed.getTime())) return false;
+        return parsed >= todayStart;
+      })
+    : [];
 
   return (
     <div
@@ -293,8 +302,8 @@ export default function StudentDetailPage() {
                     <CalendarDays className="w-4 h-4" /> Available Dates
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {student.availability?.length ? (
-                      student.availability.map((d: string) => <Chip key={d}>{d}</Chip>)
+                    {upcomingAvailability.length ? (
+                      upcomingAvailability.map((d: string) => <Chip key={d}>{d}</Chip>)
                     ) : (
                       <span className="text-sm text-gray-400 italic">No specific dates listed</span>
                     )}
@@ -318,6 +327,15 @@ export default function StudentDetailPage() {
                    <p className="text-sm text-gray-800 font-medium">
                      {getField(student.tutorGenderPref, student.tutorGenderOther) || "No Preference"}
                    </p>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4" /> Learning Mode
+                  </h3>
+                  <p className="text-sm text-gray-800 font-medium">
+                    {getField(student.learningMode, student.learningModeOther) || "N/A"}
+                  </p>
                 </div>
 
               </CardContent>

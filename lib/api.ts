@@ -2,6 +2,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { store } from '../store/store';
 import { clearTokens, setTokens } from '../store/slices/authSlice';
+import { toast } from '@/hooks/use-toast';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -42,6 +43,27 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config;
+    const data: any = error.response?.data || {};
+    const inactive =
+      data.error === 'INACTIVE' ||
+      String(data.message || '').toLowerCase().includes('inactive');
+
+    if (inactive && typeof window !== 'undefined') {
+      store.dispatch(clearTokens());
+      try {
+        document.cookie = 'auth=; Max-Age=0; path=/';
+      } catch {}
+      const data: any = error.response?.data || {};
+      toast({
+        title: 'Account blocked',
+        description: data.message || 'Your account is blocked. Please contact support.',
+        variant: 'destructive',
+      });
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
 
     if (
       error.response?.status === 401 &&

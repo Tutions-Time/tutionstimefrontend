@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function TutorBatchDetailPage() {
   const params = useParams() as any;
@@ -13,16 +14,30 @@ export default function TutorBatchDetailPage() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [uploading, setUploading] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const r = await api.get(`/group-batches/${id}/roster`);
       setRoster(r.data?.data || []);
       const s = await api.get(`/group-batches/${id}/sessions`);
       setSessions(s.data?.data || []);
     } catch (e:any) {}
+  }, [id]);
+
+  const isBatchNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("batch") ||
+      Boolean(meta.batchId) ||
+      Boolean(meta.groupBatchId)
+    );
   };
 
-  useEffect(()=>{ if (id) load(); },[id]);
+  useEffect(()=>{ if (id) load(); },[id, load]);
+
+  useNotificationRefresh(() => {
+    if (id) load();
+  }, isBatchNotification);
 
   const broadcast = async () => {
     try {

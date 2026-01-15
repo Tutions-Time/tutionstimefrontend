@@ -77,10 +77,11 @@ export default function UserDetailPage() {
           title="User Details"
           subtitle="Full profile information"
           greeting={false}
+          actionPosition="left"
           action={
             <Link href="/admin/users">
-              <Button variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Users
+              <Button variant="outline" size="icon" aria-label="Back to Users">
+                <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
           }

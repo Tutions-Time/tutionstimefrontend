@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { getAllUsers, getUserById, updateUserStatus } from '@/services/adminService';
@@ -581,9 +582,9 @@ export default function AdminUsersPage() {
                     <div className="text-muted">Learning Goals</div>
                     <div>{formatText(profileData?.goals)}</div>
                   </div>
-                  <div>
-                    <div className="text-muted">Availability</div>
-                    <div>{formatList(profileData?.availability)}</div>
+                  <div className="md:col-span-2">
+                    <div className="text-muted mb-2">Availability</div>
+                    <AvailabilityPicker value={profileData?.availability || []} onChange={() => {}} readOnly />
                   </div>
                 </div>
               </div>

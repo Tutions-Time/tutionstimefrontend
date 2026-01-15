@@ -13,6 +13,18 @@ export const getStudentBookings = async () => {
 };
 
 /**
+ * Student marks demo join
+ */
+export const markDemoJoin = async (bookingId: string) => {
+  try {
+    const res = await api.post(`/bookings/${bookingId}/join`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+/**
  * Tutor → Book Demo with Student
  */
 export const bookStudentDemo = async (payload: {
@@ -21,6 +33,7 @@ export const bookStudentDemo = async (payload: {
   date: string;
   time: string;
   note?: string;
+  studentLearningMode?: string;
 }) => {
   try {
     const res = await api.post("/bookings/tutor/demo", payload);

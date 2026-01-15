@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -9,18 +9,37 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { getAdminAllPaymentHistory } from '@/services/razorpayService';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 export default function AdminTransactionsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     setLoading(true);
     getAdminAllPaymentHistory()
       .then((res) => setItems((res as any)?.data || []))
       .finally(() => setLoading(false));
   }, []);
+
+  const isPaymentNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("payment") ||
+      title.includes("refund") ||
+      Boolean(meta.paymentId)
+    );
+  };
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useNotificationRefresh(() => {
+    refresh();
+  }, isPaymentNotification);
 
   return (
     <ProtectedRoute>

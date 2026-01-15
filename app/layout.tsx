@@ -10,6 +10,7 @@ import NavigationLoader from "@/components/NavigationLoader";
 // ⭐ Add these
 import ReviewChecker from "@/components/ReviewChecker";
 import ReviewModal from "@/components/ReviewModal";
+import NotificationSocket from "@/components/notifications/NotificationSocket";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,6 +32,7 @@ export default function RootLayout({
           {/* 🔥 GLOBAL REVIEW SYSTEM  */}
           <ReviewChecker />
           <ReviewModal />
+          <NotificationSocket />
 
            <NavigationLoader />
           {/* MAIN PAGE CONTENT */}

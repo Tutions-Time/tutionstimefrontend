@@ -48,6 +48,13 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
       minute: "2-digit",
     });
   };
+  const addDays = (value?: string | Date, days = 7) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    d.setDate(d.getDate() + days);
+    return d;
+  };
   const batchTypeLabel = (t?: string) => {
     if (!t) return "";
     if (t === "normal class" || t === "normal" || t === "exam") return "Normal Class";
@@ -203,7 +210,11 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="font-medium text-gray-900">Close at</span>
                     <span className="ml-auto text-gray-600">
-                      {formatDateTime(batch.enrollmentCloseAt) || "N/A"}
+                      {formatDateTime(batch.enrollmentCloseAt) ||
+                        formatDateTime(
+                          addDays(batch.enrollmentOpenAt || batch.batchStartDate || batch.recurring?.startDate, 7)
+                        ) ||
+                        "N/A"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

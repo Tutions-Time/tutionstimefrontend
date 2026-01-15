@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -31,6 +31,7 @@ import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Dialog } from "@headlessui/react";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { getStudentRefunds } from "@/services/studentService";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function StudentSessions() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function StudentSessions() {
     }
   };
 
-  const fetchAll = async () => {
+  const fetchAll = useCallback(async () => {
     try {
       const [b, s, rc, rf] = await Promise.all([getMyBookings(), getMySubscriptions(), getStudentRegularClasses(), getStudentRefunds()]);
       setSessions(b);
@@ -83,6 +84,22 @@ export default function StudentSessions() {
     } finally {
       setLoading(false);
     }
+  }, [toast]);
+
+  const isSessionsNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("demo") ||
+      title.includes("payment") ||
+      title.includes("refund") ||
+      title.includes("feedback") ||
+      Boolean(meta.bookingId) ||
+      Boolean(meta.regularClassId) ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId) ||
+      Boolean(meta.sessionId)
+    );
   };
 
   const openSessionsModal = async (regularClassId: string) => {
@@ -133,7 +150,11 @@ export default function StudentSessions() {
 
   useEffect(() => {
     fetchAll();
-  }, []);
+  }, [fetchAll]);
+
+  useNotificationRefresh(() => {
+    fetchAll();
+  }, isSessionsNotification);
 
   useEffect(() => {
     async function loadAllSessions() {

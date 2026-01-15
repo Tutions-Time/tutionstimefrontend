@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Wallet, CheckCircle, Clock, IndianRupee, TrendingUp } from 'lucide-react';
 
@@ -15,12 +15,24 @@ import { cn } from '@/lib/utils';
 import { getMyWallet } from '@/services/walletService';
 import { settleAdminPayout, getAdminAllPaymentHistory, getAdminRevenueTimeseries } from '@/services/razorpayService';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, ComposedChart, Bar } from 'recharts';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 /* Real UI */
 
 /* --------------------------------- Utils --------------------------------- */
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
+const formatReleaseDate = (value: any) =>
+  value ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+const releaseLabel = (h: any) => {
+  if (h.fundReleaseStatus === "released") {
+    return `Released ${formatReleaseDate(h.fundReleasedAt)}`;
+  }
+  const dateValue = h.fundReleaseDate || h.releaseAt;
+  const formatted = formatReleaseDate(dateValue);
+  return formatted !== "—" ? `Pending until ${formatted}` : "Pending";
+};
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,7 +50,14 @@ export default function AdminRevenuePage() {
   const [txPages, setTxPages] = useState<number>(1);
   const [txTotal, setTxTotal] = useState<number>(0);
   const [revSeries, setRevSeries] = useState<{ date: string; subscriptionTotal: number; subscriptionCount: number; noteTotal: number; noteCount: number; commissionTotal: number }[]>([]);
-  const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number } | null>(null);
+  const [revTotals, setRevTotals] = useState<{
+    subscriptionTotal: number;
+    noteTotal: number;
+    commissionTotal: number;
+    refundTotal?: number;
+    pendingReleaseTotal?: number;
+    referralTotal?: number;
+  } | null>(null);
   const [rangeQuick, setRangeQuick] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
   const [viewMode, setViewMode] = useState<'classic' | 'trading'>('classic');
   const tradingData = useMemo(() => revSeries.map(d => ({ ...d, combinedTotal: (Number(d.subscriptionTotal || 0)) + (Number(d.noteTotal || 0)), volume: (Number(d.subscriptionCount || 0)) + (Number(d.noteCount || 0)) })), [revSeries]);
@@ -60,25 +79,23 @@ export default function AdminRevenuePage() {
     return () => clearTimeout(id);
   };
 
-  function exportHistoryCsv() {
-    const header = ['Date', 'Student', 'Tutor', 'Amount', 'Currency', 'Plan', 'Classes', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'OrderId', 'PaymentId', 'Status'];
-    const rows = txItems.map((h: any) => [
-      new Date(h.createdAt).toISOString(),
-      h.studentName,
-      h.tutorName,
-      String(h.amount || 0),
-      h.currency || 'INR',
-      h.planType || h.noteTitle || '',
-      String(h.classCount ?? ''),
-      h.couponCode || '',
-      String(h.couponDiscount || 0),
-      h.referralCode || '',
-      String(h.referralAmount || 0),
-      (h.gateway || '').toUpperCase(),
-      h.gatewayOrderId || '',
-      h.gatewayPaymentId || '',
-      h.status || ''
-    ]);
+function exportHistoryCsv() {
+  const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Release', 'ClassPlan', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
+  const rows = txItems.map((h: any) => [
+    new Date(h.createdAt).toISOString(),
+    h.studentName,
+    h.tutorName,
+    String(h.amount || 0),
+    String(h.adminAmount || 0),
+    releaseLabel(h),
+    h.planType ? `${h.planType}${h.classCount ? ` (${h.classCount} classes)` : ''}` : (h.noteTitle || ''),
+    h.couponCode || '',
+    String(h.couponDiscount || 0),
+    h.referralCode || '',
+    String(h.referralAmount || 0),
+    (h.gateway || '').toUpperCase(),
+    h.status || ''
+  ]);
     const csv = [header, ...rows].map((r: any[]) => r.map((v: any) => `${String(v).replace(/"/g, '""')}`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -91,17 +108,14 @@ export default function AdminRevenuePage() {
 
 
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const w = await getMyWallet();
-        setAdminWallet(w);
-      } catch { }
-    })();
+  const refreshWallet = useCallback(async () => {
+    try {
+      const w = await getMyWallet();
+      setAdminWallet(w);
+    } catch { }
   }, []);
 
-
-  async function refreshTx() {
+  const refreshTx = useCallback(async () => {
     setTxLoading(true);
     try {
       const params: any = { page: txPage, limit: txLimit };
@@ -112,7 +126,8 @@ export default function AdminRevenuePage() {
       if (txTutor.trim()) params.tutor = txTutor.trim();
       if (txStudent.trim()) params.student = txStudent.trim();
       const res = await getAdminAllPaymentHistory(params);
-      setTxItems(res.data);
+      const filtered = (res.data || []).filter((h: any) => h.status !== 'failed' && h.status !== 'created');
+      setTxItems(filtered);
       const p = res.pagination;
       if (p) {
         setTxTotal(p.total || 0);
@@ -123,25 +138,48 @@ export default function AdminRevenuePage() {
     } finally {
       setTxLoading(false);
     }
-  }
+  }, [txFrom, txLimit, txPage, txStatus, txStudent, txTo, txTutor, txType]);
+
+  const refreshSeries = useCallback(async () => {
+    try {
+      const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
+      setRevSeries(data?.series || []);
+      setRevTotals(data?.totals || null);
+    } catch { }
+  }, [txFrom, txTo]);
+
+  const isRevenueNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("payment") ||
+      title.includes("refund") ||
+      title.includes("referral") ||
+      Boolean(meta.paymentId) ||
+      Boolean(meta.refundRequestId)
+    );
+  };
+
+  useEffect(() => {
+    refreshWallet();
+  }, [refreshWallet]);
 
   useEffect(() => {
     refreshTx();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshTx]);
 
   useEffect(() => { refreshTx(); }, [txPage, txLimit, txStatus, txType]);
   useEffect(() => { setTxPage(1); const c = debounce(refreshTx); return c; }, [txFrom, txTo, txTutor, txStudent]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getAdminRevenueTimeseries({ from: txFrom || undefined, to: txTo || undefined });
-        setRevSeries(data?.series || []);
-        setRevTotals(data?.totals || null);
-      } catch { }
-    })();
-  }, [txFrom, txTo]);
+    refreshSeries();
+  }, [refreshSeries]);
+
+  useNotificationRefresh(() => {
+    refreshWallet();
+    refreshTx();
+    refreshSeries();
+  }, isRevenueNotification);
 
   useEffect(() => {
     const now = new Date();
@@ -252,28 +290,32 @@ export default function AdminRevenuePage() {
                   <option value="trading">Trading</option>
                 </select>
               </div>
-              <div className="grid md:grid-cols-4 gap-4">
-                  <div>
-                    <div className="text-sm text-muted">Subscriptions (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted">Notes (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted">Referrals (sum)</div>
-                    <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div>
+                  <div className="text-sm text-muted">Subscriptions (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.subscriptionTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Notes (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
+                </div>
                 <div>
                   <div className="text-sm text-muted">Referrals (sum)</div>
-                  <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.referralTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Refunds (sum)</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.refundTotal || 0))}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted">Pending release</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.pendingReleaseTotal || 0))}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted">Commission (est.)</div>
                   <div className="text-2xl font-bold">{inr(Number(revTotals?.commissionTotal || 0))}</div>
                 </div>
-                </div>
+              </div>
               <div className="mt-6">
                 {/* Scroll wrapper for mobile */}
                 <div className="w-full overflow-x-auto">
@@ -334,10 +376,10 @@ export default function AdminRevenuePage() {
                 <select className="h-8 rounded-md border px-2 text-xs" value={txStatus} onChange={(e) => setTxStatus(e.target.value)}>
                   <option value="">All Status</option>
                   <option value="paid">Paid</option>
-                  <option value="failed">Failed</option>
+                  {/* <option value="failed">Failed</option> */}
                   <option value="pending">Pending</option>
                   <option value="settled">Settled</option>
-                  <option value="created">Created</option>
+                  {/* <option value="created">Created</option> */}
                 </select>
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txFrom} onChange={(e) => setTxFrom(e.target.value)} />
                 <input type="date" className="text-sm border rounded-md px-2 py-2" value={txTo} onChange={(e) => setTxTo(e.target.value)} />
@@ -353,31 +395,22 @@ export default function AdminRevenuePage() {
                 <Button variant="outline" size="sm" onClick={exportHistoryCsv}>Export CSV</Button>
               </div>
             </div>
-            {/* <div className="px-4 pb-2 text-xs text-muted flex flex-wrap items-center gap-3">
-              <span>Total Amount (page): <span className="font-semibold">{inr(txSummary.total)}</span></span>
-              <span>Count (page): <span className="font-semibold">{txSummary.count}</span></span>
-              <span>Paid: <span className="font-semibold">{txSummary.byStatus['paid'] || 0}</span></span>
-              <span>Failed: <span className="font-semibold">{txSummary.byStatus['failed'] || 0}</span></span>
-            </div> */}
+        
 
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50">
-                  <tr className="text-left text-xs uppercase tracking-wider text-muted">
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Student</th>
-                    <th className="px-4 py-3">Tutor</th>
-                    <th className="px-4 py-3">Amount</th>
-                    <th className="px-4 py-3">Class / Plan</th>
-                    <th className="px-4 py-3">Coupon</th>
-                    <th className="px-4 py-3">Discount</th>
-                    <th className="px-4 py-3">Referral</th>
-                    <th className="px-4 py-3">Gateway</th>
-                    <th className="px-4 py-3">Order ID</th>
-                    <th className="px-4 py-3">Payment ID</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Action</th>
-                  </tr>
+                    <tr className="text-left text-xs uppercase tracking-wider text-muted">
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Student</th>
+                      <th className="px-4 py-3">Tutor</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Admin Amount</th>
+                      <th className="px-4 py-3">Release</th>
+                      <th className="px-4 py-3">Class / Plan</th>
+                      <th className="px-4 py-3">Referral</th>
+                      <th className="px-4 py-3">Status</th>
+                    </tr>
                 </thead>
                 <tbody>
                   {txItems.map((h: any) => (
@@ -385,16 +418,16 @@ export default function AdminRevenuePage() {
                       <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3">{h.studentName || h.studentId || '—'}</td>
                       <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
-                      <td className="px-4 py-3">₹{Number(h.amount || 0).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">{inr(Number(h.amount || 0))}</td>
+                      <td className="px-4 py-3">{inr(Number(h.adminAmount || 0))}</td>
+                      <td className="px-4 py-3">{releaseLabel(h)}</td>
                       <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
-                      <td className="px-4 py-3">{h.couponCode || '—'}</td>
-                      <td className="px-4 py-3">{h.couponDiscount ? `₹${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td>
-                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(₹${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
-                      <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayOrderId || '—'}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{h.gatewayPaymentId || '—'}</td>
+                      {/* <td className="px-4 py-3">{h.couponCode || '—'}</td> */}
+                      {/* <td className="px-4 py-3">{h.couponDiscount ? `ƒ,1${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td> */}
+                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(ƒ,1${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
+                      {/* <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td> */}
                       <td className="px-4 py-3">
-                        <Badge className={cn(
+                      <Badge className={cn(
                           h.status === 'paid' ? 'bg-green-100 text-green-700 border-green-200' :
                             h.status === 'failed' ? 'bg-red-100 text-red-700 border-red-200' :
                               h.status === 'settled' ? 'bg-blue-100 text-blue-700 border-blue-200' :
@@ -403,18 +436,11 @@ export default function AdminRevenuePage() {
                           {h.status}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3">
-                        {h.type === 'payout' && h.status === 'created' && (
-                          <Button size="sm" variant="outline" onClick={async () => { try { await settleAdminPayout(h._id); refreshTx(); } catch { } }}>
-                            <CheckCircle className="w-4 h-4 mr-2" /> Settle
-                          </Button>
-                        )}
-                      </td>
                     </tr>
                   ))}
                   {txItems.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
+                      <td colSpan={9} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
                     </tr>
                   )}
                 </tbody>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -8,38 +8,71 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Clock, Video, CheckCircle } from 'lucide-react';
-import { getTutorDemoRequests, updateDemoRequestStatus } from '@/services/tutorService';
+import {
+  getTutorDemoRequests,
+  markTutorDemoJoin,
+  updateDemoRequestStatus,
+} from '@/services/tutorService';
 import { toast } from '@/hooks/use-toast';
+import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 Per-booking action loading state
+  const [actionLoading, setActionLoading] = useState<{
+    [key: string]: 'confirmed' | 'cancelled' | null;
+  }>({});
+
   // Load demo requests
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getTutorDemoRequests();
       if (res.success) {
-  const filtered = (res.data || []).filter((b: any) => b.status !== "cancelled");
-  setBookings(filtered);
-}
-      else toast({ title: 'Error', description: res.message || 'Failed to load demo requests' });
+        const filtered = (res.data || []).filter(
+          (b: any) => b.status !== 'cancelled'
+        );
+        setBookings(filtered);
+      } else {
+        toast({
+          title: 'Error',
+          description: res.message || 'Failed to load demo requests',
+        });
+      }
     } catch (err: any) {
       toast({ title: 'Server Error', description: err.message });
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const isDemoNotification = (detail: any) => {
+    const title = String(
+      detail?.data?.title || detail?.data?.message || ''
+    ).toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return title.includes('demo') || Boolean(meta.bookingId);
   };
 
   useEffect(() => {
     loadBookings();
-  }, []);
+  }, [loadBookings]);
 
-  // Accept / Reject actions
-  const handleStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+  useNotificationRefresh(() => {
+    loadBookings();
+  }, isDemoNotification);
+
+  // Accept / Reject
+  const handleStatus = async (
+    id: string,
+    status: 'confirmed' | 'cancelled'
+  ) => {
     try {
+      setActionLoading((prev) => ({ ...prev, [id]: status }));
+
       const res = await updateDemoRequestStatus(id, status);
       if (res.success) {
         toast({ title: 'Success', description: res.message });
@@ -49,20 +82,30 @@ export default function TutorDemoRequests() {
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message });
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: null }));
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar + Sidebar */}
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
-      <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Navbar
+        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+        userRole="tutor"
+      />
+      <Sidebar
+        userRole="tutor"
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div className="lg:pl-64">
-        {/* Topbar */}
-        <Topbar title="Demo Requests" subtitle="Review and manage your demo class requests" />
+        <Topbar
+          title="Demo Requests"
+          subtitle="Review and manage your demo class requests"
+        />
 
-        {/* Main Content */}
         <main className="p-4 lg:p-6 space-y-4">
           {/* Loading */}
           {loading && (
@@ -78,7 +121,7 @@ export default function TutorDemoRequests() {
             </Card>
           )}
 
-          {/* Demo Request List */}
+          {/* Demo Cards */}
           {!loading &&
             bookings.map((b) => (
               <Card
@@ -91,13 +134,16 @@ export default function TutorDemoRequests() {
                       {b.studentName || 'Unknown Student'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {(b.subjects && b.subjects.length
-                        ? b.subjects.join(", ")
-                        : b.subject) || "Subject"}
+                      {(b.subjects?.length
+                        ? b.subjects.join(', ')
+                        : b.subject) || 'Subject'}
                     </div>
+
                     {(b.studentBoard || b.studentLearningMode) && (
                       <div className="mt-1 text-xs text-gray-500">
-                        {b.studentBoard && <span>Board: {b.studentBoard}</span>}
+                        {b.studentBoard && (
+                          <span>Board: {b.studentBoard}</span>
+                        )}
                         {b.studentBoard && b.studentLearningMode && (
                           <span className="mx-2">|</span>
                         )}
@@ -106,14 +152,18 @@ export default function TutorDemoRequests() {
                         )}
                       </div>
                     )}
+
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-4 h-4" />
-                        {new Date(b.preferredDate).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        {new Date(b.preferredDate).toLocaleDateString(
+                          'en-IN',
+                          {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          }
+                        )}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
@@ -122,15 +172,15 @@ export default function TutorDemoRequests() {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
+                  {/* Status */}
                   {b.status === 'confirmed' ? (
                     <Badge className="bg-green-100 text-green-700 border-green-200">
                       <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
                     </Badge>
-                  ) : b.status === 'cancelled' ? (
-                    <Badge className="bg-red-100 text-red-700 border-red-200">Cancelled</Badge>
-                  ) : b.status === 'completed' ? (
-                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">Completed</Badge>
+                  ) : b.status === 'expired' ? (
+                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+                      Expired
+                    </Badge>
                   ) : (
                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
                       Pending
@@ -140,37 +190,68 @@ export default function TutorDemoRequests() {
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
-                  {b.status === 'pending' && b.requestedBy === 'student' && (
-                    <>
-                      <Button
-                        onClick={() => handleStatus(b._id, 'confirmed')}
-                        className="bg-green-500 hover:bg-green-600 text-white rounded-full px-4 py-2"
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        onClick={() => handleStatus(b._id, 'cancelled')}
-                        className="bg-red-500 hover:bg-red-600 text-white rounded-full px-4 py-2"
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  )}
+                  {b.status === 'pending' &&
+                    b.requestedBy === 'student' && (
+                      <>
+                        {/* Accept */}
+                        <Button
+                          onClick={() =>
+                            handleStatus(b._id, 'confirmed')
+                          }
+                          disabled={
+                            actionLoading[b._id] === 'confirmed'
+                          }
+                          className="bg-green-500 hover:bg-green-600 text-white rounded-full px-4 py-2 disabled:opacity-70"
+                        >
+                          {actionLoading[b._id] === 'confirmed' ? (
+                            <span className="flex items-center gap-2">
+                              <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Accepting...
+                            </span>
+                          ) : (
+                            'Accept'
+                          )}
+                        </Button>
 
-                  {b.status === 'pending' && b.requestedBy === 'tutor' && (
-                    <span className="text-xs text-gray-500 italic">Pending Student Approval</span>
-                  )}
+                        {/* Reject */}
+                        <Button
+                          onClick={() =>
+                            handleStatus(b._id, 'cancelled')
+                          }
+                          disabled={
+                            actionLoading[b._id] === 'cancelled'
+                          }
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-full px-4 py-2 disabled:opacity-70"
+                        >
+                          {actionLoading[b._id] === 'cancelled' ? (
+                            <span className="flex items-center gap-2">
+                              <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Rejecting...
+                            </span>
+                          ) : (
+                            'Reject'
+                          )}
+                        </Button>
+                      </>
+                    )}
 
                   {b.status === 'confirmed' && b.meetingLink && (
-                    <a
-                      href={b.meetingLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={async () => {
+                        try {
+                          await markTutorDemoJoin(b._id);
+                        } catch {}
+                        window.open(
+                          b.meetingLink,
+                          '_blank',
+                          'noopener,noreferrer'
+                        );
+                      }}
                       className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
                     >
                       <Video className="w-4 h-4" />
                       Join Demo
-                    </a>
+                    </button>
                   )}
                 </div>
               </Card>

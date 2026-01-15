@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 export default function StudentBatchDetail() {
   const params = useParams() as any;
@@ -55,7 +56,7 @@ export default function StudentBatchDetail() {
     return t;
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!id) return;
     try {
       setLoading(true);
@@ -68,9 +69,23 @@ export default function StudentBatchDetail() {
     } finally {
       setLoading(false);
     }
+  }, [id]);
+
+  const isBatchNotification = (detail: any) => {
+    const title = String(detail?.data?.title || detail?.data?.message || "").toLowerCase();
+    const meta = detail?.data?.meta || {};
+    return (
+      title.includes("batch") ||
+      Boolean(meta.batchId) ||
+      Boolean(meta.groupBatchId)
+    );
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [load]);
+
+  useNotificationRefresh(() => {
+    load();
+  }, isBatchNotification);
 
   const getSessionJoinData = (dateStr: string) => {
     const start = new Date(dateStr).getTime();
@@ -266,5 +281,3 @@ export default function StudentBatchDetail() {
     </>
   );
 }
-
-

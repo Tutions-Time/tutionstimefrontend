@@ -89,6 +89,10 @@ export default function TutorDetailPage() {
     if (!tutor?.photoUrl) return "/default-avatar.png";
     return buildUrl(tutor.photoUrl);
   }, [tutor]);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcomingAvailability = Array.isArray(tutor?.availability)
+    ? tutor.availability.filter((d: string) => d >= todayStr)
+    : [];
 
   if (!tutor)
     return (
@@ -167,12 +171,12 @@ export default function TutorDetailPage() {
               >
                 Book Free Demo
               </button>
-              <button
+              {/* <button
                 className={`${buttonBase} ${outlinePrimary}`}
                 onClick={() => setShowEnquiryModal(true)}
               >
                 Send Enquiry
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -381,7 +385,7 @@ export default function TutorDetailPage() {
         tutorId={tutorIdForPayload}
         tutorName={tutor.name}
         subjects={tutor.subjects || []}
-        availability={tutor.availability || []}
+        availability={upcomingAvailability}
       />
       <EnquiryModal
         open={showEnquiryModal}

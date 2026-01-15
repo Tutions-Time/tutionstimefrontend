@@ -26,13 +26,16 @@ export default function AvailabilityPicker({
   value,
   onChange,
   disabled = false,
+  readOnly = false,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   disabled?: boolean;
+  readOnly?: boolean;
 }) {
   const today = new Date();
   const todayISO = toISO(today);
+  const interactive = !disabled && !readOnly;
 
   const [cursor, setCursor] = useState<Date>(() => {
     if (value?.length) {
@@ -72,17 +75,17 @@ export default function AvailabilityPicker({
   }, [cursor, value]);
 
   const toggle = (iso?: string) => {
-    if (disabled || !iso) return;
+    if (!interactive || !iso) return;
     const next = new Set(selected);
     next.has(iso) ? next.delete(iso) : next.add(iso);
     onChange(Array.from(next).sort());
   };
 
-  const clearAll = () => !disabled && onChange([]);
+  const clearAll = () => interactive && onChange([]);
 
   // ⭐ NEW — full month but skip Sundays
   const pickFullMonth = () => {
-    if (disabled) return;
+    if (!interactive) return;
     const first = startOfMonth(cursor);
     const last = endOfMonth(cursor);
     const next = new Set<string>(selected);
@@ -115,7 +118,7 @@ export default function AvailabilityPicker({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => !disabled && setCursor((c) => addMonths(c, -1))}
+              onClick={() => setCursor((c) => addMonths(c, -1))}
               className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
               disabled={disabled}
             >
@@ -128,7 +131,7 @@ export default function AvailabilityPicker({
 
             <button
               type="button"
-              onClick={() => !disabled && setCursor((c) => addMonths(c, +1))}
+              onClick={() => setCursor((c) => addMonths(c, +1))}
               className="h-9 w-9 rounded-xl border bg-white/70 backdrop-blur hover:bg-white transition-all flex items-center justify-center"
               disabled={disabled}
             >
@@ -137,7 +140,8 @@ export default function AvailabilityPicker({
           </div>
 
           {/* ⭐ FILTERS — Removed 2 Weekends + Today */}
-          <div className="flex flex-wrap gap-2">
+          {!readOnly && (
+            <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               variant="secondary"
@@ -157,7 +161,8 @@ export default function AvailabilityPicker({
             >
               Clear
             </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -189,7 +194,7 @@ export default function AvailabilityPicker({
                   ? 'cursor-pointer hover:bg-primary/5'
                   : 'bg-gray-50 opacity-60'
               )}
-              onClick={() => !disabled && cell.inMonth && toggle(cell.iso)}
+              onClick={() => cell.inMonth && toggle(cell.iso)}
             >
               <span
                 className={cn(
@@ -215,29 +220,31 @@ export default function AvailabilityPicker({
       </div>
 
       {/* Footer chips */}
-      <div className="px-4 md:px-6 py-4 border-t space-y-3">
-        <div className="text-xs text-muted-foreground">
-          Tap dates you’re available (no time). IST assumed for display only.
-        </div>
-
-        {value?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {value.map((iso) => (
-              <button
-                key={iso}
-                onClick={() => !disabled && toggle(iso)}
-                disabled={disabled}
-                className="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-              >
-                {iso}
-                <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] group-hover:bg-primary/30">
-                  ×
-                </span>
-              </button>
-            ))}
+      {!readOnly && (
+        <div className="px-4 md:px-6 py-4 border-t space-y-3">
+          <div className="text-xs text-muted-foreground">
+            Tap dates you??Tre available (no time). IST assumed for display only.
           </div>
-        )}
-      </div>
+
+          {value?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {value.map((iso) => (
+                <button
+                  key={iso}
+                  onClick={() => toggle(iso)}
+                  disabled={disabled}
+                  className="group inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                >
+                  {iso}
+                  <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] group-hover:bg-primary/30">
+                    A-
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -21,6 +21,7 @@ import bookingReducer from './slices/bookingSlice';
 import tutorKycReducer from './slices/tutorKycSlice';
 import regularClassReducer from "./slices/regularClassSlice";
 import reviewReducer from './slices/reviewSlice';
+import notificationReducer from './slices/notificationSlice';
 
 
 // ---------- PERSIST CONFIGS ----------
@@ -60,6 +61,7 @@ const rootReducer = combineReducers({
   tutorKyc: persistReducer(kycPersistConfig, tutorKycReducer),
   regularClass: regularClassReducer,
   review: persistReducer(reviewPersistConfig, reviewReducer),
+  notification: notificationReducer,
 });
 
 
