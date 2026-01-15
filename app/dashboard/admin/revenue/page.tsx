@@ -50,7 +50,14 @@ export default function AdminRevenuePage() {
   const [txPages, setTxPages] = useState<number>(1);
   const [txTotal, setTxTotal] = useState<number>(0);
   const [revSeries, setRevSeries] = useState<{ date: string; subscriptionTotal: number; subscriptionCount: number; noteTotal: number; noteCount: number; commissionTotal: number }[]>([]);
-  const [revTotals, setRevTotals] = useState<{ subscriptionTotal: number; noteTotal: number; commissionTotal: number; refundTotal?: number } | null>(null);
+  const [revTotals, setRevTotals] = useState<{
+    subscriptionTotal: number;
+    noteTotal: number;
+    commissionTotal: number;
+    refundTotal?: number;
+    pendingReleaseTotal?: number;
+    referralTotal?: number;
+  } | null>(null);
   const [rangeQuick, setRangeQuick] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
   const [viewMode, setViewMode] = useState<'classic' | 'trading'>('classic');
   const tradingData = useMemo(() => revSeries.map(d => ({ ...d, combinedTotal: (Number(d.subscriptionTotal || 0)) + (Number(d.noteTotal || 0)), volume: (Number(d.subscriptionCount || 0)) + (Number(d.noteCount || 0)) })), [revSeries]);
@@ -294,7 +301,7 @@ function exportHistoryCsv() {
                 </div>
                 <div>
                   <div className="text-sm text-muted">Referrals (sum)</div>
-                  <div className="text-2xl font-bold">{inr(Number((revTotals as any)?.referralTotal || 0))}</div>
+                  <div className="text-2xl font-bold">{inr(Number(revTotals?.referralTotal || 0))}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted">Refunds (sum)</div>

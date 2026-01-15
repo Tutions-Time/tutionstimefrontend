@@ -34,12 +34,12 @@ export default function NotificationsPage() {
         const list = await listAdminNotifications();
         setItems(list);
         setPrefs(null);
-        dispatch(setUnreadCount(list.filter((n) => !(n.read ?? n.isRead)).length));
+        dispatch(setUnreadCount(list.filter((n: any) => !(n.read ?? n.isRead)).length));
       } else {
         const [list, p] = await Promise.all([listNotifications(), getNotificationPreferences()]);
         setItems(list);
         setPrefs(p);
-        dispatch(setUnreadCount(list.filter((n) => !(n.read ?? n.isRead)).length));
+        dispatch(setUnreadCount(list.filter((n: any) => !(n.read ?? n.isRead)).length));
       }
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ export default function NotificationsPage() {
       await markNotificationRead(id);
     }
     setItems((prev) => {
-      const next = prev.map((n) =>
+      const next = prev.map((n: any) =>
         n._id === id ? { ...n, read: true, isRead: true } : n
       );
       dispatch(setUnreadCount(next.filter((n) => !(n.read ?? n.isRead)).length));
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
       await markAllNotificationsRead();
     }
     setItems((prev) => {
-      const next = prev.map((n) => ({ ...n, read: true, isRead: true }));
+      const next = prev.map((n: any) => ({ ...n, read: true, isRead: true }));
       dispatch(setUnreadCount(0));
       return next;
     });
@@ -100,12 +100,12 @@ export default function NotificationsPage() {
                 <Button variant={prefs?.inapp ? "default" : "outline"} onClick={() => togglePref("inapp")}>In-App</Button>
               </>
             )}
-            {items.length > 0 && (
+          {items.length > 0 && (
               <Button variant="outline" onClick={markAllRead}>Mark all read</Button>
             )}
           </div>
           {loading && <div>Loading...</div>}
-          {items.map((n) => (
+          {items.map((n: any) => (
             <Card key={n._id} className="p-4 flex items-center justify-between">
               <div>
                 <div className="font-semibold">{n.title}</div>

@@ -96,7 +96,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
     try {
       const items = isAdmin ? await listAdminNotifications() : await listNotifications();
       setDrawerItems(items);
-      dispatch(setUnreadCount(items.filter((n) => !(n.read ?? n.isRead)).length));
+      dispatch(setUnreadCount(items.filter((n: any) => !(n.read ?? n.isRead)).length));
     } finally {
       setDrawerLoading(false);
     }
@@ -117,7 +117,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
       await markNotificationRead(id);
     }
     setDrawerItems((prev) => {
-      const next = prev.map((n) =>
+      const next = prev.map((n: any) =>
         n._id === id ? { ...n, read: true, isRead: true } : n
       );
       dispatch(setUnreadCount(next.filter((n) => !(n.read ?? n.isRead)).length));
@@ -131,7 +131,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
     } else {
       await markAllNotificationsRead();
     }
-    setDrawerItems((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
+    setDrawerItems((prev) => prev.map((n: any) => ({ ...n, read: true, isRead: true })));
     dispatch(setUnreadCount(0));
   };
 
@@ -142,8 +142,8 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
       await deleteNotification(id);
     }
     setDrawerItems((prev) => {
-      const next = prev.filter((n) => n._id !== id);
-      dispatch(setUnreadCount(next.filter((n) => !(n.read ?? n.isRead)).length));
+      const next = prev.filter((n: any) => n._id !== id);
+      dispatch(setUnreadCount(next.filter((n: any) => !(n.read ?? n.isRead)).length));
       return next;
     });
   };

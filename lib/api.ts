@@ -43,18 +43,20 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config;
+    const data: any = error.response?.data || {};
     const inactive =
-      error.response?.data?.error === 'INACTIVE' ||
-      String(error.response?.data?.message || '').toLowerCase().includes('inactive');
+      data.error === 'INACTIVE' ||
+      String(data.message || '').toLowerCase().includes('inactive');
 
     if (inactive && typeof window !== 'undefined') {
       store.dispatch(clearTokens());
       try {
         document.cookie = 'auth=; Max-Age=0; path=/';
       } catch {}
+      const data: any = error.response?.data || {};
       toast({
         title: 'Account blocked',
-        description: error.response?.data?.message || 'Your account is blocked. Please contact support.',
+        description: data.message || 'Your account is blocked. Please contact support.',
         variant: 'destructive',
       });
       if (window.location.pathname !== '/login') {
