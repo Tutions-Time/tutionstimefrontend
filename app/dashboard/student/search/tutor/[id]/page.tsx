@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   MapPin,
@@ -10,8 +10,6 @@ import {
   GraduationCap,
   Video,
   Clock,
-  Phone,
-  Mail,
   ShieldCheck,
   User2,
 } from "lucide-react";
@@ -57,8 +55,60 @@ const buildUrl = (path?: string | null) => {
   return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 
+// ✅ Real star rating UI (supports decimals like 4.2)
+function StarRating({
+  value,
+  size = 16,
+}: {
+  value: number;
+  size?: number;
+}) {
+  const clamped = Number.isFinite(value) ? Math.min(5, Math.max(0, value)) : 0;
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const starNumber = i + 1;
+          const fillPercent =
+            clamped >= starNumber
+              ? 100
+              : clamped > i
+              ? Math.round((clamped - i) * 100)
+              : 0;
+
+          return (
+            <span key={i} className="relative inline-block" style={{ width: size, height: size }}>
+              {/* base (empty) */}
+              <Star
+                className="absolute left-0 top-0 text-gray-300"
+                style={{ width: size, height: size }}
+                fill="none"
+              />
+              {/* filled overlay (clipped) */}
+              <span
+                className="absolute left-0 top-0 overflow-hidden"
+                style={{ width: `${fillPercent}%`, height: size }}
+              >
+                <Star
+                  className="text-yellow-500"
+                  style={{ width: size, height: size }}
+                  fill="currentColor"
+                />
+              </span>
+            </span>
+          );
+        })}
+      </div>
+
+      <span className="text-xs sm:text-sm text-gray-700">
+        {clamped ? `${clamped.toFixed(1)} / 5` : "No rating"}
+      </span>
+    </div>
+  );
+}
+
 export default function TutorDetailPage() {
-  const router = useRouter();
   const { id } = useParams();
   const searchParams = useSearchParams();
 
@@ -89,6 +139,16 @@ export default function TutorDetailPage() {
     if (!tutor?.photoUrl) return "/default-avatar.png";
     return buildUrl(tutor.photoUrl);
   }, [tutor]);
+
+  // ✅ Fix preferred time (API can send preferredTimes array OR preferredTime string)
+  const preferredTimeText = useMemo(() => {
+    const arr = tutor?.preferredTimes;
+    if (Array.isArray(arr) && arr.length) return arr.join(", ");
+    if (typeof tutor?.preferredTime === "string" && tutor.preferredTime.trim())
+      return tutor.preferredTime;
+    return "Flexible";
+  }, [tutor]);
+
   const todayStr = new Date().toISOString().slice(0, 10);
   const upcomingAvailability = Array.isArray(tutor?.availability)
     ? tutor.availability.filter((d: string) => d >= todayStr)
@@ -105,8 +165,8 @@ export default function TutorDetailPage() {
   const buttonBase =
     "rounded-full px-5 py-1.5 sm:px-6 sm:py-2 font-semibold text-xs sm:text-sm transition active:scale-[0.98]";
   const solidPrimary = "bg-[--primary] text-black hover:bg-[#f0c945]";
-  const outlinePrimary =
-    "border border-[--primary] text-[--primary] hover:bg-[--primary]/10";
+  // const outlinePrimary =
+  //   "border border-[--primary] text-[--primary] hover:bg-[--primary]/10";
 
   return (
     <div
@@ -149,13 +209,9 @@ export default function TutorDetailPage() {
               {tutor.specialization ? `• ${tutor.specialization}` : ""}
             </p>
 
-            <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-gray-700">
-              <span className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-500" />
-                {tutor.rating
-                  ? `${Number(tutor.rating).toFixed(1)} / 5`
-                  : "No rating"}
-              </span>
+            {/* ✅ Real stars instead of number-only */}
+            <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-gray-700 items-center">
+              <StarRating value={Number(tutor.rating || 0)} />
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" /> {tutor.city || "City not set"}
               </span>
@@ -171,12 +227,6 @@ export default function TutorDetailPage() {
               >
                 Book Free Demo
               </button>
-              {/* <button
-                className={`${buttonBase} ${outlinePrimary}`}
-                onClick={() => setShowEnquiryModal(true)}
-              >
-                Send Enquiry
-              </button> */}
             </div>
           </div>
         </div>
@@ -201,39 +251,17 @@ export default function TutorDetailPage() {
                     label="Qualification"
                     value={tutor.qualification || "N/A"}
                   />
+                  {/* ✅ fixed preferred time */}
                   <Fact
                     icon={Clock}
                     label="Preferred Time"
-                    value={tutor.preferredTime || "Flexible"}
+                    value={preferredTimeText}
                   />
                   <Fact
                     icon={MapPin}
                     label="Location"
                     value={[tutor.city, tutor.state].filter(Boolean).join(", ")}
                   />
-                  {/* <Fact
-                    icon={ShieldCheck}
-                    label="Verification"
-                    value={
-                      tutor.isKycVerified ? "KYC Verified" : "Not Verified"
-                    }
-                  /> */}
-                </div>
-
-                <div className="border-t pt-3 sm:pt-4 space-y-2">
-                  {/* <h3 className="text-sm font-semibold text-gray-800">
-                    Contact Info
-                  </h3> */}
-                  <div className="text-xs sm:text-sm text-gray-700 space-y-1">
-                    {/* <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      <span>{tutor.userId?.email || "N/A"}</span>
-                    </div> */}
-                    {/* <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <span>{tutor.userId?.phone || "N/A"}</span>
-                    </div> */}
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -328,8 +356,7 @@ export default function TutorDetailPage() {
                   {tutor.demoVideoUrl && (
                     <div>
                       <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                        <Video className="w-4 h-4 text-[--primary]" /> Demo
-                        Video
+                        <Video className="w-4 h-4 text-[--primary]" /> Demo Video
                       </h2>
                       <video
                         controls
@@ -354,18 +381,13 @@ export default function TutorDetailPage() {
                         key={i}
                         className="border-b border-gray-200 pb-3 mb-3"
                       >
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          <span className="font-medium text-gray-800 text-sm">
-                            {r.rating} / 5
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <StarRating value={Number(r.rating || 0)} size={14} />
                           <span className="text-xs text-gray-500">
                             – {r.studentName}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 mt-1">
-                          {r.comment}
-                        </p>
+                        <p className="text-sm text-gray-700 mt-1">{r.comment}</p>
                       </div>
                     ))
                   ) : (
