@@ -33,6 +33,10 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
   const [loading, setLoading] = useState(false);
   const resolvedLearningMode = learningMode || studentLearningMode || "";
 
+  const selectedDay = selectedDate ? dayjs(selectedDate) : null;
+  const isSelectedDayToday = selectedDay?.isSame(dayjs(), "day");
+  const minTimeForToday = isSelectedDayToday ? dayjs().startOf("minute") : undefined;
+
   const validAvailability = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -52,6 +56,10 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     setNote("");
   }, [open]);
 
+  useEffect(() => {
+    setSelectedTime(null);
+  }, [selectedDate]);
+
   const showSuccess = (msg: string) =>
     toast({
       title: "Success",
@@ -68,6 +76,17 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
   const handleSubmit = async () => {
     if (!selectedSubject || !selectedDate || !selectedTime) {
       showError("Please fill all fields");
+      return;
+    }
+
+    const bookingMoment = dayjs(selectedDate)
+      .hour(selectedTime.hour())
+      .minute(selectedTime.minute())
+      .second(0)
+      .millisecond(0);
+
+    if (bookingMoment.isBefore(dayjs())) {
+      showError("Please select a future time slot");
       return;
     }
 
@@ -167,6 +186,11 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
 
         {/* Time */}
         <label className="text-xs font-medium text-gray-600">Select Time</label>
+        {isSelectedDayToday && (
+          <p className="text-[10px] text-gray-500 mb-1">
+            Only future time slots are selectable for today.
+          </p>
+        )}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <TimePicker
             value={selectedTime}
@@ -177,6 +201,8 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
               hours: renderTimeViewClock,
               minutes: renderTimeViewClock,
             }}
+            minTime={minTimeForToday}
+            disablePast={isSelectedDayToday}
             slotProps={{
               textField: {
                 size: "small",
