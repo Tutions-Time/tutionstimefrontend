@@ -98,9 +98,9 @@ export default function UpcomingSessions() {
                 })}
               </p>
             </div>
-              <span className="text-xs uppercase tracking-wide px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+              {/* <span className="text-xs uppercase tracking-wide px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">
                 {displaySession.regularClass?.planType === "monthly" ? "Monthly" : "Regular"}
-              </span>
+              </span> */}
           </div>
           <div className="mt-4 flex justify-between items-center">
             <Button
@@ -110,11 +110,11 @@ export default function UpcomingSessions() {
             >
               {joinState.canJoin ? "Join Now" : "Join (available soon)"}
             </Button>
-            <Link href={`/dashboard/student/demoBookings?tab=regular`}>
+            {/* <Link href={`/dashboard/student/demoBookings?tab=regular`}>
               <Button variant="outline" size="sm">
                 View Sessions
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </Card>
       )}
