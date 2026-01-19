@@ -52,6 +52,26 @@ type TutorListProps = {
 };
 
 // ---------- COMPONENT ----------
+const renderRatingStars = (value?: number) => {
+  const rating = Number.isFinite(value) ? Math.max(0, Math.min(5, Number(value))) : 0;
+  const full = Math.floor(rating);
+  const hasHalf = rating - full >= 0.5;
+  const totalIcons = 5;
+  const icons = [];
+  for (let i = 0; i < totalIcons; i += 1) {
+    let className = "w-3.5 h-3.5 text-slate-200";
+    if (i < full) {
+      className = "w-3.5 h-3.5 text-yellow-500 fill-yellow-500";
+    } else if (hasHalf && i === full) {
+      className = "w-3.5 h-3.5 text-yellow-500";
+    }
+    icons.push(
+      <Star key={`star-${i}`} className={className} />
+    );
+  }
+  return <div className="flex items-center gap-0.5">{icons}</div>;
+};
+
 export default function TutorList({
   tutors,
   loading,
@@ -158,8 +178,7 @@ export default function TutorList({
               {/* RATING / LOCATION / PRICE */}
               <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
                 <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-500" />
-                  {tutor.rating || "—"}
+                  {renderRatingStars(tutor.rating)}
                 </div>
 
                 <div className="flex items-center gap-1">

@@ -51,12 +51,7 @@ export default function ContactPage() {
                     +918755313291
                   </a>
                   
-                  <a
-                    href="tel:+917830652160"
-                    className="text-lg font-semibold text-slate-900 hover:text-primary ml-4"
-                  >
-                    +917830652160
-                  </a>
+                  
                 </div>
               </div>
 

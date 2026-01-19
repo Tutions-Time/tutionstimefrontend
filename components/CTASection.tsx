@@ -19,7 +19,7 @@ export default function CTASection() {
         <h2 className="text-3xl lg:text-4xl font-bold text-text mb-6">
           Ready to Get Started?
         </h2>
-        <p className="text-lg text-muted mb-8">
+        <p className="text-lg  mb-8">
           Join thousands of students and tutors already using Tuitions time.
         </p>
         <Link href="/signup">

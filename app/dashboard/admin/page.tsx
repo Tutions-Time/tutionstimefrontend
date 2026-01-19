@@ -125,7 +125,7 @@ function AdminDashboardContent() {
                       <p className="text-sm text-muted">{k.label}</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center gap-2 text-sm">
+                  {/* <div className="mt-4 flex items-center gap-2 text-sm">
                     {k.trend === 'up' ? (
                       <span className="inline-flex items-center text-success">
                         <TrendingUp className="w-4 h-4 mr-1" /> {k.delta}
@@ -138,7 +138,7 @@ function AdminDashboardContent() {
                       <span className="text-muted">No change</span>
                     )}
                     <span className="text-muted">vs last 30 days</span>
-                  </div>
+                  </div> */}
                 </Card>
               );
             })}
@@ -215,7 +215,7 @@ function AdminDashboardContent() {
                 </Link>
               </Card>
 
-              <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
+              {/* <Card className="p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
                 <User className="w-10 h-10 text-warning mb-4" />
                 <h3 className="font-semibold text-text mb-2">Subjects & Pricing</h3>
                 <p className="text-sm text-muted mb-4">
@@ -226,7 +226,7 @@ function AdminDashboardContent() {
                     Edit Subjects
                   </Button>
                 </Link>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </main>
