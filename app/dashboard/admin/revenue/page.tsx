@@ -22,6 +22,12 @@ import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 /* --------------------------------- Utils --------------------------------- */
 const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 
+const formatCurrencyWithDecimals = (value: number) =>
+  `₹${value.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
 const formatReleaseDate = (value: any) =>
   value ? new Date(value).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
@@ -65,7 +71,9 @@ const formatReferralAmount = (row: any) =>
   row.referralAmount ? inr(Number(row.referralAmount || 0)) : "—";
 
 const formatOptionalAmount = (value: number | undefined | null) =>
-  value !== undefined && value !== null ? inr(Number(value)) : "—";
+  value !== undefined && value !== null
+    ? formatCurrencyWithDecimals(Number(value))
+    : "—";
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
