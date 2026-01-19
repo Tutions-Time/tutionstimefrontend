@@ -21,11 +21,11 @@ export default function UpcomingSessions() {
           // remove cancelled
           if (b.status === "cancelled") return false;
 
-          // ✅ include completed demo → so Start Regular Classes shows
-          if (b.type === "demo" && b.status === "completed") return true;
+        // Hide completed demos after payment so dashboard only shows upcoming sessions
+        if (b.type === "demo" && b.status === "completed") return false;
 
-          // include all other upcoming sessions
-          return true;
+        // include everything else
+        return true;
         });
 
         setSessions(upcoming.slice(0, 3)); // Show only first 3 entries

@@ -33,6 +33,39 @@ const releaseLabel = (h: any) => {
   const formatted = formatReleaseDate(dateValue);
   return formatted !== "—" ? `Pending until ${formatted}` : "Pending";
 };
+
+const formatPlanLabel = (row: any) => {
+  if (row.type === "note") {
+    return row.noteTitle || "Paid note";
+  }
+  if (row.type === "referral") {
+    return "Referral credit";
+  }
+  if (row.type === "payout") {
+    return "Tutor payout";
+  }
+  if (row.planType) {
+    const normalizedLabel =
+      row.planType === "hourly"
+        ? "Hourly"
+        : row.planType === "monthly"
+        ? "Monthly"
+        : `${row.planType.charAt(0).toUpperCase()}${row.planType.slice(1)}`;
+    const classes =
+      row.classCount && row.classCount > 0 ? ` • ${row.classCount} classes` : "";
+    const subject = row.subject ? `${row.subject} • ` : "";
+    return `${subject}${normalizedLabel}${classes}`.trim();
+  }
+  return row.subject || "—";
+};
+
+const formatReferralDisplay = (row: any) => row.referralCode || "—";
+
+const formatReferralAmount = (row: any) =>
+  row.referralAmount ? inr(Number(row.referralAmount || 0)) : "—";
+
+const formatOptionalAmount = (value: number | undefined | null) =>
+  value !== undefined && value !== null ? inr(Number(value)) : "—";
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -80,19 +113,37 @@ export default function AdminRevenuePage() {
   };
 
 function exportHistoryCsv() {
-  const header = ['Date', 'Student', 'Tutor', 'Amount', 'AdminAmount25%', 'Release', 'ClassPlan', 'Coupon', 'Discount', 'ReferralCode', 'ReferralAmount', 'Gateway', 'Status'];
+  const header = [
+    'Date',
+    'Student',
+    'Tutor',
+    'Amount',
+    'Admin Amount (25%)',
+    'Tutor Payout',
+    'Release',
+    'Class/Plan',
+    'Referral',
+    'Referral Amount',
+    'Refund Amount',
+    'Coupon',
+    'Discount',
+    'Gateway',
+    'Status',
+  ];
   const rows = txItems.map((h: any) => [
     new Date(h.createdAt).toISOString(),
-    h.studentName,
-    h.tutorName,
+    h.studentName || "—",
+    h.tutorName || "—",
     String(h.amount || 0),
     String(h.adminAmount || 0),
+    String(h.tutorNetAmount || 0),
     releaseLabel(h),
-    h.planType ? `${h.planType}${h.classCount ? ` (${h.classCount} classes)` : ''}` : (h.noteTitle || ''),
+    formatPlanLabel(h),
+    formatReferralDisplay(h),
+    String(h.referralAmount || 0),
+    String(h.refundAmount || 0),
     h.couponCode || '',
     String(h.couponDiscount || 0),
-    h.referralCode || '',
-    String(h.referralAmount || 0),
     (h.gateway || '').toUpperCase(),
     h.status || ''
   ]);
@@ -405,10 +456,13 @@ function exportHistoryCsv() {
                       <th className="px-4 py-3">Student</th>
                       <th className="px-4 py-3">Tutor</th>
                       <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Admin Amount</th>
+                      <th className="px-4 py-3">Admin Amount (25%)</th>
+                      <th className="px-4 py-3">Tutor Payout</th>
                       <th className="px-4 py-3">Release</th>
                       <th className="px-4 py-3">Class / Plan</th>
                       <th className="px-4 py-3">Referral</th>
+                      <th className="px-4 py-3">Referral Amount</th>
+                      <th className="px-4 py-3">Refund</th>
                       <th className="px-4 py-3">Status</th>
                     </tr>
                 </thead>
@@ -416,15 +470,18 @@ function exportHistoryCsv() {
                   {txItems.map((h: any) => (
                     <tr key={h._id} className="border-t">
                       <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
-                      <td className="px-4 py-3">{h.studentName || h.studentId || '—'}</td>
-                      <td className="px-4 py-3">{h.tutorName || h.tutorId || '—'}</td>
-                      <td className="px-4 py-3">{inr(Number(h.amount || 0))}</td>
-                      <td className="px-4 py-3">{inr(Number(h.adminAmount || 0))}</td>
+                      <td className="px-4 py-3">{h.studentName || '—'}</td>
+                      <td className="px-4 py-3">{h.tutorName || '—'}</td>
+                      <td className="px-4 py-3">{formatOptionalAmount(h.amount)}</td>
+                      <td className="px-4 py-3">{formatOptionalAmount(h.adminAmount)}</td>
+                      <td className="px-4 py-3">{formatOptionalAmount(h.tutorNetAmount)}</td>
                       <td className="px-4 py-3">{releaseLabel(h)}</td>
-                      <td className="px-4 py-3">{h.subject || h.noteTitle || ''} {h.planType ? `(${h.planType}${h.classCount ? `, ${h.classCount} classes` : ''})` : (h.type === 'payout' ? '(Payout)' : (h.type === 'referral' ? '(Referral)' : ''))}</td>
+                      <td className="px-4 py-3">{formatPlanLabel(h)}</td>
                       {/* <td className="px-4 py-3">{h.couponCode || '—'}</td> */}
                       {/* <td className="px-4 py-3">{h.couponDiscount ? `ƒ,1${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td> */}
-                      <td className="px-4 py-3">{h.referralCode ? `${h.referralCode} ${h.referralAmount ? `(ƒ,1${Number(h.referralAmount).toLocaleString('en-IN')})` : ''}` : '—'}</td>
+                      <td className="px-4 py-3">{formatReferralDisplay(h)}</td>
+                      <td className="px-4 py-3">{formatReferralAmount(h)}</td>
+                      <td className="px-4 py-3">{formatOptionalAmount(h.refundAmount)}</td>
                       {/* <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td> */}
                       <td className="px-4 py-3">
                       <Badge className={cn(
@@ -440,7 +497,7 @@ function exportHistoryCsv() {
                   ))}
                   {txItems.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
+                      <td colSpan={12} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
                     </tr>
                   )}
                 </tbody>
