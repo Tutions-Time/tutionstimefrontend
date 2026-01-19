@@ -827,11 +827,28 @@ export default function AdminTutorsPage() {
             <Button variant="outline" size="sm" onClick={() => setKycModal({ open: false })}>Close</Button>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
-            {(kycModal.row.aadhaarUrls || []).map((src, i) => (
-              <img key={i} src={getProperImageUrl(src)} alt={`aadhaar-${i}`} className="w-full h-32 rounded object-cover border" />
-            ))}
-            {kycModal.row.panUrl && (
-              <img src={getProperImageUrl(kycModal.row.panUrl)} alt="PAN" className="w-full h-32 rounded object-cover border" />
+            {(kycModal.row.aadhaarUrls || []).length === 0 && !kycModal.row.panUrl ? (
+              <div className="md:col-span-3 text-sm text-center text-muted py-8 border rounded-lg bg-slate-50">
+                No documents uploaded yet.
+              </div>
+            ) : (
+              <>
+                {(kycModal.row.aadhaarUrls || []).map((src, i) => (
+                  <img
+                    key={i}
+                    src={getProperImageUrl(src)}
+                    alt={`aadhaar-${i}`}
+                    className="w-full h-32 rounded object-cover border"
+                  />
+                ))}
+                {kycModal.row.panUrl && (
+                  <img
+                    src={getProperImageUrl(kycModal.row.panUrl)}
+                    alt="PAN"
+                    className="w-full h-32 rounded object-cover border"
+                  />
+                )}
+              </>
             )}
           </div>
           <div className="mt-6 flex flex-wrap justify-end gap-2">
