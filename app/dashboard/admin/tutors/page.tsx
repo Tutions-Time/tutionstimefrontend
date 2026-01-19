@@ -75,7 +75,9 @@ export default function AdminTutorsPage() {
   const [pages, setPages] = useState(1);
   const [rows, setRows] = useState<TutorRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [kycModal, setKycModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
+  const [kycModal, setKycModal] = useState<{ open: boolean; row?: TutorRow }>({
+    open: false,
+  });
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileUser, setProfileUser] = useState<any>(null);
@@ -89,7 +91,11 @@ export default function AdminTutorsPage() {
     const cleaned = p
       .replace(/^[A-Za-z]:\\.*?uploads\\/i, "uploads/")
       .replace(/\\/g, "/");
-    const base = (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://127.0.0.1:5000").replace(/\/$/, "");
+    const base = (
+      process.env.NEXT_PUBLIC_IMAGE_URL ||
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+      "http://127.0.0.1:5000"
+    ).replace(/\/$/, "");
     const rel = cleaned.replace(/^\//, "");
     return `${base}/${rel}`;
   };
@@ -111,7 +117,8 @@ export default function AdminTutorsPage() {
     if (res.data && (res.data.user || res.data.profile)) {
       return { user: res.data.user || null, profile: res.data.profile || null };
     }
-    if (res.user || res.profile) return { user: res.user || null, profile: res.profile || null };
+    if (res.user || res.profile)
+      return { user: res.user || null, profile: res.profile || null };
     return { user: res, profile: null };
   };
 
@@ -199,7 +206,7 @@ export default function AdminTutorsPage() {
     try {
       await updateTutorKyc(id, newStatus);
       setRows((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, kyc: newStatus } : r))
+        prev.map((r) => (r.id === id ? { ...r, kyc: newStatus } : r)),
       );
       toast({
         title: `KYC ${newStatus} successfully ✅`,
@@ -227,7 +234,7 @@ export default function AdminTutorsPage() {
       const newStatus = current === "active" ? "suspended" : "active";
       await updateTutorStatus(id, newStatus);
       setRows((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)),
       );
       toast({
         title: `Tutor ${
@@ -371,7 +378,10 @@ export default function AdminTutorsPage() {
             )}
             {!loading &&
               rows.map((t) => (
-                <Card key={t.id} className="p-4 rounded-2xl bg-white shadow-sm space-y-3">
+                <Card
+                  key={t.id}
+                  className="p-4 rounded-2xl bg-white shadow-sm space-y-3"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {t.profilePhoto ? (
@@ -399,8 +409,8 @@ export default function AdminTutorsPage() {
                         t.kyc === "approved"
                           ? "bg-green-100 text-green-700 border-green-300"
                           : t.kyc === "pending"
-                          ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                          : "bg-red-100 text-red-700 border-red-300"
+                            ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                            : "bg-red-100 text-red-700 border-red-300",
                       )}
                     >
                       {t.kyc}
@@ -413,61 +423,65 @@ export default function AdminTutorsPage() {
                     <div>Status</div>
                     <div className="text-text capitalize">{t.status}</div>
                     <div>Joined</div>
-                    <div className="text-text">{new Date(t.joinedAt).toLocaleDateString()}</div>
+                    <div className="text-text">
+                      {new Date(t.joinedAt).toLocaleDateString()}
+                    </div>
                   </div>
 
                   <TooltipProvider>
                     <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openProfileModal(t)}
-                    >
-                      <Eye className="w-4 h-4 mr-2" /> View Profile
-                    </Button>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setKycModal({ open: true, row: t })}
-                        >
-                          <ShieldCheck className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>View KYC</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.confirm(`Toggle status for ${t.name}?`) &&
-                            toggleStatus(t.id, t.status)
-                          }
-                        >
-                          {t.status === "active" ? (
-                            <ToggleLeft className="w-4 h-4" />
-                          ) : (
-                            <ToggleRight className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {t.status === "active" ? "Suspend" : "Activate"}
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
-                          <Button size="sm">
-                            <Map className="w-4 h-4" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openProfileModal(t)}
+                      >
+                        <Eye className="w-4 h-4 mr-2" /> View Profile
+                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setKycModal({ open: true, row: t })}
+                          >
+                            <ShieldCheck className="w-4 h-4" />
                           </Button>
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent>Journey</TooltipContent>
-                    </Tooltip>
+                        </TooltipTrigger>
+                        <TooltipContent>View KYC</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.confirm(`Toggle status for ${t.name}?`) &&
+                              toggleStatus(t.id, t.status)
+                            }
+                          >
+                            {t.status === "active" ? (
+                              <ToggleLeft className="w-4 h-4" />
+                            ) : (
+                              <ToggleRight className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t.status === "active" ? "Suspend" : "Activate"}
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            href={`/dashboard/admin/tutors/${t.id}/journey`}
+                          >
+                            <Button size="sm">
+                              <Map className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>Journey</TooltipContent>
+                      </Tooltip>
                     </div>
                   </TooltipProvider>
                 </Card>
@@ -528,8 +542,8 @@ export default function AdminTutorsPage() {
                             t.kyc === "approved"
                               ? "bg-green-100 text-green-700 border-green-300"
                               : t.kyc === "pending"
-                              ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                              : "bg-red-100 text-red-700 border-red-300"
+                                ? "bg-yellow-100 text-yellow-700 border-yellow-300"
+                                : "bg-red-100 text-red-700 border-red-300",
                           )}
                         >
                           {t.kyc}
@@ -541,7 +555,7 @@ export default function AdminTutorsPage() {
                             "border",
                             t.profileComplete
                               ? "bg-success/10 text-success border-success/20"
-                              : "bg-danger/10 text-danger border-danger/20"
+                              : "bg-danger/10 text-danger border-danger/20",
                           )}
                         >
                           {t.profileComplete ? "Complete" : "Incomplete"}
@@ -553,7 +567,7 @@ export default function AdminTutorsPage() {
                             "border",
                             t.status === "active"
                               ? "bg-green-100 text-green-700 border-green-300"
-                              : "bg-red-100 text-red-700 border-red-300"
+                              : "bg-red-100 text-red-700 border-red-300",
                           )}
                         >
                           {t.status}
@@ -565,56 +579,61 @@ export default function AdminTutorsPage() {
                       <td className="px-4 py-4">
                         <TooltipProvider>
                           <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openProfileModal(t)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setKycModal({ open: true, row: t })}
-                              >
-                                <ShieldCheck className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View KYC</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  window.confirm(`Toggle status for ${t.name}?`) &&
-                                  toggleStatus(t.id, t.status)
-                                }
-                              >
-                                {t.status === "active" ? (
-                                  <ToggleLeft className="w-4 h-4" />
-                                ) : (
-                                  <ToggleRight className="w-4 h-4" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {t.status === "active" ? "Suspend" : "Activate"}
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link href={`/dashboard/admin/tutors/${t.id}/journey`}>
-                                <Button size="sm">
-                                  <Map className="w-4 h-4" />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openProfileModal(t)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setKycModal({ open: true, row: t })
+                                  }
+                                >
+                                  <ShieldCheck className="w-4 h-4" />
                                 </Button>
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>Journey</TooltipContent>
-                          </Tooltip>
+                              </TooltipTrigger>
+                              <TooltipContent>View KYC</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    window.confirm(
+                                      `Toggle status for ${t.name}?`,
+                                    ) && toggleStatus(t.id, t.status)
+                                  }
+                                >
+                                  {t.status === "active" ? (
+                                    <ToggleLeft className="w-4 h-4" />
+                                  ) : (
+                                    <ToggleRight className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {t.status === "active" ? "Suspend" : "Activate"}
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link
+                                  href={`/dashboard/admin/tutors/${t.id}/journey`}
+                                >
+                                  <Button size="sm">
+                                    <Map className="w-4 h-4" />
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>Journey</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TooltipProvider>
                       </td>
@@ -644,7 +663,9 @@ export default function AdminTutorsPage() {
           </DialogHeader>
 
           {profileLoading ? (
-            <div className="py-10 text-center text-muted">Loading tutor profile...</div>
+            <div className="py-10 text-center text-muted">
+              Loading tutor profile...
+            </div>
           ) : (
             <div className="space-y-6">
               <div className="flex items-center gap-4">
@@ -656,7 +677,9 @@ export default function AdminTutorsPage() {
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-semibold text-primary">
-                    {(profileData?.name || selectedTutor?.name || "T").charAt(0).toUpperCase()}
+                    {(profileData?.name || selectedTutor?.name || "T")
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
                 <div>
@@ -670,7 +693,9 @@ export default function AdminTutorsPage() {
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Personal Information</div>
+                <div className="text-base font-semibold mb-3">
+                  Personal Information
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted">Full Name</div>
@@ -712,7 +737,9 @@ export default function AdminTutorsPage() {
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Academic & Teaching</div>
+                <div className="text-base font-semibold mb-3">
+                  Academic & Teaching
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted">Highest Qualification</div>
@@ -730,7 +757,9 @@ export default function AdminTutorsPage() {
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Subjects & Classes</div>
+                <div className="text-base font-semibold mb-3">
+                  Subjects & Classes
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted">Student Types</div>
@@ -750,13 +779,19 @@ export default function AdminTutorsPage() {
                   </div>
                   <div>
                     <div className="text-muted">Group Size Preference</div>
-                    <div>{formatArray(profileData?.groupSizes || profileData?.groupSize)}</div>
+                    <div>
+                      {formatArray(
+                        profileData?.groupSizes || profileData?.groupSize,
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Rates & Availability</div>
+                <div className="text-base font-semibold mb-3">
+                  Rates & Availability
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <div className="text-muted">Hourly Rate</div>
@@ -768,20 +803,28 @@ export default function AdminTutorsPage() {
                   </div>
                   <div className="md:col-span-2">
                     <div className="text-muted mb-2">Availability</div>
-                    <AvailabilityPicker value={profileData?.availability || []} onChange={() => {}} readOnly />
+                    <AvailabilityPicker
+                      value={profileData?.availability || []}
+                      onChange={() => {}}
+                      readOnly
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">About & Highlights</div>
+                <div className="text-base font-semibold mb-3">
+                  About & Highlights
+                </div>
                 <div className="space-y-4 text-sm">
                   <div>
                     <div className="text-muted">Short Bio</div>
                     <div>{formatText(profileData?.bio)}</div>
                   </div>
                   <div>
-                    <div className="text-muted">Teaching Highlights / Achievements</div>
+                    <div className="text-muted">
+                      Teaching Highlights / Achievements
+                    </div>
                     <div>{formatText(profileData?.achievements)}</div>
                   </div>
                 </div>
@@ -796,7 +839,9 @@ export default function AdminTutorsPage() {
                     src={getProperImageUrl(profileData?.demoVideoUrl)}
                   />
                 ) : (
-                  <div className="text-sm text-muted">No demo video uploaded.</div>
+                  <div className="text-sm text-muted">
+                    No demo video uploaded.
+                  </div>
                 )}
               </div>
 
@@ -819,69 +864,79 @@ export default function AdminTutorsPage() {
           )}
         </DialogContent>
       </Dialog>
-    {kycModal.open && kycModal.row && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <Card className="p-6 rounded-2xl bg-white shadow-lg w-[90vw] max-w-2xl">
-          <div className="flex items-center justify-between mb-4">
-            <div className="font-semibold">KYC Documents — {kycModal.row.name}</div>
-            <Button variant="outline" size="sm" onClick={() => setKycModal({ open: false })}>Close</Button>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {(kycModal.row.aadhaarUrls || []).length === 0 && !kycModal.row.panUrl ? (
-              <div className="md:col-span-3 text-sm text-center text-muted py-8 border rounded-lg bg-slate-50">
-                No documents uploaded yet.
+      {kycModal.open && kycModal.row && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <Card className="p-6 rounded-2xl bg-white shadow-lg w-[90vw] max-w-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="font-semibold">
+                KYC Documents — {kycModal.row.name}
               </div>
-            ) : (
-              <>
-                {(kycModal.row.aadhaarUrls || []).map((src, i) => (
-                  <img
-                    key={i}
-                    src={getProperImageUrl(src)}
-                    alt={`aadhaar-${i}`}
-                    className="w-full h-32 rounded object-cover border"
-                  />
-                ))}
-                {kycModal.row.panUrl && (
-                  <img
-                    src={getProperImageUrl(kycModal.row.panUrl)}
-                    alt="PAN"
-                    className="w-full h-32 rounded object-cover border"
-                  />
-                )}
-              </>
-            )}
-          </div>
-          <div className="mt-6 flex flex-wrap justify-end gap-2">
-            {kycModal.row.kyc !== "approved" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  window.confirm(`Approve KYC for ${kycModal.row?.name}?`) &&
-                  setKycStatus(kycModal.row!.id, "approved")
-                }
+                onClick={() => setKycModal({ open: false })}
               >
-                <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                Close
               </Button>
-            )}
-            {kycModal.row.kyc !== "rejected" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const reason = prompt(
-                    `Reject KYC for ${kycModal.row?.name}. Enter reason:`
-                  );
-                  if (reason !== null) setKycStatus(kycModal.row!.id, "rejected");
-                }}
-              >
-                <XCircle className="w-4 h-4 mr-2" /> Reject
-              </Button>
-            )}
-          </div>
-        </Card>
-      </div>
-    )}
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              {(kycModal.row.aadhaarUrls || []).length === 0 &&
+              !kycModal.row.panUrl ? (
+                <div className="md:col-span-3 text-sm text-center text-muted py-8 border rounded-lg bg-slate-50">
+                  No documents uploaded yet.
+                </div>
+              ) : (
+                <>
+                  {(kycModal.row.aadhaarUrls || []).map((src, i) => (
+                    <img
+                      key={i}
+                      src={getProperImageUrl(src)}
+                      alt={`aadhaar-${i}`}
+                      className="w-full h-32 rounded object-cover border"
+                    />
+                  ))}
+                  {kycModal.row.panUrl && (
+                    <img
+                      src={getProperImageUrl(kycModal.row.panUrl)}
+                      alt="PAN"
+                      className="w-full h-32 rounded object-cover border"
+                    />
+                  )}
+                </>
+              )}
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              {kycModal.row.kyc !== "approved" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    window.confirm(`Approve KYC for ${kycModal.row?.name}?`) &&
+                    setKycStatus(kycModal.row!.id, "approved")
+                  }
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                </Button>
+              )}
+              {kycModal.row.kyc !== "rejected" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const reason = prompt(
+                      `Reject KYC for ${kycModal.row?.name}. Enter reason:`,
+                    );
+                    if (reason !== null)
+                      setKycStatus(kycModal.row!.id, "rejected");
+                  }}
+                >
+                  <XCircle className="w-4 h-4 mr-2" /> Reject
+                </Button>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
