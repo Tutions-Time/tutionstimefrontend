@@ -179,6 +179,11 @@ export default function StudentDemoRequests() {
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">
                       Completed
                     </Badge>
+                  ) 
+                  : req.status === "tutor-missed" ? (
+                    <Badge className="bg-red-100 text-red-700 border-red-200">
+                      Tutor Missed
+                    </Badge>
                   ) : (
                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
                       Pending
