@@ -1,12 +1,24 @@
 "use client";
 
 export default function BookingStatusTag({ status }: { status: string }) {
-  const badgeStyles: any = {
+  const badgeStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
     confirmed: "bg-green-100 text-green-700 border-green-300",
     completed: "bg-blue-100 text-blue-700 border-blue-300",
     cancelled: "bg-red-100 text-red-700 border-red-300",
     expired: "bg-gray-100 text-gray-700 border-gray-300",
+    "student-missed": "bg-red-100 text-red-700 border-red-300",
+    "tutor-missed": "bg-orange-100 text-orange-700 border-orange-300",
+  };
+
+  const labels: Record<string, string> = {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    expired: "Expired",
+    "student-missed": "Student No-Show",
+    "tutor-missed": "Tutor No-Show",
   };
 
   return (
@@ -16,8 +28,7 @@ export default function BookingStatusTag({ status }: { status: string }) {
         ${badgeStyles[status] || "bg-gray-100 text-gray-700 border-gray-300"}
       `}
     >
-      {String(status || "unknown").charAt(0).toUpperCase() +
-        String(status || "unknown").slice(1)}
+      {labels[status] || "Unknown"}
     </span>
   );
 }
