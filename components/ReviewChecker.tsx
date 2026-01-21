@@ -21,6 +21,12 @@ export default function ReviewChecker() {
             b.status === "completed" &&
             !b.demoFeedback
         );
+        if (pending?._id && typeof window !== "undefined") {
+          const completedKey = `review_submitted_${pending._id}`;
+          if (localStorage.getItem(completedKey)) {
+            return;
+          }
+        }
         if (pending?._id) {
           dispatch(
             openReviewModal({

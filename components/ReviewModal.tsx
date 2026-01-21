@@ -53,11 +53,17 @@ export default function ReviewModal() {
       });
 
       if (res?.data?.tutorRates && likedTutor === true) {
+        if (typeof window !== "undefined" && bookingId) {
+          localStorage.setItem(`review_submitted_${bookingId}`, "1");
+        }
         setTutorRates(res.data.tutorRates);
         setStep(2);
         return;
       }
 
+      if (typeof window !== "undefined" && bookingId) {
+        localStorage.setItem(`review_submitted_${bookingId}`, "1");
+      }
       dispatch(closeReviewModal());
     } catch (err: any) {
       const message = (err?.message || "").toLowerCase();
