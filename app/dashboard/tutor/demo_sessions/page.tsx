@@ -65,6 +65,16 @@ export default function TutorDemoRequests() {
     loadBookings();
   }, isDemoNotification);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      loadBookings();
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [loadBookings]);
+
   // Accept / Reject
   const handleStatus = async (
     id: string,
