@@ -1,8 +1,7 @@
-"use client";
+ "use client";
 
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { useEffect, useState } from "react";
+import { useAppSelector, useAppDispatch } from "@/store/store";
 import { closeReviewModal } from "@/store/slices/reviewSlice";
 import { submitReview } from "@/services/reviewService";
 import { Star } from "lucide-react";
@@ -12,9 +11,12 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function ReviewModal() {
-  const dispatch = useDispatch();
-  const { shouldShowReview, tutorName, bookingId } = useSelector(
-    (state: RootState) => state.review
+  const dispatch = useAppDispatch();
+  const { shouldShowReview, tutorName, bookingId } = useAppSelector(
+    (state) => state.review
+  );
+  const isAuthenticated = useAppSelector(
+    (state) => Boolean(state.auth.tokens?.accessToken)
   );
 
   const [teaching, setTeaching] = useState(0);
@@ -29,6 +31,12 @@ export default function ReviewModal() {
   const [couponCode, setCouponCode] = useState("");
   const [hourlyCount, setHourlyCount] = useState(4);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      dispatch(closeReviewModal());
+    }
+  }, [dispatch, isAuthenticated]);
 
   if (!shouldShowReview) return null;
 
@@ -53,11 +61,17 @@ export default function ReviewModal() {
       });
 
       if (res?.data?.tutorRates && likedTutor === true) {
+        if (typeof window !== "undefined" && bookingId) {
+          localStorage.setItem(`review_submitted_${bookingId}`, "1");
+        }
         setTutorRates(res.data.tutorRates);
         setStep(2);
         return;
       }
 
+      if (typeof window !== "undefined" && bookingId) {
+        localStorage.setItem(`review_submitted_${bookingId}`, "1");
+      }
       dispatch(closeReviewModal());
     } catch (err: any) {
       const message = (err?.message || "").toLowerCase();
