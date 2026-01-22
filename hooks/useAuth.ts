@@ -161,18 +161,13 @@ export const useAuth = () => {
           )}; path=/; max-age=2592000`;
         } catch {}
 
-        // After signup, always redirect to role-specific profile completion
-        if (role === "student") {
-          router.push("/dashboard/student/profile/complete");
-        } else if (role === "tutor") {
-          router.push("/dashboard/tutor/profile/complete");
-        }
+        // Return the payload; navigation will be handled by the caller
         return result.payload;
       } else {
         throw new Error(result.payload as string);
       }
     },
-    [dispatch, router]
+    [dispatch]
   );
 
 

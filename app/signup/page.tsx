@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,8 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get('role') as 'student' | 'tutor' | null;
 
+  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'role' | 'email' | 'otp'>('role');
   const [role, setRole] = useState<'student' | 'tutor' | null>(initialRole);
@@ -26,13 +29,38 @@ export default function SignupPage() {
   const [referralCode, setReferralCode] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
-  
+  const [accountCreated, setAccountCreated] = useState(false);
+  const [createdRole, setCreatedRole] = useState<'student' | 'tutor' | null>(null);
+
   const { sendOtp, signup, isLoading, error } = useAuth();
   const { toast } = useToast();
 
   const handleRoleSelect = (selectedRole: 'student' | 'tutor') => {
     setRole(selectedRole);
     setStep('email');
+  };
+
+  const resetSignupForm = () => {
+    setEmail('');
+    setOTP('');
+    setRequestId('');
+    setReferralCode('');
+    setStep('role');
+    setCountdown(0);
+    setSendingOtp(false);
+    setVerifyingOtp(false);
+    setRole(initialRole);
+  };
+
+  const handleCompleteProfile = () => {
+    if (!createdRole) return;
+    router.push(`/dashboard/${createdRole}/profile/complete`);
+  };
+
+  const handleStartNewSignup = () => {
+    resetSignupForm();
+    setAccountCreated(false);
+    setCreatedRole(null);
   };
 
   useEffect(() => {
@@ -118,6 +146,9 @@ export default function SignupPage() {
         description: 'Your account has been created successfully',
         variant: 'default',
       });
+      setCreatedRole(role);
+      setAccountCreated(true);
+      setCountdown(0);
     } catch (error: any) {
       console.error('Verification Error:', error); // Debug log
       toast({
@@ -162,116 +193,148 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* 🧩 Step 1: Choose Role */}
-        {step === 'role' && (
+        {accountCreated && createdRole ? (
           <div className="space-y-6">
-            <RoleSelector value={role} onChange={handleRoleSelect} />
-            <p className="text-center text-sm text-muted mt-6">
-              Already have an account?{' '}
-              <Link href="/login" className="text-primary font-medium hover:underline">
-                Log in
-              </Link>
-            </p>
-          </div>
-        )}
-
-        {/* 📱 Step 2: Enter Mobile Number */}
-        {step === 'email' && (
-          <form onSubmit={handleSendOTP} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+              <p className="font-semibold text-base text-emerald-900">
+                Account created successfully
+              </p>
+              <p className="text-sm text-emerald-900/80">
+                Your {createdRole === 'student' ? 'student' : 'tutor'} account is ready.
+                Complete your profile to unlock the dashboard or start a fresh signup.
+              </p>
             </div>
 
-            {role === 'student' ? (
-              <div className="space-y-2">
-                <Label htmlFor="referral">Referral Code (optional)</Label>
-                <Input
-                  id="referral"
-                  type="text"
-                  placeholder="Enter referral code if you have one"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value)}
-                />
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={handleCompleteProfile}
+                className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
+              >
+                Continue to profile completion
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleStartNewSignup}
+                className="w-full text-primary font-semibold"
+              >
+                Sign up with another email
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* 🧩 Step 1: Choose Role */}
+            {step === 'role' && (
+              <div className="space-y-6">
+                <RoleSelector value={role} onChange={handleRoleSelect} />
+                <p className="text-center text-sm text-muted mt-6">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-primary font-medium hover:underline">
+                    Log in
+                  </Link>
+                </p>
               </div>
-            ) : (
-              <>
-                {/* Referral field hidden for tutor signup */}
-              </>
             )}
 
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
-              disabled={sendingOtp}
-            >
-              {sendingOtp ? 'Sending OTP...' : 'Continue'}
-            </Button>
+            {/* 📱 Step 2: Enter Mobile Number */}
+            {step === 'email' && (
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <button
-              type="button"
-              onClick={() => setStep('role')}
-              className="w-full text-sm text-muted hover:text-text transition-base"
-            >
-              Choose a different role
-            </button>
-          </form>
-        )}
+                {role === 'student' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="referral">Referral Code (optional)</Label>
+                    <Input
+                      id="referral"
+                      type="text"
+                      placeholder="Enter referral code if you have one"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {/* Referral field hidden for tutor signup */}
+                  </>
+                )}
 
-        {/* 🔢 Step 3: OTP Verification */}
-        {step === 'otp' && (
-          <div className="space-y-6">
-            <OTPInput 
-              value={otp} 
-              onChange={setOTP} 
-              onComplete={handleVerifyOTP}
-              length={6}
-            />
-
-            <Button
-              onClick={() => handleVerifyOTP(otp)}
-              disabled={verifyingOtp || otp.length !== 6}
-              className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
-            >
-              {verifyingOtp ? 'Verifying...' : 'Verify & Create Account'}
-            </Button>
-
-            <div className="text-center">
-              {countdown > 0 ? (
-                <p className="text-sm text-muted">
-                  Resend code in <span className="font-semibold">{countdown}s</span>
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  className="text-sm text-primary font-medium hover:underline"
-                  onClick={handleSendOTP}
+                <Button
+                  type="submit"
+                  className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
                   disabled={sendingOtp}
                 >
-                  {sendingOtp ? 'Sending...' : 'Resend Code'}
-                </button>
-              )}
-            </div>
+                  {sendingOtp ? 'Sending OTP...' : 'Continue'}
+                </Button>
 
-            <button
-              type="button"
-              onClick={() => setStep('email')}
-              className="w-full text-sm text-muted hover:text-text transition-base"
-            >
-              Use a different email
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setStep('role')}
+                  className="w-full text-sm text-muted hover:text-text transition-base"
+                >
+                  Choose a different role
+                </button>
+              </form>
+            )}
+
+            {/* 🔢 Step 3: OTP Verification */}
+            {step === 'otp' && (
+              <div className="space-y-6">
+                <OTPInput
+                  value={otp}
+                  onChange={setOTP}
+                  onComplete={handleVerifyOTP}
+                  length={6}
+                />
+
+                <Button
+                  onClick={() => handleVerifyOTP(otp)}
+                  disabled={verifyingOtp || otp.length !== 6}
+                  className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
+                >
+                  {verifyingOtp ? 'Verifying...' : 'Verify & Create Account'}
+                </Button>
+
+                <div className="text-center">
+                  {countdown > 0 ? (
+                    <p className="text-sm text-muted">
+                      Resend code in <span className="font-semibold">{countdown}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm text-primary font-medium hover:underline"
+                      onClick={handleSendOTP}
+                      disabled={sendingOtp}
+                    >
+                      {sendingOtp ? 'Sending...' : 'Resend Code'}
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setStep('email')}
+                  className="w-full text-sm text-muted hover:text-text transition-base"
+                >
+                  Use a different email
+                </button>
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>
