@@ -5,8 +5,8 @@ import * as adminService from "../services/adminService";
 
 // Test credentials
 const testCredentials = {
-  student: { phone: "1234567890", otp: "123456" },
-  tutor: { phone: "0987654321", otp: "123456" },
+  student: { email: "student@example.com", otp: "123456" },
+  tutor: { email: "tutor@example.com", otp: "123456" },
   admin: { username: "admin", password: "admin123" },
 };
 
@@ -41,11 +41,11 @@ export const testAuthAPIs = async () => {
   try {
     // Test student login flow
     console.log('Testing student login flow...');
-    const sendRes = await authService.sendOtp(testCredentials.student.phone, 'login');
+    const sendRes = await authService.sendOtp(testCredentials.student.email, 'login');
     console.log('✅ Send OTP successful');
     
     const verifyRes = await authService.verifyOtp({
-      phone: testCredentials.student.phone,
+      email: testCredentials.student.email,
       otp: testCredentials.student.otp,
       requestId: sendRes.requestId,
       purpose: 'login',
@@ -76,9 +76,9 @@ export const testStudentAPIs = async () => {
 
   try {
     // Login as student first
-    const sendRes = await authService.sendOtp(testCredentials.student.phone, 'login');
+    const sendRes = await authService.sendOtp(testCredentials.student.email, 'login');
     await authService.verifyOtp({
-      phone: testCredentials.student.phone,
+      email: testCredentials.student.email,
       otp: testCredentials.student.otp,
       requestId: sendRes.requestId,
       purpose: 'login',
@@ -127,9 +127,9 @@ export const testTutorAPIs = async () => {
 
   try {
     // Login as tutor first
-    const sendRes = await authService.sendOtp(testCredentials.tutor.phone, 'login');
+    const sendRes = await authService.sendOtp(testCredentials.tutor.email, 'login');
     await authService.verifyOtp({
-      phone: testCredentials.tutor.phone,
+      email: testCredentials.tutor.email,
       otp: testCredentials.tutor.otp,
       requestId: sendRes.requestId,
       purpose: 'login',

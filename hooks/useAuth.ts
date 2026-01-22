@@ -53,8 +53,9 @@ export const useAuth = () => {
 
   // Send OTP
   const sendOtp = useCallback(
-    async (phone: string, purpose: "login" | "signup") => {
-      const result = await dispatch(sendOtpAsync({ phone, purpose }));
+    async (email: string, purpose: "login" | "signup") => {
+      const normalizedEmail = email.trim().toLowerCase();
+      const result = await dispatch(sendOtpAsync({ email: normalizedEmail, purpose }));
 
       if (sendOtpAsync.fulfilled.match(result)) {
         return result.payload;
@@ -67,8 +68,9 @@ export const useAuth = () => {
 
   // Login
   const login = useCallback(
-    async (phone: string, otp: string, requestId: string) => {
-      const result = await dispatch(loginAsync({ phone, otp, requestId }));
+    async (email: string, otp: string, requestId: string) => {
+      const normalizedEmail = email.trim().toLowerCase();
+      const result = await dispatch(loginAsync({ email: normalizedEmail, otp, requestId }));
 
       if (loginAsync.fulfilled.match(result)) {
         const { user } = result.payload;
@@ -129,7 +131,7 @@ export const useAuth = () => {
   // Signup
   const signup = useCallback(
     async (
-      phone: string,
+      email: string,
       otp: string,
       requestId: string,
       role: "student" | "tutor",
@@ -142,8 +144,9 @@ export const useAuth = () => {
         dispatch(resetTutorProfile());
       }
 
+      const normalizedEmail = email.trim().toLowerCase();
       const result = await dispatch(
-        signupAsync({ phone, otp, requestId, role, referralCode })
+        signupAsync({ email: normalizedEmail, otp, requestId, role, referralCode })
       );
 
       if (signupAsync.fulfilled.match(result)) {

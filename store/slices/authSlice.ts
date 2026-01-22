@@ -5,7 +5,8 @@ import { resetTutorKyc } from '../slices/tutorKycSlice';   // ✅ IMPORTANT FIX
 // Types
 export type User = {
   id: string;
-  phone: string;
+  email: string;
+  phone?: string;
   role: 'student' | 'tutor' | 'admin';
   isProfileComplete: boolean;
 };
@@ -35,9 +36,9 @@ const initialState: AuthState = {
 // Async thunks
 export const sendOtpAsync = createAsyncThunk(
   'auth/sendOtp',
-  async ({ phone, purpose }: { phone: string; purpose: 'login' | 'signup' }, { rejectWithValue }) => {
+  async ({ email, purpose }: { email: string; purpose: 'login' | 'signup' }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/send-otp', { phone, purpose });
+      const response = await api.post('/auth/send-otp', { email, purpose });
       if (!response.data.success) {
         return rejectWithValue(response.data.message || 'Failed to send OTP');
       }
@@ -54,11 +55,11 @@ export const sendOtpAsync = createAsyncThunk(
 export const loginAsync = createAsyncThunk(
   'auth/login',
   async (
-    { phone, otp, requestId }: { phone: string; otp: string; requestId: string },
+    { email, otp, requestId }: { email: string; otp: string; requestId: string },
     { rejectWithValue, dispatch }
   ) => {
     try {
-      const response = await api.post('/auth/verify-otp', { phone, otp, requestId, purpose: 'login' });
+      const response = await api.post('/auth/verify-otp', { email, otp, requestId, purpose: 'login' });
 
       // Reset KYC for fresh login (avoids previous user data)
       dispatch(resetTutorKyc());  // ✅ IMPORTANT FIX
@@ -73,16 +74,16 @@ export const loginAsync = createAsyncThunk(
 export const signupAsync = createAsyncThunk(
   'auth/signup',
   async (
-    { phone, otp, requestId, role, referralCode }: { phone: string; otp: string; requestId: string; role: 'student' | 'tutor'; referralCode?: string },
+    { email, otp, requestId, role, referralCode }: { email: string; otp: string; requestId: string; role: 'student' | 'tutor'; referralCode?: string },
     { rejectWithValue, dispatch }
   ) => {
     try {
-      if (!phone || !otp || !requestId || !role) {
+      if (!email || !otp || !requestId || !role) {
         throw new Error('Missing required fields for signup');
       }
 
       const response = await api.post('/auth/verify-otp', {
-        phone: phone.trim(),
+        email: email.trim().toLowerCase(),
         otp: otp.trim(),
         requestId: requestId.trim(),
         purpose: 'signup',

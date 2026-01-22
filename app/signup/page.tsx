@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Phone, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,8 +17,8 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get('role') as 'student' | 'tutor' | null;
 
-  const [phone, setPhone] = useState('');
-  const [step, setStep] = useState<'role' | 'phone' | 'otp'>('role');
+  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<'role' | 'email' | 'otp'>('role');
   const [role, setRole] = useState<'student' | 'tutor' | null>(initialRole);
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
@@ -30,7 +30,7 @@ export default function SignupPage() {
 
   const handleRoleSelect = (selectedRole: 'student' | 'tutor') => {
     setRole(selectedRole);
-    setStep('phone');
+    setStep('email');
   };
 
   useEffect(() => {
@@ -44,17 +44,20 @@ export default function SignupPage() {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!phone.trim() || phone.length !== 10) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+
+    if (!isValidEmail(normalizedEmail)) {
       toast({
-        title: 'Invalid Phone Number',
-        description: 'Please enter a valid 10-digit mobile number',
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address',
         variant: 'destructive',
       });
       return;
     }
 
     try {
-      const response = await sendOtp(phone, 'signup');
+      const response = await sendOtp(normalizedEmail, 'signup');
       console.log('OTP Response:', response); // Debug log
       
       if (response.requestId) {
@@ -64,7 +67,7 @@ export default function SignupPage() {
         setCountdown(response.expiresIn || 30);
         toast({
           title: 'OTP Sent',
-          description: 'Please check your phone for the verification code',
+        description: 'Please check your email for the verification code',
           variant: 'default',
         });
       } else {
@@ -81,10 +84,10 @@ export default function SignupPage() {
   };
 
   const handleVerifyOTP = async (otpValue: string) => {
-    console.log('Verifying OTP with:', { phone, otpValue, requestId, role }); // Debug log
+    console.log('Verifying OTP with:', { email, otpValue, requestId, role }); // Debug log
     
-    if (!role || !requestId || !phone) {
-      console.log('Missing required fields:', { role, requestId, phone }); // Debug log
+    if (!role || !requestId || !email) {
+      console.log('Missing required fields:', { role, requestId, email }); // Debug log
       toast({
         title: 'Missing Information',
         description: 'Please provide all required information',
@@ -96,7 +99,7 @@ export default function SignupPage() {
     try {
       // Don't trim the requestId as it might contain characters that look like whitespace
       await signup(
-        phone.trim(),
+        email.trim(),
         otpValue.trim(),
         requestId,
         role,
@@ -143,9 +146,9 @@ export default function SignupPage() {
           <p className="text-muted">
             {step === 'role'
               ? 'Choose your account type'
-              : step === 'phone'
-              ? 'Enter your mobile number to continue'
-              : 'Enter the 6-digit code sent to your phone'}
+              : step === 'email'
+                ? 'Enter your email to continue'
+                : 'Enter the 6-digit code sent to your email'}
           </p>
         </div>
 
@@ -163,22 +166,20 @@ export default function SignupPage() {
         )}
 
         {/* 📱 Step 2: Enter Mobile Number */}
-        {step === 'phone' && (
+        {step === 'email' && (
           <form onSubmit={handleSendOTP} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Mobile Number</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Enter your 10-digit number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
-                  pattern="[0-9]{10}"
-                  maxLength={10}
                 />
               </div>
             </div>
@@ -254,10 +255,10 @@ export default function SignupPage() {
 
             <button
               type="button"
-              onClick={() => setStep('phone')}
+              onClick={() => setStep('email')}
               className="w-full text-sm text-muted hover:text-text transition-base"
             >
-              Use a different number
+              Use a different email
             </button>
           </div>
         )}

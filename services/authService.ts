@@ -1,9 +1,9 @@
 import api, { handleApiError } from '../lib/api';
 
 // Send OTP for login/signup
-export const sendOtp = async (phone: string, purpose: 'login' | 'signup') => {
+export const sendOtp = async (email: string, purpose: 'login' | 'signup') => {
   try {
-    const response = await api.post('/auth/send-otp', { phone, purpose });
+    const response = await api.post('/auth/send-otp', { email, purpose });
     return response.data;
   } catch (error) {
     throw new Error(handleApiError(error));
@@ -12,7 +12,7 @@ export const sendOtp = async (phone: string, purpose: 'login' | 'signup') => {
 
 // Verify OTP for login/signup
 export const verifyOtp = async (params: {
-  phone: string;
+  email: string;
   otp: string;
   requestId: string;
   purpose: 'login' | 'signup';

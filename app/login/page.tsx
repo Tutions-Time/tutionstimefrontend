@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Phone, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,8 +14,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
@@ -45,14 +45,14 @@ export default function LoginPage() {
     e.preventDefault();
     
     try {
-      const response = await sendOtp(phone, 'login');
+      const response = await sendOtp(email, 'login');
       if (response.requestId) {
         setRequestId(response.requestId);
         setStep('otp');
         setCountdown(response.expiresIn || 30);
         toast({
           title: 'OTP Sent',
-          description: 'Please check your phone for the verification code',
+          description: 'Please check your email for the verification code',
           variant: 'default',
         });
       } else {
@@ -69,7 +69,7 @@ export default function LoginPage() {
 
   const handleVerifyOTP = async (otpValue: string) => {
     try {
-      const result = await login(phone, otpValue, requestId);
+      const result = await login(email, otpValue, requestId);
       
       // Show success toast
       toast({
@@ -93,12 +93,12 @@ export default function LoginPage() {
     if (countdown > 0) return;
     
     try {
-      const result = await sendOtp(phone, 'login');
+      const result = await sendOtp(email, 'login');
       setRequestId(result.requestId);
       setCountdown(30);
       toast({
         title: 'OTP Resent',
-        description: 'Please check your phone for the new verification code',
+        description: 'Please check your email for the new verification code',
         variant: 'default',
       });
     } catch (error: any) {
@@ -130,28 +130,26 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-text mb-2">Welcome Back</h1>
           <p className="text-muted">
-            {step === 'phone'
-              ? 'Enter your mobile number to get started'
-              : 'Enter the 6-digit code sent to your phone'}
+            {step === 'email'
+              ? 'Enter your email to get started'
+              : 'Enter the 6-digit code sent to your email'}
           </p>
         </div>
 
-        {step === 'phone' ? (
+        {step === 'email' ? (
           <form onSubmit={handleSendOTP} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Mobile Number</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Enter mobile number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
-                  pattern="[0-9]{10}"
-                  maxLength={10}
                 />
               </div>
             </div>
@@ -159,7 +157,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
-              disabled={isLoading || phone.length !== 10}
+              disabled={isLoading || !email.includes('@')}
             >
               {isLoading ? 'Sending OTP...' : 'Sign In'}
             </Button>
@@ -229,10 +227,10 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setStep('phone')}
+            onClick={() => setStep('email')}
               className="w-full text-sm text-muted hover:text-text transition-base"
             >
-              Use a different number
+              Use a different email
             </button>
           </div>
         )}
