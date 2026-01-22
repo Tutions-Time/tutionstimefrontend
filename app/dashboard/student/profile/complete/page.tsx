@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useAuth } from "@/hooks/useAuth";
 
 import { updateStudentProfileThunk } from "@/store/slices/studentProfileSlice";
-import { setBulk, startSubmitting, stopSubmitting } from "@/store/slices/studentProfileSlice";
+import { setBulk, startSubmitting, stopSubmitting, setField } from "@/store/slices/studentProfileSlice";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import SecondaryButton from "@/components/SecondaryButton";
@@ -27,6 +28,8 @@ export default function StudentProfileCompletePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
   const userId = useAppSelector((s) => s.auth.user?.id);
+  const userEmail = useAppSelector((s) => s.auth.user?.email);
+  const { logout } = useAuth();
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   // ---------- Prefill ----------
@@ -54,6 +57,12 @@ export default function StudentProfileCompletePage() {
       );
     } catch {}
   }, [profile, userId]);
+
+  useEffect(() => {
+    if (userEmail) {
+      dispatch(setField({ key: "email", value: userEmail }));
+    }
+  }, [dispatch, userEmail]);
 
   // ---------- Validation ----------
   const validate = () => {
@@ -212,7 +221,16 @@ export default function StudentProfileCompletePage() {
           <TutorPreferencesSection />
 
           <div className="flex items-center justify-between gap-3 pt-4 border-t">
-            <SecondaryButton type="button" onClick={() => router.back()}>
+            <SecondaryButton
+              type="button"
+              onClick={async () => {
+                try {
+                  await logout();
+                } finally {
+                  router.replace("/");
+                }
+              }}
+            >
               Back
             </SecondaryButton>
             <PrimaryButton type="button" disabled={disabled} onClick={handleSubmit}>

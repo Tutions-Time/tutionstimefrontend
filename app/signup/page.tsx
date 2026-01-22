@@ -1,9 +1,11 @@
 'use client';
 
+'use client';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Phone, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,20 +19,22 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get('role') as 'student' | 'tutor' | null;
 
-  const [phone, setPhone] = useState('');
-  const [step, setStep] = useState<'role' | 'phone' | 'otp'>('role');
+  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<'role' | 'email' | 'otp'>('role');
   const [role, setRole] = useState<'student' | 'tutor' | null>(initialRole);
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
   const [referralCode, setReferralCode] = useState('');
-  
-  const { sendOtp, signup, isLoading, error } = useAuth();
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+
+  const { sendOtp, signup } = useAuth();
   const { toast } = useToast();
 
   const handleRoleSelect = (selectedRole: 'student' | 'tutor') => {
     setRole(selectedRole);
-    setStep('phone');
+    setStep('email');
   };
 
   useEffect(() => {
@@ -41,50 +45,49 @@ export default function SignupPage() {
     return () => clearInterval(timer);
   }, [countdown]);
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!phone.trim() || phone.length !== 10) {
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+
+    if (!isValidEmail(normalizedEmail)) {
       toast({
-        title: 'Invalid Phone Number',
-        description: 'Please enter a valid 10-digit mobile number',
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address',
         variant: 'destructive',
       });
       return;
     }
 
     try {
-      const response = await sendOtp(phone, 'signup');
-      console.log('OTP Response:', response); // Debug log
-      
+      setSendingOtp(true);
+      const response = await sendOtp(normalizedEmail, 'signup');
       if (response.requestId) {
-        console.log('Setting requestId:', response.requestId); // Debug log
         setRequestId(response.requestId);
         setStep('otp');
         setCountdown(response.expiresIn || 30);
         toast({
           title: 'OTP Sent',
-          description: 'Please check your phone for the verification code',
+          description: 'Please check your email for the verification code',
           variant: 'default',
         });
       } else {
         throw new Error('No request ID received from server');
       }
     } catch (error: any) {
-      console.error('OTP Send Error:', error); 
       toast({
         title: 'Failed to send OTP',
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   const handleVerifyOTP = async (otpValue: string) => {
-    console.log('Verifying OTP with:', { phone, otpValue, requestId, role }); // Debug log
-    
-    if (!role || !requestId || !phone) {
-      console.log('Missing required fields:', { role, requestId, phone }); // Debug log
+    if (!role || !requestId || !email) {
       toast({
         title: 'Missing Information',
         description: 'Please provide all required information',
@@ -93,34 +96,31 @@ export default function SignupPage() {
       return;
     }
 
+    if (verifyingOtp) return;
+
     try {
-      // Don't trim the requestId as it might contain characters that look like whitespace
+      setVerifyingOtp(true);
       await signup(
-        phone.trim(),
+        email.trim(),
         otpValue.trim(),
         requestId,
         role,
         role === 'student' ? referralCode.trim() || undefined : undefined
       );
-      toast({
-        title: 'Signup Successful',
-        description: 'Your account has been created successfully',
-        variant: 'default',
-      });
     } catch (error: any) {
-      console.error('Verification Error:', error); // Debug log
       toast({
         title: 'Verification Failed',
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 rounded-2xl shadow-soft">
-        {/* 🔙 Back */}
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-muted hover:text-text mb-6 transition-base"
@@ -129,7 +129,6 @@ export default function SignupPage() {
           Back to home
         </Link>
 
-        {/* 🏷️ Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-6">
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
@@ -143,13 +142,12 @@ export default function SignupPage() {
           <p className="text-muted">
             {step === 'role'
               ? 'Choose your account type'
-              : step === 'phone'
-              ? 'Enter your mobile number to continue'
-              : 'Enter the 6-digit code sent to your phone'}
+              : step === 'email'
+                ? 'Enter your email to continue'
+                : 'Enter the 6-digit code sent to your email'}
           </p>
         </div>
 
-        {/* 🧩 Step 1: Choose Role */}
         {step === 'role' && (
           <div className="space-y-6">
             <RoleSelector value={role} onChange={handleRoleSelect} />
@@ -162,28 +160,25 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* 📱 Step 2: Enter Mobile Number */}
-        {step === 'phone' && (
+        {step === 'email' && (
           <form onSubmit={handleSendOTP} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Mobile Number</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Enter your 10-digit number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
-                  pattern="[0-9]{10}"
-                  maxLength={10}
                 />
               </div>
             </div>
 
-            {role === 'student' ? (
+            {role === 'student' && (
               <div className="space-y-2">
                 <Label htmlFor="referral">Referral Code (optional)</Label>
                 <Input
@@ -194,17 +189,14 @@ export default function SignupPage() {
                   onChange={(e) => setReferralCode(e.target.value)}
                 />
               </div>
-            ) : (
-              <>
-                {/* Referral field hidden for tutor signup */}
-              </>
             )}
 
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
+              disabled={sendingOtp}
             >
-              Continue
+              {sendingOtp ? 'Sending OTP...' : 'Continue'}
             </Button>
 
             <button
@@ -217,22 +209,21 @@ export default function SignupPage() {
           </form>
         )}
 
-        {/* 🔢 Step 3: OTP Verification */}
         {step === 'otp' && (
           <div className="space-y-6">
-            <OTPInput 
-              value={otp} 
-              onChange={setOTP} 
+            <OTPInput
+              value={otp}
+              onChange={setOTP}
               onComplete={handleVerifyOTP}
               length={6}
             />
 
             <Button
               onClick={() => handleVerifyOTP(otp)}
-              disabled={otp.length !== 6}
+              disabled={verifyingOtp || otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
-              Verify & Create Account
+              {verifyingOtp ? 'Verifying...' : 'Verify & Create Account'}
             </Button>
 
             <div className="text-center">
@@ -245,19 +236,19 @@ export default function SignupPage() {
                   type="button"
                   className="text-sm text-primary font-medium hover:underline"
                   onClick={handleSendOTP}
-                  disabled={isLoading}
+                  disabled={sendingOtp}
                 >
-                  Resend Code
+                  {sendingOtp ? 'Sending...' : 'Resend Code'}
                 </button>
               )}
             </div>
 
             <button
               type="button"
-              onClick={() => setStep('phone')}
+              onClick={() => setStep('email')}
               className="w-full text-sm text-muted hover:text-text transition-base"
             >
-              Use a different number
+              Use a different email
             </button>
           </div>
         )}

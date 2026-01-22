@@ -143,29 +143,15 @@ export default function PersonalInfoSection({
           </div>
 
           {/* Email & Phone */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Email</Label>
-              <Input
-                placeholder="abc@example.com"
-                value={profile.email}
-                onChange={(e) =>
-                  dispatch(setField({ key: "email", value: e.target.value }))
-                }
-                disabled={disabled}
-              />
-            </div>
-
-            <div>
-              <Label>Alternate Phone</Label>
-              <Input
-                placeholder="Mobile Number"
-                value={profile.altPhone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                maxLength={10}
-                disabled={disabled}
-              />
-            </div>
+          <div>
+            <Label>Mobile Number</Label>
+            <Input
+              placeholder="Mobile Number"
+              value={profile.altPhone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              maxLength={10}
+              disabled={disabled}
+            />
           </div>
 
           {/* Address Line 1 */}

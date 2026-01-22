@@ -461,7 +461,7 @@ export default function AdminUsersPage() {
                     <div>{formatText(profileData?.email)}</div>
                   </div>
                   <div>
-                    <div className="text-muted">Alternate Phone</div>
+                    <div className="text-muted">Mobile Number</div>
                     <div>{formatText(profileData?.altPhone)}</div>
                   </div>
                   <div>

@@ -33,6 +33,7 @@ export default function TutorProfileCompletePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.tutorProfile);
   const userId = useAppSelector((s) => s.auth.user?.id);
+  const userEmail = useAppSelector((s) => s.auth.user?.email);
 
   // ---------- FILE STATES ----------
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -73,6 +74,12 @@ export default function TutorProfileCompletePage() {
       );
     } catch {}
   }, [profile, userId]);
+
+  useEffect(() => {
+    if (userEmail) {
+      dispatch(setBulk({ email: userEmail }));
+    }
+  }, [dispatch, userEmail]);
 
   // ---------- VALIDATION ----------
   const validate = () => {
