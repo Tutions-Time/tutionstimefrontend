@@ -19,6 +19,8 @@ export default function LoginPage() {
   const [otp, setOTP] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const { sendOtp, login, isLoading, error, isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -45,6 +47,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     try {
+      setSendingOtp(true);
       const response = await sendOtp(email, 'login');
       if (response.requestId) {
         setRequestId(response.requestId);
@@ -64,28 +67,30 @@ export default function LoginPage() {
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   const handleVerifyOTP = async (otpValue: string) => {
+    if (verifyingOtp) return;
+
     try {
+      setVerifyingOtp(true);
       const result = await login(email, otpValue, requestId);
-      
-      // Show success toast
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
         variant: 'default',
       });
-      
-      // Let the useAuth hook handle redirection based on profile status
-      
     } catch (error: any) {
       toast({
         title: 'Login Failed',
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -93,6 +98,7 @@ export default function LoginPage() {
     if (countdown > 0) return;
     
     try {
+      setSendingOtp(true);
       const result = await sendOtp(email, 'login');
       setRequestId(result.requestId);
       setCountdown(30);
@@ -107,6 +113,8 @@ export default function LoginPage() {
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setSendingOtp(false);
     }
   };
 
@@ -157,9 +165,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
-              disabled={isLoading || !email.includes('@')}
+              disabled={sendingOtp || !email.includes('@')}
             >
-              {isLoading ? 'Sending OTP...' : 'Sign In'}
+              {sendingOtp ? 'Sending OTP...' : 'Sign In'}
             </Button>
 
             <div className="relative my-6">
@@ -196,10 +204,10 @@ export default function LoginPage() {
 
             <Button
               onClick={() => handleVerifyOTP(otp)}
-              disabled={isLoading || otp.length !== 6}
+              disabled={verifyingOtp || otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
-              {isLoading ? 'Verifying...' : 'Verify Code'}
+              {verifyingOtp ? 'Verifying...' : 'Verify Code'}
             </Button>
 
             <div className="text-center">
@@ -212,7 +220,7 @@ export default function LoginPage() {
                   type="button"
                   className="text-sm text-primary font-medium hover:underline"
                   onClick={handleResendOTP}
-                  disabled={isLoading}
+                  disabled={sendingOtp}
                 >
                   Resend Code
                 </button>

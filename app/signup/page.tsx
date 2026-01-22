@@ -24,6 +24,8 @@ export default function SignupPage() {
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   
   const { sendOtp, signup, isLoading, error } = useAuth();
   const { toast } = useToast();
@@ -41,8 +43,8 @@ export default function SignupPage() {
     return () => clearInterval(timer);
   }, [countdown]);
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     
     const normalizedEmail = email.trim().toLowerCase();
     const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
@@ -57,6 +59,7 @@ export default function SignupPage() {
     }
 
     try {
+      setSendingOtp(true);
       const response = await sendOtp(normalizedEmail, 'signup');
       console.log('OTP Response:', response); // Debug log
       
@@ -67,7 +70,7 @@ export default function SignupPage() {
         setCountdown(response.expiresIn || 30);
         toast({
           title: 'OTP Sent',
-        description: 'Please check your email for the verification code',
+          description: 'Please check your email for the verification code',
           variant: 'default',
         });
       } else {
@@ -80,10 +83,13 @@ export default function SignupPage() {
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   const handleVerifyOTP = async (otpValue: string) => {
+
     console.log('Verifying OTP with:', { email, otpValue, requestId, role }); // Debug log
     
     if (!role || !requestId || !email) {
@@ -96,8 +102,10 @@ export default function SignupPage() {
       return;
     }
 
+    if (verifyingOtp) return;
+
     try {
-      // Don't trim the requestId as it might contain characters that look like whitespace
+      setVerifyingOtp(true);
       await signup(
         email.trim(),
         otpValue.trim(),
@@ -117,6 +125,8 @@ export default function SignupPage() {
         description: error.message || 'Please try again',
         variant: 'destructive',
       });
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -204,8 +214,9 @@ export default function SignupPage() {
             <Button
               type="submit"
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
+              disabled={sendingOtp}
             >
-              Continue
+              {sendingOtp ? 'Sending OTP...' : 'Continue'}
             </Button>
 
             <button
@@ -230,10 +241,10 @@ export default function SignupPage() {
 
             <Button
               onClick={() => handleVerifyOTP(otp)}
-              disabled={otp.length !== 6}
+              disabled={verifyingOtp || otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
-              Verify & Create Account
+              {verifyingOtp ? 'Verifying...' : 'Verify & Create Account'}
             </Button>
 
             <div className="text-center">
@@ -246,9 +257,9 @@ export default function SignupPage() {
                   type="button"
                   className="text-sm text-primary font-medium hover:underline"
                   onClick={handleSendOTP}
-                  disabled={isLoading}
+                  disabled={sendingOtp}
                 >
-                  Resend Code
+                  {sendingOtp ? 'Sending...' : 'Resend Code'}
                 </button>
               )}
             </div>

@@ -177,7 +177,7 @@ export function validateStudentProfileFields(
 
   // ----- Phone Mapping (Option B) -----
   if (isEmpty(data.altPhone)) {
-    errors.altPhone = "Alternate phone is required";
+    errors.altPhone = "Mobile number is required";
   } else if (!isValidPhone(data.altPhone)) {
     errors.altPhone = "Mobile number must be 10 digits";
   }

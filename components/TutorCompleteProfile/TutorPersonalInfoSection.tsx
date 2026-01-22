@@ -125,19 +125,6 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
             />
           </div>
 
-          {/* EMAIL */}
-          <div>
-            <Input
-              disabled={disabled}
-              value={profile.email || ""}
-              onChange={(e) =>
-                dispatch(setField({ key: "email", value: e.target.value }))
-              }
-              type="email"
-              placeholder="Email"
-            />
-          </div>
-
           {/* GENDER + TEACHING MODE */}
           <div className="grid md:grid-cols-2 gap-4">
             {/* GENDER */}

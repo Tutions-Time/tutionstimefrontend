@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 
 import { updateStudentProfileThunk } from "@/store/slices/studentProfileSlice";
-import { setBulk, startSubmitting, stopSubmitting } from "@/store/slices/studentProfileSlice";
+import { setBulk, startSubmitting, stopSubmitting, setField } from "@/store/slices/studentProfileSlice";
 
 import PrimaryButton from "@/components/PrimaryButton";
 import SecondaryButton from "@/components/SecondaryButton";
@@ -27,6 +27,7 @@ export default function StudentProfileCompletePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
   const userId = useAppSelector((s) => s.auth.user?.id);
+  const userEmail = useAppSelector((s) => s.auth.user?.email);
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   // ---------- Prefill ----------
@@ -54,6 +55,12 @@ export default function StudentProfileCompletePage() {
       );
     } catch {}
   }, [profile, userId]);
+
+  useEffect(() => {
+    if (userEmail && userEmail !== profile.email) {
+      dispatch(setField({ key: "email", value: userEmail }));
+    }
+  }, [dispatch, userEmail, profile.email]);
 
   // ---------- Validation ----------
   const validate = () => {
