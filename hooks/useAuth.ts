@@ -137,7 +137,6 @@ export const useAuth = () => {
       role: "student" | "tutor",
       referralCode?: string
     ) => {
-      // Reset any existing profile data
       if (role === "student") {
         dispatch(resetProfile());
       } else {
@@ -150,7 +149,6 @@ export const useAuth = () => {
       );
 
       if (signupAsync.fulfilled.match(result)) {
-        // Set minimal auth cookie; profile not complete yet
         try {
           const cookiePayload = {
             role,
@@ -161,13 +159,18 @@ export const useAuth = () => {
           )}; path=/; max-age=2592000`;
         } catch {}
 
-        // Return the payload; navigation will be handled by the caller
+        if (role === "student") {
+          router.push("/dashboard/student/profile/complete");
+        } else if (role === "tutor") {
+          router.push("/dashboard/tutor/profile/complete");
+        }
+
         return result.payload;
       } else {
         throw new Error(result.payload as string);
       }
     },
-    [dispatch]
+    [dispatch, router]
   );
 
 

@@ -59,10 +59,10 @@ export default function StudentProfileCompletePage() {
   }, [profile, userId]);
 
   useEffect(() => {
-    if (userEmail && userEmail !== profile.email) {
+    if (userEmail) {
       dispatch(setField({ key: "email", value: userEmail }));
     }
-  }, [dispatch, userEmail, profile.email]);
+  }, [dispatch, userEmail]);
 
   // ---------- Validation ----------
   const validate = () => {
@@ -224,8 +224,11 @@ export default function StudentProfileCompletePage() {
             <SecondaryButton
               type="button"
               onClick={async () => {
-                await logout();
-                router.replace("/");
+                try {
+                  await logout();
+                } finally {
+                  router.replace("/");
+                }
               }}
             >
               Back
