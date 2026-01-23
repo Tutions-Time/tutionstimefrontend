@@ -261,22 +261,108 @@ export default function AdminUsersPage() {
             </div>
           </Card>
 
+          {/* Mobile cards */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {loading && (
+              <Card className="p-6 rounded-2xl bg-white shadow-sm text-center text-muted">
+                Loading students...
+              </Card>
+            )}
+            {!loading && rows.length === 0 && (
+              <Card className="p-6 rounded-2xl bg-white shadow-sm text-center text-muted">
+                No students found.
+              </Card>
+            )}
+            {!loading &&
+              rows.map((u) => (
+                <Card
+                  key={u._id}
+                  className="p-4 rounded-2xl bg-white shadow-sm space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {u.profilePhoto ? (
+                        <img
+                          src={imgSrc(u.profilePhoto)}
+                          alt={u.name || 'User'}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold">
+                          {u.name
+                            ? u.name.charAt(0).toUpperCase()
+                            : u.role.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium text-text">{u.name || 'N/A'}</div>
+                        <div className="text-xs text-muted">{u.email || '—'}</div>
+                      </div>
+                    </div>
+                    <Badge
+                      className={cn(
+                        'border capitalize',
+                        u.status === 'active'
+                          ? 'bg-success/10 text-success border-success/20'
+                          : 'bg-danger/10 text-danger border-danger/20'
+                      )}
+                    >
+                      {u.status}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted">
+                    <div>Phone</div>
+                    <div className="text-text">{u.profilePhone || u.phone || '—'}</div>
+                    <div>Role</div>
+                    <div className="text-text capitalize">{u.role}</div>
+                    <div>Profile</div>
+                    <div className="text-text">
+                      {u.isProfileComplete ? 'Complete' : 'Incomplete'}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openProfileModal(u)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" /> View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleToggleStatus(u._id, u.status)
+                      }
+                    >
+                      {u.status === 'active' ? (
+                        <ToggleLeft className="w-4 h-4 mr-2" />
+                      ) : (
+                        <ToggleRight className="w-4 h-4 mr-2" />
+                      )}
+                      {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+          </div>
+
           {/* Table */}
-          <Card className="overflow-x-auto rounded-2xl bg-white shadow-sm">
+          <Card className="overflow-x-auto rounded-2xl bg-white shadow-sm hidden md:block">
             {loading ? (
               <div className="p-12 text-center text-muted">Loading students...</div>
             ) : (
-              <table className="min-w-full text-sm">
+              <table className="min-w-[900px] text-sm">
                 <thead className="bg-gray-50">
                   <tr className="text-left text-xs uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Student</th>
                     <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Role</th>
-                    <th className="px-4 py-3 hidden md:table-cell">Profile</th>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Profile</th>
                     <th className="px-4 py-3">Status</th>
                     {/* <th className="px-4 py-3 hidden md:table-cell">Sign Up</th>
                     <th className="px-4 py-3 hidden md:table-cell">Last Login</th> */}
-                    <th className="px-4 py-3 hidden sm:table-cell text-right">Actions</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -308,8 +394,8 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-4">{u.profilePhone || u.phone || '—'}</td>
-                      <td className="px-4 py-4 capitalize hidden md:table-cell">{u.role}</td>
-                      <td className="px-4 py-4 hidden md:table-cell">
+                      <td className="px-4 py-4 capitalize">{u.role}</td>
+                      <td className="px-4 py-4">
                         {u.isProfileComplete ? (
                           <Badge className="bg-success/10 text-success border-success/20 border">
                             Complete
@@ -338,7 +424,7 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-4 hidden md:table-cell">
                         {new Date(u.lastLogin).toLocaleString()}
                       </td> */}
-                      <td className="px-4 py-4 hidden sm:table-cell">
+                      <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
@@ -368,7 +454,7 @@ export default function AdminUsersPage() {
                   {rows.length === 0 && (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={6}
                         className="px-4 py-12 text-center text-muted"
                       >
                         No students found.
