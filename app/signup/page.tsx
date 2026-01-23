@@ -1,46 +1,45 @@
-'use client';
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Mail, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { OTPInput } from '@/components/auth/OTPInput';
-import { RoleSelector } from '@/components/auth/RoleSelector';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Mail, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { OTPInput } from "@/components/auth/OTPInput";
+import { RoleSelector } from "@/components/auth/RoleSelector";
+import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const searchParams = useSearchParams();
-  const initialRole = searchParams.get('role') as 'student' | 'tutor' | null;
+  const initialRole = searchParams.get("role") as "student" | "tutor" | null;
 
-  const [email, setEmail] = useState('');
-  const [step, setStep] = useState<'role' | 'email' | 'otp'>('role');
-  const [role, setRole] = useState<'student' | 'tutor' | null>(initialRole);
-  const [otp, setOTP] = useState('');
+  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<"role" | "email" | "otp">("role");
+  const [role, setRole] = useState<"student" | "tutor" | null>(initialRole);
+  const [otp, setOTP] = useState("");
   const [countdown, setCountdown] = useState(0);
-  const [requestId, setRequestId] = useState('');
-  const [referralCode, setReferralCode] = useState('');
+  const [requestId, setRequestId] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const { sendOtp, signup } = useAuth();
   const { toast } = useToast();
 
-  const handleRoleSelect = (selectedRole: 'student' | 'tutor') => {
+  const handleRoleSelect = (selectedRole: "student" | "tutor") => {
     setRole(selectedRole);
-    setStep('email');
+    setStep("email");
   };
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown > 0) {
-      timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+      timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
     }
     return () => clearInterval(timer);
   }, [countdown]);
@@ -53,33 +52,28 @@ export default function SignupPage() {
 
     if (!isValidEmail(normalizedEmail)) {
       toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid email address',
-        variant: 'destructive',
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setSendingOtp(true);
-      const response = await sendOtp(normalizedEmail, 'signup');
-      if (response.requestId) {
-        setRequestId(response.requestId);
-        setStep('otp');
-        setCountdown(response.expiresIn || 30);
-        toast({
-          title: 'OTP Sent',
-          description: 'Please check your email for the verification code',
-          variant: 'default',
-        });
-      } else {
-        throw new Error('No request ID received from server');
-      }
+      const response = await sendOtp(normalizedEmail, "signup");
+      setRequestId(response.requestId);
+      setStep("otp");
+      setCountdown(response.expiresIn || 30);
+      toast({
+        title: "OTP Sent",
+        description: "Please check your email for the verification code",
+      });
     } catch (error: any) {
       toast({
-        title: 'Failed to send OTP',
-        description: error.message || 'Please try again',
-        variant: 'destructive',
+        title: "Failed to send OTP",
+        description: error.message || "Please try again",
+        variant: "destructive",
       });
     } finally {
       setSendingOtp(false);
@@ -87,16 +81,7 @@ export default function SignupPage() {
   };
 
   const handleVerifyOTP = async (otpValue: string) => {
-    if (!role || !requestId || !email) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please provide all required information',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (verifyingOtp) return;
+    if (!role || !requestId || !email || verifyingOtp) return;
 
     try {
       setVerifyingOtp(true);
@@ -105,13 +90,13 @@ export default function SignupPage() {
         otpValue.trim(),
         requestId,
         role,
-        role === 'student' ? referralCode.trim() || undefined : undefined
+        role === "student" ? referralCode.trim() || undefined : undefined
       );
     } catch (error: any) {
       toast({
-        title: 'Verification Failed',
-        description: error.message || 'Please try again',
-        variant: 'destructive',
+        title: "Verification Failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
       });
     } finally {
       setVerifyingOtp(false);
@@ -130,29 +115,38 @@ export default function SignupPage() {
         </Link>
 
         <div className="mb-8">
+          {/* ✅ LOGO – SAME FORMAT AS LOGIN */}
           <div className="flex items-center gap-2 mb-6">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-              T
+            <div className="h-10 flex items-center">
+              <Image
+                src="/images/logo.png"
+                alt="Tuitions Time"
+                width={160}
+                height={22}
+                className="object-contain"
+                priority
+              />
             </div>
-            <span className="font-bold text-2xl text-text">Tuitionstime</span>
           </div>
+
           <h1 className="text-2xl font-bold text-text mb-2">
-            {step === 'role' ? 'Get Started' : 'Create Account'}
+            {step === "role" ? "Get Started" : "Create Account"}
           </h1>
+
           <p className="text-muted">
-            {step === 'role'
-              ? 'Choose your account type'
-              : step === 'email'
-                ? 'Enter your email to continue'
-                : 'Enter the 6-digit code sent to your email'}
+            {step === "role"
+              ? "Choose your account type"
+              : step === "email"
+              ? "Enter your email to continue"
+              : "Enter the 6-digit code sent to your email"}
           </p>
         </div>
 
-        {step === 'role' && (
+        {step === "role" && (
           <div className="space-y-6">
             <RoleSelector value={role} onChange={handleRoleSelect} />
             <p className="text-center text-sm text-muted mt-6">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link href="/login" className="text-primary font-medium hover:underline">
                 Log in
               </Link>
@@ -160,7 +154,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        {step === 'email' && (
+        {step === "email" && (
           <form onSubmit={handleSendOTP} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -178,7 +172,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            {role === 'student' && (
+            {role === "student" && (
               <div className="space-y-2">
                 <Label htmlFor="referral">Referral Code (optional)</Label>
                 <Input
@@ -196,12 +190,12 @@ export default function SignupPage() {
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
               disabled={sendingOtp}
             >
-              {sendingOtp ? 'Sending OTP...' : 'Continue'}
+              {sendingOtp ? "Sending OTP..." : "Continue"}
             </Button>
 
             <button
               type="button"
-              onClick={() => setStep('role')}
+              onClick={() => setStep("role")}
               className="w-full text-sm text-muted hover:text-text transition-base"
             >
               Choose a different role
@@ -209,7 +203,7 @@ export default function SignupPage() {
           </form>
         )}
 
-        {step === 'otp' && (
+        {step === "otp" && (
           <div className="space-y-6">
             <OTPInput
               value={otp}
@@ -223,7 +217,7 @@ export default function SignupPage() {
               disabled={verifyingOtp || otp.length !== 6}
               className="w-full bg-primary hover:bg-primary/90 text-text font-semibold"
             >
-              {verifyingOtp ? 'Verifying...' : 'Verify & Create Account'}
+              {verifyingOtp ? "Verifying..." : "Verify & Create Account"}
             </Button>
 
             <div className="text-center">
@@ -238,14 +232,14 @@ export default function SignupPage() {
                   onClick={handleSendOTP}
                   disabled={sendingOtp}
                 >
-                  {sendingOtp ? 'Sending...' : 'Resend Code'}
+                  Resend Code
                 </button>
               )}
             </div>
 
             <button
               type="button"
-              onClick={() => setStep('email')}
+              onClick={() => setStep("email")}
               className="w-full text-sm text-muted hover:text-text transition-base"
             >
               Use a different email

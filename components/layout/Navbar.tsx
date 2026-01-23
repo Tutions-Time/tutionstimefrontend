@@ -5,6 +5,7 @@ import { Bell, User, Menu, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
+import Image from "next/image";
 
 import {
   DropdownMenu,
@@ -171,12 +172,17 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
             </Button>
           )}
 
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-              T
-            </div>
-            <span className="font-bold text-xl text-text hidden sm:inline">Tuitions time</span>
-          </Link>
+         <Link href="/" className="flex items-center h-16">
+  <Image
+    src="/images/logo.png"
+    alt="Tuitions Time"
+    width={140}
+    height={20}
+    className="object-contain"
+    priority
+  />
+</Link>
+
         </div>
 
         {/* RIGHT SECTION */}

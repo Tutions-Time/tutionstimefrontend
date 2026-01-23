@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import Image from "next/image";
 import PrimaryButton from "@/components/PrimaryButton";
 import SecondaryButton from "@/components/SecondaryButton";
 
@@ -251,10 +252,14 @@ export default function TutorProfileCompletePage() {
       <nav className="border-b sticky top-0 bg-white/90 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white">
-              T
-            </div>
-            <span className="font-bold text-xl">Tuitions Time</span>
+            <Image
+              src="/images/logo.png"
+              alt="Tuitions Time"
+              width={200}
+              height={32}
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
       </nav>

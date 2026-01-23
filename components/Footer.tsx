@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Instagram, Linkedin, Facebook, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeInUp, useScrollAnimation } from "./animations";
+import Image from "next/image";
 
 export default function Footer() {
   const { ref, isInView } = useScrollAnimation();
@@ -19,15 +20,25 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center font-bold text-text">
-                T
+              <div className="flex items-center gap-2">
+              
+                  <Image
+                    src="/images/logo.png"
+                    alt="Tuitions Time"
+                    width={160}
+                    height={22}
+                    className="object-contain"
+                    priority
+                  />
               </div>
-              <span className="font-bold text-xl text-text">Tuitions time</span>
             </div>
             <p className="text-sm text-muted pb-2">
               Your Learning Journey Begins Here — With TuitionsTime
             </p>
-            <Link href="/how-it-works" className="hover:text-text text-sm font-medium">
+            <Link
+              href="/how-it-works"
+              className="hover:text-text text-sm font-medium"
+            >
               How it works
             </Link>
           </div>
@@ -95,7 +106,10 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-text mb-4">Address</h4>
             <ul className="space-y-2 text-sm text-muted">
-              <li>House Number-530 Ahmedlda pura, Beside Om Dhara Nursery, Jhalu Road, Bijnor, Uttar Pradesh, Pincode-246701</li>
+              <li>
+                House Number-530 Ahmedlda pura, Beside Om Dhara Nursery, Jhalu
+                Road, Bijnor, Uttar Pradesh, Pincode-246701
+              </li>
               {/* <li>Office 2: 45 Sample Road, City, State 100002</li> */}
             </ul>
           </div>
@@ -103,20 +117,39 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
-          <p>&copy; 2026 Tuitions time (Choudhary Enterprise). All rights reserved.</p>
+          <p>
+            &copy; 2026 Tuitions time (Choudhary Enterprise). All rights
+            reserved.
+          </p>
           <div className="mt-4 flex flex-col items-center gap-2">
             {/* <span className="text-xs text-muted">Follow us on</span> */}
             <div className="flex items-center gap-6">
-              <Link href="https://www.instagram.com/tuitionstime" target="_blank" className="hover:text-text">
+              <Link
+                href="https://www.instagram.com/tuitionstime"
+                target="_blank"
+                className="hover:text-text"
+              >
                 <Instagram className="h-4 w-4 text-pink-600" />
               </Link>
-              <Link href="https://www.linkedin.com/in/tuitionstime-tutor-s-service-00bba4386" target="_blank" className="hover:text-text">
+              <Link
+                href="https://www.linkedin.com/in/tuitionstime-tutor-s-service-00bba4386"
+                target="_blank"
+                className="hover:text-text"
+              >
                 <Linkedin className="h-4 w-4 text-blue-700" />
               </Link>
-              <Link href="https://www.facebook.com/share/1FCDTPLhdd/" target="_blank" className="hover:text-text">
+              <Link
+                href="https://www.facebook.com/share/1FCDTPLhdd/"
+                target="_blank"
+                className="hover:text-text"
+              >
                 <Facebook className="h-4 w-4 text-blue-600" />
               </Link>
-              <Link href="https://x.com/TuitionsTime" target="_blank" className="hover:text-text">
+              <Link
+                href="https://x.com/TuitionsTime"
+                target="_blank"
+                className="hover:text-text"
+              >
                 <Twitter className="h-4 w-4 text-slate-800" />
               </Link>
             </div>
