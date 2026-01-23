@@ -130,6 +130,7 @@ export default function TutorProfileCompletePage() {
         name: "",
         email: "",
         gender: "",
+        altPhone: "",
         addressLine1: "",
         addressLine2: "",
         city: "",
@@ -198,6 +199,7 @@ export default function TutorProfileCompletePage() {
         bio: profile.bio,
         achievements: profile.achievements,
         phone: profile.phone || "",
+        altPhone: profile.altPhone || "",
         isAgeConfirmed: profile.isAgeConfirmed,
       };
 

@@ -34,9 +34,14 @@ export default function TutorPersonalInfoSection({
     ? URL.createObjectURL(photoFile)
     : photoPreview;
 
-const selectedStateObj = STATESDISTRICTS?.states?.find(
-  (s) => s.state === profile.state
-) ?? null;
+  const selectedStateObj =
+    STATESDISTRICTS?.states?.find((s) => s.state === profile.state) ?? null;
+
+  const handleAltPhoneChange = (value: string) => {
+    let digits = value.replace(/\D/g, "");
+    if (digits.length > 10) digits = digits.slice(0, 10);
+    dispatch(setField({ key: "altPhone", value: digits }));
+  };
 
   const autofillPincode = (state: string, city: string) => {
     const found = lookupPincode(state, city);
@@ -259,6 +264,19 @@ const selectedStateObj = STATESDISTRICTS?.states?.find(
                 dispatch(setField({ key: "pincode", value: e.target.value }));
               }}
               placeholder="Pincode"
+              inputMode="numeric"
+            />
+          </div>
+
+          {/* MOBILE NUMBER */}
+          <div>
+            <label className="text-sm font-medium">Mobile Number</label>
+            <Input
+              disabled={disabled}
+              value={profile.altPhone || ""}
+              onChange={(e) => handleAltPhoneChange(e.target.value)}
+              placeholder="10-digit mobile number"
+              maxLength={10}
               inputMode="numeric"
             />
           </div>
