@@ -37,6 +37,7 @@ type UserRow = {
   name?: string;
   email?: string;
   phone?: string;
+  profilePhone?: string | null;
   role: Role;
   status: Status;
   isProfileComplete?: boolean;
@@ -306,7 +307,7 @@ export default function AdminUsersPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4">{u.phone || '—'}</td>
+                      <td className="px-4 py-4">{u.profilePhone || u.phone || '—'}</td>
                       <td className="px-4 py-4 capitalize hidden md:table-cell">{u.role}</td>
                       <td className="px-4 py-4 hidden md:table-cell">
                         {u.isProfileComplete ? (
