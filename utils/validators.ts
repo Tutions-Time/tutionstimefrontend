@@ -16,6 +16,7 @@ export interface TutorProfileErrors {
   state?: string;
   pincode?: string;
   phone?: string;
+  altPhone?: string;
   qualification?: string;
   experience?: string;
   subjects?: string;
@@ -95,6 +96,12 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.email)) errors.email = "Email is required";
   else if (!isValidEmail(data.email)) errors.email = "Enter a valid email";
+
+  if (isEmpty(data.altPhone)) {
+    errors.altPhone = "Mobile number is required";
+  } else if (!isValidPhone(data.altPhone)) {
+    errors.altPhone = "Mobile number must be exactly 10 digits";
+  }
 
   if (data.phone && !isValidPhone(data.phone)) {
     errors.phone = "Mobile number must be exactly 10 digits";

@@ -8,6 +8,7 @@ export interface TutorProfileState {
   name: string;
   email: string;
   phone: string;
+  altPhone: string;
   gender: string;
   addressLine1: string;
   addressLine2: string;
@@ -64,6 +65,7 @@ export const initialState: TutorProfileState = {
   name: "",
   email: "",
   phone: "",
+  altPhone: "",
   gender: "",
   addressLine1: "",
   addressLine2: "",
