@@ -70,18 +70,7 @@ export const getTutorSessions = async (params?: { status?: string; page?: number
   }
 };
 
-// Update booking status
-export const updateBookingStatus = async (
-  bookingId: string,
-  status: 'accepted' | 'rejected' | 'completed' | 'cancelled'
-) => {
-  try {
-    const response = await api.put(`/bookings/${bookingId}/status`, { status });
-    return response.data.booking;
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
-};
+
 
 // Get tutor subjects
 export const getTutorSubjects = async () => {
@@ -322,12 +311,4 @@ export const uploadSessionAssignment = async (sessionId: string, file: File) => 
   }
 };
 
-// Mark a session as completed (tutor only)
-export const completeSession = async (sessionId: string) => {
-  try {
-    const res = await api.post(`/sessions/${sessionId}/complete`);
-    return res.data;
-  } catch (error) {
-    throw new Error(handleApiError(error));
-  }
-};
+
