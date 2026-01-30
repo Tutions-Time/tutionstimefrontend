@@ -35,7 +35,7 @@ export default function TutorDemoVideoSection({
     >
       <div className="flex items-center gap-3 mb-6">
         <PlayCircle className="text-primary w-5 h-5" />
-        <h2 className="text-xl font-semibold">Demo / Introduction Video</h2>
+        <h2 className="text-xl font-semibold">Demo / Introduction Video(Optional)</h2>
       </div>
 
       <Label>Upload Demo Video (MP4/WebM, up to {MAX_VIDEO_MB}MB)</Label>
