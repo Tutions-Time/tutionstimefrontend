@@ -133,6 +133,25 @@ export const getDashboardActivity = async (limit = 6) => {
   }
 };
 
+export const getClassesMonitor = async (params?: {
+  student?: string;
+  tutor?: string;
+  kind?: 'all' | 'group' | 'regular';
+  status?: 'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired';
+  isLive?: 'all' | 'true' | 'false';
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+}) => {
+  try {
+    const response = await api.get('/admin/classes-monitor', { params });
+    return response.data || {};
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 export const getAllTutors = async (params?: {
   page?: number;
