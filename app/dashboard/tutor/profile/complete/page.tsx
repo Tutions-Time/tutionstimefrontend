@@ -90,8 +90,6 @@ export default function TutorProfileCompletePage() {
 
     const hasPhoto = Boolean(photoFile || profile.photoUrl);
     if (!hasPhoto) e.photoUrl = "Profile photo is required";
-    const hasResume = Boolean(resumeFile || profile.resumeUrl);
-    if (!hasResume) e.resumeUrl = "Resume is required";
     if (!profile.isAgeConfirmed)
       e.isAgeConfirmed = "You must confirm that you are 18+";
 
