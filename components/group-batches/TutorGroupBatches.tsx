@@ -63,6 +63,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   });
 
   const [loadingOptions, setLoadingOptions] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   // Detail Modal
   const [detailOpen, setDetailOpen] = useState(false);
@@ -189,6 +190,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     }
 
     try {
+      setCreating(true);
       const payload = {
         ...form,
         board: form.board === "Other" ? form.boardOther : form.board,
@@ -238,6 +240,8 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           variant: "destructive",
         });
       }
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -586,8 +590,8 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={create} disabled={loadingOptions}>
-                Create
+              <Button onClick={create} disabled={loadingOptions || creating}>
+                {creating ? "Creating..." : "Create"}
               </Button>
             </div>
           </div>

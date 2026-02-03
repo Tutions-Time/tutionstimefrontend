@@ -19,17 +19,22 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     if (Number.isNaN(d.getTime())) return "";
     return d.toISOString().split("T")[0];
   };
+  const toNumber = (val: any, fallback: number) => {
+    if (val === "" || val === null || val === undefined) return fallback;
+    const n = Number(val);
+    return Number.isFinite(n) ? n : fallback;
+  };
   const [form, setForm] = useState<any>({
     recurringDays: [],
     startDate: "",
     endDate: "",
     classStartTime: "18:00",
     classEndTime: "19:00",
-    seatCap: 10,
-    pricePerStudent: 500,
+    seatCap: "10",
+    pricePerStudent: "500",
     description: "",
     published: false,
-    accessWindow: { joinBeforeMin: 5, expireAfterMin: 5 },
+    accessWindow: { joinBeforeMin: "5", expireAfterMin: "5" },
   });
 
   useEffect(() => {
@@ -43,13 +48,13 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
       endDate: toInputDate(batch?.recurring?.endDate),
       classStartTime: startTime,
       classEndTime: endTime,
-      seatCap: batch.seatCap || 10,
-      pricePerStudent: batch.pricePerStudent || 500,
+      seatCap: String(batch?.seatCap ?? 10),
+      pricePerStudent: String(batch?.pricePerStudent ?? 500),
       description: batch.description || "",
       published: !!batch.published,
       accessWindow: {
-        joinBeforeMin: batch.accessWindow?.joinBeforeMin ?? 5,
-        expireAfterMin: batch.accessWindow?.expireAfterMin ?? 5,
+        joinBeforeMin: String(batch.accessWindow?.joinBeforeMin ?? 5),
+        expireAfterMin: String(batch.accessWindow?.expireAfterMin ?? 5),
       },
     });
   }, [batch]);
@@ -61,13 +66,13 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
       recurringDays: form.recurringDays,
       classStartTime: form.classStartTime,
       classEndTime: form.classEndTime,
-      seatCap: Number(form.seatCap),
-      pricePerStudent: Number(form.pricePerStudent),
+      seatCap: toNumber(form.seatCap, 10),
+      pricePerStudent: toNumber(form.pricePerStudent, 500),
       description: String(form.description || ""),
       published: !!form.published,
       accessWindow: {
-        joinBeforeMin: Number(form.accessWindow?.joinBeforeMin ?? 5),
-        expireAfterMin: Number(form.accessWindow?.expireAfterMin ?? 5),
+        joinBeforeMin: toNumber(form.accessWindow?.joinBeforeMin, 5),
+        expireAfterMin: toNumber(form.accessWindow?.expireAfterMin, 5),
       },
     };
     await onSubmit(payload);
@@ -167,7 +172,9 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
               <input
                 type="number"
                 value={form.seatCap}
-                onChange={(e) => setForm({ ...form, seatCap: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, seatCap: e.target.value === "" ? "" : e.target.value })
+                }
                 className="border rounded p-2 w-full"
                 min={2}
                 max={200}
@@ -180,7 +187,10 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
                 type="number"
                 value={form.pricePerStudent}
                 onChange={(e) =>
-                  setForm({ ...form, pricePerStudent: Number(e.target.value) })
+                  setForm({
+                    ...form,
+                    pricePerStudent: e.target.value === "" ? "" : e.target.value,
+                  })
                 }
                 className="border rounded p-2 w-full"
                 min={1}
@@ -196,7 +206,10 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
               onChange={(e) =>
                 setForm({
                   ...form,
-                  accessWindow: { ...form.accessWindow, joinBeforeMin: Number(e.target.value) },
+                  accessWindow: {
+                    ...form.accessWindow,
+                    joinBeforeMin: e.target.value === "" ? "" : e.target.value,
+                  },
                 })
               }
               className="border rounded p-2 w-full"
@@ -211,7 +224,10 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
               onChange={(e) =>
                 setForm({
                   ...form,
-                  accessWindow: { ...form.accessWindow, expireAfterMin: Number(e.target.value) },
+                  accessWindow: {
+                    ...form.accessWindow,
+                    expireAfterMin: e.target.value === "" ? "" : e.target.value,
+                  },
                 })
               }
               className="border rounded p-2 w-full"

@@ -198,7 +198,7 @@ export default function AdminClassesMonitorPage() {
                       </Button>
                       <span>
                         Page {page} / {pages}
-                      </span>
+                      </span> 
                       <Button
                         size="sm"
                         variant="outline"
