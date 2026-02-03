@@ -146,7 +146,7 @@ tutors from Nursery to Graduation level.
           <div className="relative h-full mt-2 w-full">
             <Image
               src="/images/newgirlll.png"
-              alt="Girl standing with books"
+              alt="Student holding books ready for online learning at TuitionsTime"
               fill
               priority
               sizes="(min-width:1024px) 50vw, 110vw"
