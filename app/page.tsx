@@ -1,26 +1,12 @@
-'use client';
-import Navbar from '@/components/Navbar';
-import HeroSection from '@/components/HeroSection';
-import WhyChoose from '@/components/WhyChoose';
-import WhyChooseUs from '@/components/WhyChooseUs';
-import ForStudents from '@/components/ForStudents';
-import ForTutors from '@/components/ForTutors';
-import CTASection from '@/components/CTASection';
-import Footer from '@/components/Footer';
-import AboutUs from '@/components/aboutus';
+import type { Metadata } from "next";
+import HomePageClient from "@/components/home/HomePageClient";
+
+export const metadata: Metadata = {
+  title: "TuitionsTime – Find Verified Tutors Online & Offline Across India",
+  description:
+    "Find the best verified tutors for every subject from Nursery to Graduation. Book free demo classes, learn online or offline, and achieve better results with TuitionsTime.",
+};
 
 export default function HomePage() {
-  return (
-    <div className="bg-white min-h-screen">
-      <Navbar />
-      <HeroSection />
-      <WhyChooseUs/>
-      <WhyChoose />
-      <ForStudents />
-      <ForTutors />
-      <AboutUs/>
-      <CTASection />
-      <Footer />
-    </div>
-  );
+  return <HomePageClient />;
 }

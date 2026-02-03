@@ -16,6 +16,7 @@ export default function WhyChoose() {
       steps: ['Tell Us What You Need', 'Get a Free Demo Class', 'Choose If You Like'],
       buttonText: 'POST YOUR LEARNING NEEDS – FREE',
       image: '/images/tutor.jpg',
+      imageAlt: 'Verified tutor teaching student one-to-one online',
       reverse: false,
        link: '/signup?role=student',
     },
@@ -26,6 +27,7 @@ export default function WhyChoose() {
       steps: ['Flexible schedule', 'Online teaching', 'Direct student connect'],
       buttonText: 'Register as Tutor',
       image: '/images/students.jpg',
+      imageAlt: 'One-to-one personalized learning session',
       reverse: true,
       link: '/signup?role=tutor',
     },
@@ -58,7 +60,7 @@ export default function WhyChoose() {
                   <div className="relative w-full h-[240px] sm:h-[280px] md:h-[360px] rounded-2xl overflow-hidden bg-gray-100 shadow-md hover:shadow-xl transition-all duration-300">
                     <Image
                       src={section.image}
-                      alt={section.title}
+                      alt={section.imageAlt}
                       fill
                       priority
                       sizes="(min-width:1024px) 420px, (min-width:768px) 60vw, 90vw"
