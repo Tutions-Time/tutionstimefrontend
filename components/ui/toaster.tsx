@@ -34,7 +34,7 @@ export function Toaster() {
           explicitRoute: route,
         });
 
-        const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+        const handleClick = (event: MouseEvent<HTMLLIElement>) => {
           propsOnClick?.(event);
           if (event.defaultPrevented) return;
           const target = event.target as Element;
