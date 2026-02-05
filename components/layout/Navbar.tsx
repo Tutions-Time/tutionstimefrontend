@@ -5,6 +5,7 @@ import { Bell, User, Menu, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from "next/image";
 
 import {
@@ -31,6 +32,7 @@ import {
   deleteAllNotifications,
   deleteAllAdminNotifications,
 } from '@/services/notificationService';
+import { deriveNotificationRoute } from '@/lib/notificationRoute';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -43,6 +45,7 @@ interface NavbarProps {
 export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userRole, onLogout }: NavbarProps) {
   const { user, logout } = useAuth();
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const { studentProfile, tutorProfile } = useAppSelector((s) => s.profile);
   const storeUnread = useAppSelector((s) => s.notification?.unreadCount ?? 0);
@@ -157,6 +160,24 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
     }
     setDrawerItems([]);
     dispatch(setUnreadCount(0));
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    const route = deriveNotificationRoute({
+      role: user?.role,
+      meta: notification.meta,
+      title: notification.title,
+      description: notification.body || notification.message,
+      explicitRoute: notification.route,
+    });
+
+    if (!route) return;
+    const isRead = notification.read ?? notification.isRead;
+    if (!isRead) {
+      await handleMarkRead(notification._id);
+    }
+    setDrawerOpen(false);
+    router.push(route);
   };
 
 
@@ -278,30 +299,45 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
               {drawerItems.map((n) => {
                 const isRead = n.read ?? n.isRead;
                 return (
-                <div key={n._id} className={`rounded-lg border p-3 ${isRead ? 'bg-white' : 'bg-yellow-50'}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-sm font-semibold">{n.title}</div>
-                      <div className="text-xs text-muted-foreground">{n.body || n.message}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!isRead && (
-                        <Button size="sm" variant="outline" onClick={() => handleMarkRead(n._id)}>
-                          Mark read
+                  <div
+                    key={n._id}
+                    className={`rounded-lg border p-3 ${isRead ? 'bg-white' : 'bg-yellow-50'} cursor-pointer`}
+                    onClick={() => handleNotificationClick(n)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="text-sm font-semibold">{n.title}</div>
+                        <div className="text-xs text-muted-foreground">{n.body || n.message}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!isRead && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleMarkRead(n._id);
+                            }}
+                          >
+                            Mark read
+                          </Button>
+                        )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label="Delete notification"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(n._id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground" />
                         </Button>
-                      )}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label="Delete notification"
-                        onClick={() => handleDelete(n._id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )})}
+                );
+              })}
             </div>
           </div>
         </>

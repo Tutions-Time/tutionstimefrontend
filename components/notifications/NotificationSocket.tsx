@@ -15,6 +15,28 @@ const getWsUrl = (token: string) => {
   return `${wsBase}/ws?token=${encodeURIComponent(token)}`;
 };
 
+const routeKeys = ["route", "href", "path", "link"] as const;
+
+function resolveToastRoute(notificationData: any) {
+  if (!notificationData) return undefined;
+
+  for (const key of routeKeys) {
+    if (typeof notificationData?.[key] === "string") {
+      return notificationData[key];
+    }
+  }
+
+  return undefined;
+}
+
+function showToastForNotification(data: any) {
+  const payload = data ?? {};
+  const route = resolveToastRoute(payload);
+  const title = payload?.title || "Notification";
+  const description = payload?.body || payload?.message || "";
+  toast({ title, description, meta: payload.meta, route });
+}
+
 function playBeep() {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -71,9 +93,7 @@ export default function NotificationSocket() {
         const msg = JSON.parse(event.data);
         if (msg?.type === "notification" || msg?.type === "admin_notification") {
           dispatch(incrementUnread(1));
-          const title = msg?.data?.title || "Notification";
-          const description = msg?.data?.body || msg?.data?.message || "";
-          toast({ title, description });
+          showToastForNotification(msg?.data);
           playBeep();
           emitNotificationEvent({
             type: msg.type,
@@ -113,9 +133,7 @@ export default function NotificationSocket() {
             role === "admin" ? "admin_notification" : "notification";
           fresh.forEach((n: any) => seenIdsRef.current.add(String(n._id)));
           fresh.forEach((n: any) => {
-            const title = n?.title || "Notification";
-            const description = n?.body || n?.message || "";
-            toast({ title, description });
+            showToastForNotification(n);
             emitNotificationEvent({
               type: eventType,
               data: n,
