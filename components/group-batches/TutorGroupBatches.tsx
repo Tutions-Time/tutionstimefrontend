@@ -736,10 +736,15 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             });
             setEditOpen(false);
             await load();
-          } catch {
+          } catch (error: any) {
+            const data = error.response?.data;
+            const errorMsg = data?.errors && Array.isArray(data.errors) 
+              ? data.errors.join(", ") 
+              : (data?.message || "Failed to update");
+            
             toast({
-              title: "Failed to update",
-              description: "Failed to update",
+              title: "Update failed",
+              description: errorMsg,
               variant: "destructive",
             });
           }
