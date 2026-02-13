@@ -61,15 +61,20 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
     }
     if (
       hasMetaValue(meta, 'paymentId') ||
+      hasMetaValue(meta, 'payoutId') ||
       hasMetaValue(meta, 'noteId') ||
-      text.includes('payment')
+      text.includes('payment') ||
+      text.includes('payout')
     ) {
       return '/dashboard/admin/transactions';
     }
     if (
       hasMetaValue(meta, 'sessionId') ||
       hasMetaValue(meta, 'bookingId') ||
-      text.includes('session')
+      hasMetaValue(meta, 'switchRequestId') ||
+      text.includes('session') ||
+      text.includes('demo') ||
+      text.includes('switch')
     ) {
       return '/dashboard/admin/sessions';
     }
@@ -77,9 +82,19 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
       hasMetaValue(meta, 'groupBatchId') ||
       hasMetaValue(meta, 'batchId') ||
       hasMetaValue(meta, 'regularClassId') ||
-      text.includes('batch')
+      text.includes('batch') ||
+      text.includes('class')
     ) {
       return '/dashboard/admin/classes-monitor';
+    }
+    if (hasMetaValue(meta, 'tutorId') || text.includes('kyc') || text.includes('tutor')) {
+      return '/dashboard/admin/tutors';
+    }
+    if (hasMetaValue(meta, 'userId') || hasMetaValue(meta, 'studentId') || text.includes('signup') || text.includes('student')) {
+      return '/dashboard/admin/users';
+    }
+    if (hasMetaValue(meta, 'enquiryId') || text.includes('enquiry')) {
+      return '/dashboard/admin/tutors'; // Defaulting to tutors for enquiry monitoring
     }
   }
 
