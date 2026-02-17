@@ -861,11 +861,11 @@ export default function AdminTutorsPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="text-muted">Hourly Rate</div>
+                    <div className="text-muted">Hourly Rate/per student</div>
                     <div>{formatText(profileData?.hourlyRate)}</div>
                   </div>
                   <div>
-                    <div className="text-muted">Monthly Rate</div>
+                    <div className="text-muted">Monthly Rate/per student</div>
                     <div>{formatText(profileData?.monthlyRate)}</div>
                   </div>
                   <div className="md:col-span-2">
