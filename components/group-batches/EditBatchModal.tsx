@@ -2,12 +2,19 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import TimePicker from "./TimePicker";
 
 type Props = {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   batch: any | null;
-  options: any;
+  options: {
+    subjects?: string[];
+    levels?: string[];
+    boards?: string[];
+    batchTypes?: string[];
+    scheduleTypes?: string[];
+  };
   onSubmit: (payload: any) => Promise<void>;
 };
 
@@ -25,6 +32,11 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     return Number.isFinite(n) ? n : fallback;
   };
   const [form, setForm] = useState<any>({
+    subject: "",
+    board: "",
+    boardOther: "",
+    level: "",
+    batchType: "",
     recurringDays: [],
     startDate: "",
     endDate: "",
@@ -41,15 +53,28 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     if (!batch) return;
     const startTime = batch?.recurring?.time || "18:00";
     const endTime = batch?.recurring?.endTime || "19:00";
+    const boards = options?.boards || [];
+    const currentBoard = String(batch?.board || "");
+    const isKnownBoard = boards.includes(currentBoard);
+    const board = isKnownBoard ? currentBoard : (currentBoard ? "Other" : "");
+    const boardOther = isKnownBoard ? "" : currentBoard;
 
     setForm({
+      subject: String(batch.subject || ""),
+      board,
+      boardOther,
+      level: String(batch.level || ""),
+      batchType: String(batch.batchType || ""),
       recurringDays: batch?.recurring?.days || [],
       startDate: toInputDate(batch?.recurring?.startDate),
       endDate: toInputDate(batch?.recurring?.endDate),
       classStartTime: startTime,
       classEndTime: endTime,
       seatCap: String(batch?.seatCap ?? 10),
-      pricePerStudent: String(batch?.pricePerStudent ?? 500),
+      pricePerStudent:
+        batch?.pricePerStudent !== undefined && batch?.pricePerStudent !== null
+          ? String(batch.pricePerStudent)
+          : "500",
       description: batch.description || "",
       published: !!batch.published,
       accessWindow: {
@@ -57,10 +82,17 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
         expireAfterMin: String(batch.accessWindow?.expireAfterMin ?? 5),
       },
     });
-  }, [batch]);
+  }, [batch, options?.boards]);
 
   const onSave = async () => {
+    const resolvedBatchType =
+      String(form.batchType || "") ||
+      (options?.batchTypes && options.batchTypes.length ? String(options.batchTypes[0]) : "revision");
     const payload = {
+      subject: String(form.subject || ""),
+      board: form.board === "Other" ? String(form.boardOther || "") : String(form.board || ""),
+      level: String(form.level || ""),
+      batchType: resolvedBatchType,
       startDate: form.startDate,
       endDate: form.endDate,
       recurringDays: form.recurringDays,
@@ -94,6 +126,89 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
 
         {/* Scrollable wrapper */}
         <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+
+          {/* Core fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-sm">Subject</label>
+              <select
+                className="border rounded p-2 w-full"
+                value={form.subject}
+                onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              >
+                <option value="">Select subject</option>
+                {(options.subjects || []).map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+                {form.subject && !(options.subjects || []).includes(form.subject) && (
+                  <option value={form.subject}>{form.subject}</option>
+                )}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm">Level</label>
+              <select
+                className="border rounded p-2 w-full"
+                value={form.level}
+                onChange={(e) => setForm({ ...form, level: e.target.value })}
+              >
+                <option value="">Select level</option>
+                {(options.levels || []).map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+                {form.level && !(options.levels || []).includes(form.level) && (
+                  <option value={form.level}>{form.level}</option>
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-sm">Board</label>
+              <select
+                className="border rounded p-2 w-full"
+                value={form.board}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    board: e.target.value,
+                    boardOther: e.target.value === "Other" ? form.boardOther : "",
+                  })
+                }
+              >
+                <option value="">Select board</option>
+                {(options.boards || []).map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+                <option value="Other">Other</option>
+              </select>
+              {form.board === "Other" && (
+                <input
+                  type="text"
+                  className="border rounded p-2 w-full"
+                  placeholder="Enter board name"
+                  value={form.boardOther}
+                  onChange={(e) => setForm({ ...form, boardOther: e.target.value })}
+                />
+              )}
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm">Batch Type</label>
+              <select
+                className="border rounded p-2 w-full"
+                value={form.batchType}
+                onChange={(e) => setForm({ ...form, batchType: e.target.value })}
+              >
+                {(options.batchTypes || []).map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+                {form.batchType && !(options.batchTypes || []).includes(form.batchType) && (
+                  <option value={form.batchType}>{form.batchType}</option>
+                )}
+              </select>
+            </div>
+          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Schedule</label>
@@ -147,20 +262,16 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-sm">Class Start Time</label>
-                <input
-                  type="time"
+                <TimePicker
                   value={form.classStartTime}
-                  onChange={(e) => setForm({ ...form, classStartTime: e.target.value })}
-                  className="border rounded p-2 w-full"
+                  onChange={(v) => setForm({ ...form, classStartTime: v })}
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-sm">Class End Time</label>
-                <input
-                  type="time"
+                <TimePicker
                   value={form.classEndTime}
-                  onChange={(e) => setForm({ ...form, classEndTime: e.target.value })}
-                  className="border rounded p-2 w-full"
+                  onChange={(v) => setForm({ ...form, classEndTime: v })}
                 />
               </div>
             </div>

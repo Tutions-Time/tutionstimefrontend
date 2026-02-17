@@ -13,11 +13,12 @@ import {
 import { getCreateOptions, getMyBatches } from "@/services/groupBatchService";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, IndianRupee } from "lucide-react";
+import { Calendar, Users, IndianRupee, Loader2 } from "lucide-react";
 
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailModal";
 import EditBatchModal from "@/components/group-batches/EditBatchModal";
+import TimePicker from "./TimePicker";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 
 type TutorGroupBatchesProps = {
@@ -324,6 +325,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       setEditOptions({
         subjects: opts?.subjects || [],
         levels: opts?.levels || [],
+        boards: opts?.boards || [],
         availabilityDates: opts?.availabilityDates || [],
         batchTypes: opts?.batchTypes || ["revision", "normal class"],
         scheduleTypes: opts?.scheduleTypes || ["fixed"],
@@ -440,12 +442,19 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             <DialogTitle>Create Batch</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-2">
+          <div className="relative">
+            {(loadingOptions || creating) && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-700" />
+              </div>
+            )}
+            <div className={`space-y-2 ${loadingOptions || creating ? "pointer-events-none opacity-60" : ""}`}>
             {/* Subject */}
             <select
               className="border p-2 rounded w-full"
               value={form.subject}
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              disabled={loadingOptions || creating}
             >
               <option value="">Select Subject</option>
               {(options.subjects || []).map((s: string) => (
@@ -464,6 +473,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                   boardOther: e.target.value === "Other" ? form.boardOther : "",
                 })
               }
+              disabled={loadingOptions || creating}
             >
               <option value="">Select Board</option>
               {(options.boards || []).map((b: string) => (
@@ -482,6 +492,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 onChange={(e) =>
                   setForm({ ...form, boardOther: e.target.value })
                 }
+                disabled={loadingOptions || creating}
               />
             )}
 
@@ -490,6 +501,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
               className="border p-2 rounded w-full"
               value={form.level}
               onChange={(e) => setForm({ ...form, level: e.target.value })}
+              disabled={loadingOptions || creating}
             >
               <option value="">Select Level</option>
               {(options.levels || []).map((l: string) => (
@@ -502,6 +514,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
               className="border p-2 rounded w-full"
               value={form.batchType}
               onChange={(e) => setForm({ ...form, batchType: e.target.value })}
+              disabled={loadingOptions || creating}
             >
               {(options.batchTypes || []).map((t: string) => (
                 <option key={t} value={t}>{getBatchTypeLabel(t)}</option>
@@ -516,6 +529,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 className="border p-2 rounded w-full"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                disabled={loadingOptions || creating}
               />
             </div>
             <div className="space-y-1">
@@ -525,6 +539,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 className="border p-2 rounded w-full"
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                disabled={loadingOptions || creating}
               />
               <p className="text-xs text-gray-500">End date must be on or after start date.</p>
             </div>
@@ -548,6 +563,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                           ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
                           : "bg-white border-gray-300 text-gray-700"
                       }`}
+                      disabled={loadingOptions || creating}
                     >
                       {day}
                     </button>
@@ -557,15 +573,23 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class Start Time</label>
-              <input type="time" className="border p-2 rounded w-full" value={form.classStartTime} onChange={(e) => setForm({ ...form, classStartTime: e.target.value })} />
+              <TimePicker
+                value={form.classStartTime}
+                onChange={(v) => setForm({ ...form, classStartTime: v })}
+                disabled={loadingOptions || creating}
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Class End Time</label>
-              <input type="time" className="border p-2 rounded w-full" value={form.classEndTime} onChange={(e) => setForm({ ...form, classEndTime: e.target.value })} />
+              <TimePicker
+                value={form.classEndTime}
+                onChange={(v) => setForm({ ...form, classEndTime: v })}
+                disabled={loadingOptions || creating}
+              />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Seat Capacity</label>
-              <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e) => setForm({ ...form, seatCap: e.target.value })} />
+              <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e) => setForm({ ...form, seatCap: e.target.value })} disabled={loadingOptions || creating} />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">Price Per Month</label>
@@ -575,6 +599,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 placeholder="Enter monthly price for this batch"
                 value={form.pricePerMonth}
                 onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })}
+                disabled={loadingOptions || creating}
               />
             </div>
             <textarea className="border p-2 rounded w-full" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
@@ -585,14 +610,23 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 onChange={(e) =>
                   setForm({ ...form, published: e.target.checked })
                 }
+                disabled={loadingOptions || creating}
               />
               Published
             </div>
 
             <div className="flex justify-end">
               <Button onClick={create} disabled={loadingOptions || creating}>
-                {creating ? "Creating..." : "Create"}
+                {creating ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </span>
+                ) : (
+                  "Create"
+                )}
               </Button>
+            </div>
             </div>
           </div>
         </DialogContent>
