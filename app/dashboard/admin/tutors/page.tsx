@@ -83,6 +83,14 @@ export default function AdminTutorsPage() {
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [selectedTutor, setSelectedTutor] = useState<TutorRow | null>(null);
+  const incompleteTutorEmails = useMemo(
+    () =>
+      rows
+        .filter((t) => t.profileComplete === false)
+        .map((t) => t.email)
+        .filter(Boolean) as string[],
+    [rows],
+  );
 
   const getProperImageUrl = (path?: string | null) => {
     if (!path) return "";
@@ -168,8 +176,19 @@ export default function AdminTutorsPage() {
           sort,
         });
         if (res.success) {
-          setRows(res.data || []);
-          setTotal(res.pagination?.total || 0);
+          const data = res.data || [];
+          const filtered = data.filter((t: any) => {
+            const statusVal = String((t as any)?.status || "").toLowerCase();
+            const isDeleted =
+              t?.deleted || t?.isDeleted || t?.softDeleted || statusVal === "deleted";
+            const isSuspended = statusVal === "suspended";
+            // Hide deleted always. Hide suspended unless explicitly filtering for it.
+            if (isDeleted) return false;
+            if (status !== "suspended" && isSuspended) return false;
+            return true;
+          });
+          setRows(filtered);
+          setTotal(res.pagination?.total || filtered.length || 0);
           setPages(res.pagination?.pages || 1);
         } else {
           toast({
@@ -233,9 +252,16 @@ export default function AdminTutorsPage() {
     try {
       const newStatus = current === "active" ? "suspended" : "active";
       await updateTutorStatus(id, newStatus);
-      setRows((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)),
-      );
+      setRows((prev) => {
+        if (newStatus === "suspended" && status !== "suspended") {
+          // remove instantly when hiding suspended in current filter
+          return prev.filter((r) => r.id !== id);
+        }
+        return prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r));
+      });
+      if (newStatus === "suspended" && status !== "suspended") {
+        setTotal((t) => Math.max(0, t - 1));
+      }
       toast({
         title: `Tutor ${
           newStatus === "active" ? "activated" : "suspended"
@@ -249,6 +275,8 @@ export default function AdminTutorsPage() {
       });
     }
   }
+
+  // delete functionality removed; suspension is the only action now
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -363,6 +391,39 @@ export default function AdminTutorsPage() {
               </div>
             </div>
           </Card>
+
+          {incompleteTutorEmails.length > 0 && (
+            <Card className="p-4 rounded-2xl bg-white shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-medium">
+                  Incomplete tutor profiles: {incompleteTutorEmails.length}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(
+                        incompleteTutorEmails.join(", "),
+                      );
+                      toast({ title: "Emails copied to clipboard" });
+                    } catch {
+                      toast({
+                        title: "Copy failed",
+                        description: "Select and copy manually",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                >
+                  Copy emails
+                </Button>
+              </div>
+              <div className="text-xs text-muted break-words">
+                {incompleteTutorEmails.join(", ")}
+              </div>
+            </Card>
+          )}
 
           {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
@@ -687,7 +748,9 @@ export default function AdminTutorsPage() {
                     {formatText(profileData?.name || selectedTutor?.name)}
                   </div>
                   <div className="text-sm text-muted">
-                    {formatText(profileData?.email || selectedTutor?.email)}
+                    {formatText(
+                      profileData?.email || profileUser?.email || selectedTutor?.email,
+                    )}
                   </div>
                 </div>
               </div>
@@ -703,7 +766,11 @@ export default function AdminTutorsPage() {
                   </div>
                   <div>
                     <div className="text-muted">Email</div>
-                    <div>{formatText(profileData?.email)}</div>
+                    <div>
+                      {formatText(
+                        profileData?.email || profileUser?.email || selectedTutor?.email,
+                      )}
+                    </div>
                   </div>
                   <div>
                     <div className="text-muted">Gender</div>

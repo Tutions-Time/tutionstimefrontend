@@ -56,6 +56,20 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
   const isAdmin = role === 'admin';
 
   if (isAdmin) {
+    const asString = (v: any) => (v === undefined || v === null ? undefined : String(v));
+    const tutorId =
+      asString((meta as any)?.tutorId) ||
+      asString((meta as any)?.userId && (meta as any)?.role === 'tutor' ? (meta as any)?.userId : undefined);
+    const studentId =
+      asString((meta as any)?.studentId) ||
+      asString((meta as any)?.userId && (meta as any)?.role === 'student' ? (meta as any)?.userId : undefined);
+
+    if (tutorId) {
+      return `/dashboard/admin/tutors/${tutorId}/journey`;
+    }
+    if (studentId) {
+      return `/dashboard/admin/users/${studentId}`;
+    }
     if (hasMetaValue(meta, 'refundRequestId') || text.includes('refund')) {
       return '/dashboard/admin/refunds';
     }

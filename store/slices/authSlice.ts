@@ -38,16 +38,31 @@ export const sendOtpAsync = createAsyncThunk(
   'auth/sendOtp',
   async ({ email, purpose }: { email: string; purpose: 'login' | 'signup' }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/send-otp', { email, purpose });
-      if (!response.data.success) {
-        return rejectWithValue(response.data.message || 'Failed to send OTP');
+      const response = await api.post(
+        '/auth/send-otp',
+        { email, purpose },
+        { timeout: 60000 } // extend timeout for email providers that respond slowly in local
+      );
+      const data: any = response?.data || {};
+      const requestId = data.requestId ?? data.data?.requestId ?? data.reqId ?? null;
+      const expiresIn = data.expiresIn ?? data.data?.expiresIn ?? 30;
+
+      // Accept success in local even if 'success' flag is missing/false, as long as requestId is present
+      if (requestId) {
+        return { requestId, expiresIn };
       }
-      return {
-        requestId: response.data.requestId,
-        expiresIn: response.data.expiresIn
-      };
+
+      // Fallback to 'success' semantics when requestId is not present
+      if (!data.success) {
+        return rejectWithValue(data.message || 'Failed to send OTP');
+      }
+      return { requestId: data.requestId, expiresIn: data.expiresIn };
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to send OTP';
+      return rejectWithValue(msg);
     }
   }
 );

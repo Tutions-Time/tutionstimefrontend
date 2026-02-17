@@ -55,6 +55,27 @@ function playBeep() {
   } catch {}
 }
 
+function isAdminProfileUpdate(n: any): boolean {
+  if (!n) return false;
+  const meta = n.meta || {};
+  const text =
+    String(n.title || "") +
+    " " +
+    String(n.body || n.message || "");
+  const hasExplicitMeta =
+    String(meta?.type || meta?.kind || meta?.action || "")
+      .toLowerCase()
+      .includes("profile") &&
+    (String(meta?.type || "").toLowerCase().includes("update") ||
+      String(meta?.action || "").toLowerCase().includes("update") ||
+      String(meta?.type || "").toLowerCase().includes("complete") ||
+      String(meta?.action || "").toLowerCase().includes("complete"));
+  const textMatches = /profile.+(updated|completed|edited|changed|submitted)/i.test(
+    text,
+  );
+  return Boolean(hasExplicitMeta || textMatches);
+}
+
 export default function NotificationSocket() {
   const dispatch = useAppDispatch();
   const token = useAppSelector((s) => s.auth.tokens?.accessToken);
@@ -68,10 +89,13 @@ export default function NotificationSocket() {
   useEffect(() => {
     const loadUnread = async () => {
       try {
-        const items =
+        let items =
           role === "admin"
             ? await listAdminNotifications()
             : await listNotifications();
+        if (role === "admin") {
+          items = items.filter((n: any) => !isAdminProfileUpdate(n));
+        }
         const unread = items.filter((n: any) => !isReadValue(n)).length;
         dispatch(setUnreadCount(unread));
         items.forEach((n: any) => {
@@ -92,15 +116,18 @@ export default function NotificationSocket() {
       try {
         const msg = JSON.parse(event.data);
         if (msg?.type === "notification" || msg?.type === "admin_notification") {
-          dispatch(incrementUnread(1));
-          showToastForNotification(msg?.data);
-          playBeep();
-          emitNotificationEvent({
-            type: msg.type,
-            data: msg.data,
-            role: role || undefined,
-          });
-          if (msg?.data?._id) seenIdsRef.current.add(String(msg.data._id));
+          const payload = msg?.data;
+          if (!(role === "admin" && isAdminProfileUpdate(payload))) {
+            dispatch(incrementUnread(1));
+            showToastForNotification(payload);
+            playBeep();
+            emitNotificationEvent({
+              type: msg.type,
+              data: payload,
+              role: role || undefined,
+            });
+            if (payload?._id) seenIdsRef.current.add(String(payload._id));
+          }
         }
       } catch {}
     };
@@ -120,27 +147,36 @@ export default function NotificationSocket() {
 
     const poll = async () => {
       try {
-        const items =
+        let items =
           role === "admin"
             ? await listAdminNotifications()
             : await listNotifications();
+        if (role === "admin") {
+          items = items.filter((n: any) => !isAdminProfileUpdate(n));
+        }
         const unread = items.filter((n: any) => !isReadValue(n)).length;
         dispatch(setUnreadCount(unread));
 
-        const fresh = items.filter((n: any) => n?._id && !seenIdsRef.current.has(String(n._id)));
+        const fresh = items.filter(
+          (n: any) => n?._id && !seenIdsRef.current.has(String(n._id)),
+        );
         if (fresh.length) {
           const eventType =
             role === "admin" ? "admin_notification" : "notification";
           fresh.forEach((n: any) => seenIdsRef.current.add(String(n._id)));
           fresh.forEach((n: any) => {
-            showToastForNotification(n);
-            emitNotificationEvent({
-              type: eventType,
-              data: n,
-              role: role || undefined,
-            });
+            if (!(role === "admin" && isAdminProfileUpdate(n))) {
+              showToastForNotification(n);
+              emitNotificationEvent({
+                type: eventType,
+                data: n,
+                role: role || undefined,
+              });
+            }
           });
-          playBeep();
+          if (!(role === "admin" && fresh.every(isAdminProfileUpdate))) {
+            playBeep();
+          }
         }
       } catch {}
     };
