@@ -16,11 +16,21 @@ export const updateTutorProfile = async (formData: FormData) => {
     const response = await api.post("/users/tutor-profile", formData, {
       headers: {
         // Let Axios detect boundaries automatically
-        "Accept": "application/json",
+        Accept: "application/json",
       },
+      // Large video uploads can take time; extend timeout and body limits
+      timeout: 300000, // 5 minutes
+      maxBodyLength: Infinity as any,
+      maxContentLength: Infinity as any,
+      onUploadProgress: () => {},
     });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "ECONNABORTED") {
+      throw new Error(
+        "Upload timed out. Please try again or use a smaller video file.",
+      );
+    }
     throw new Error(handleApiError(error));
   }
 };
