@@ -74,6 +74,14 @@ export default function AdminUsersPage() {
   const [profileData, setProfileData] = useState<any>(null);
   const [profileReferralCode, setProfileReferralCode] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const incompleteEmails = useMemo(
+    () =>
+      rows
+        .filter((u) => u.isProfileComplete === false)
+        .map((u) => u.email)
+        .filter(Boolean) as string[],
+    [rows],
+  );
 
   // Fetch users from backend (server-side filters/pagination)
   useEffect(() => {
@@ -90,10 +98,14 @@ export default function AdminUsersPage() {
         });
 
         const users = res?.users || [];
+        const filtered = users.filter((u: any) => {
+          const statusVal = String((u as any)?.status || '').toLowerCase();
+          return !(u?.deleted || u?.isDeleted || u?.softDeleted || statusVal === 'deleted');
+        });
         const pag = res?.pagination || {} as any;
         if (res.success && Array.isArray(users)) {
-          setRows(users);
-          setTotal(Number(pag.total || users.length));
+          setRows(filtered);
+          setTotal(Number(pag.total || filtered.length));
         } else {
           toast({
             title: 'Failed to load students',
@@ -223,6 +235,38 @@ export default function AdminUsersPage() {
             </Link>
           }
         />
+
+        {/* Incomplete profiles quick list */}
+        {incompleteEmails.length > 0 && (
+          <Card className="p-4 rounded-2xl bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium">
+                Incomplete profiles: {incompleteEmails.length}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(incompleteEmails.join(', '));
+                    toast({ title: 'Emails copied to clipboard' });
+                  } catch {
+                    toast({
+                      title: 'Copy failed',
+                      description: 'Select and copy manually',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+              >
+                Copy emails
+              </Button>
+            </div>
+            <div className="text-xs text-muted break-words">
+              {incompleteEmails.join(', ')}
+            </div>
+          </Card>
+        )}
 
         <main className="p-4 lg:p-6 space-y-6">
           {/* Filters */}

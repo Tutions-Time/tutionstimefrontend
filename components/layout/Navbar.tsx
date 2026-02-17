@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import MobileBottomNav from './MobileBottomNav';
 import Image from "next/image";
 
 import {
@@ -98,7 +99,22 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
   const loadNotifications = async () => {
     setDrawerLoading(true);
     try {
-      const items = isAdmin ? await listAdminNotifications() : await listNotifications();
+      let items = isAdmin ? await listAdminNotifications() : await listNotifications();
+      if (isAdmin) {
+        const isProfileUpdate = (n: any) => {
+          const meta = n?.meta || {};
+          const text = `${n?.title || ""} ${n?.body || n?.message || ""}`;
+          const metaStr = `${meta?.type || meta?.kind || meta?.action || ""}`.toLowerCase();
+          const hasMeta =
+            metaStr.includes("profile") &&
+            (metaStr.includes("update") || metaStr.includes("complete"));
+          const textMatch = /profile.+(updated|completed|edited|changed|submitted)/i.test(
+            text,
+          );
+          return hasMeta || textMatch;
+        };
+        items = items.filter((n: any) => !isProfileUpdate(n));
+      }
       setDrawerItems(items);
       dispatch(setUnreadCount(items.filter((n: any) => !(n.read ?? n.isRead)).length));
     } finally {
@@ -182,6 +198,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
 
 
   return (
+    <>
     <nav className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
 
@@ -343,5 +360,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
         </>
       )}
     </nav>
+    <MobileBottomNav role={user?.role} />
+    </>
   );
 }

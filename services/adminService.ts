@@ -200,6 +200,24 @@ export const updateTutorStatus = async (id: string, status: 'active' | 'suspende
   }
 };
 
+export const deleteUser = async (userId: string) => {
+  try {
+    const res = await api.delete(`/admin/users/${userId}`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteTutor = async (id: string) => {
+  try {
+    const res = await api.delete(`/admin/tutors/${id}`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const createRefundRequest = async (payload: { paymentId: string; amount: number; reason?: string }) => {
   try {
     const res = await api.post('/payments/refunds/request', payload);
