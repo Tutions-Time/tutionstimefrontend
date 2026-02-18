@@ -23,9 +23,18 @@ export default function UserDetailPage() {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const res = await getUserById(id as string);
+        const res: any = await getUserById(id as string);
         if (res) {
-          setUser(res);
+          const base = res.user || res;
+          const merged = {
+            ...base,
+            name: (res.profile?.name ?? base.name) as any,
+            email: (res.profile?.email ?? base.email) as any,
+            photoUrl: (res.profile?.photoUrl ?? base.photoUrl) as any,
+            tutorProfile: base?.role === 'tutor' ? res.profile : base?.tutorProfile,
+            studentProfile: base?.role === 'student' ? res.profile : base?.studentProfile,
+          };
+          setUser(merged);
         } else {
           toast({ title: 'User not found', variant: 'destructive' });
         }
@@ -101,7 +110,7 @@ export default function UserDetailPage() {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                  {user.name ? user.name.charAt(0) : user.role.charAt(0)}
+                  {String(user.name || user.role || 'U').charAt(0)}
                 </div>
               )}
               <div>

@@ -112,7 +112,14 @@ export default function StudentGroupBatches() {
     try {
       setLoading(true);
       const data = await listBatches(filters as any);
-      setItems(data);
+      const filtered = (data || []).filter((b: any) => {
+        const tutor = b?.tutor || b?.owner || b?.createdBy || {};
+        const status = String(
+          (tutor && (tutor.status || tutor.user?.status || (b as any).tutorStatus)) || "",
+        ).toLowerCase();
+        return status !== "suspended";
+      });
+      setItems(filtered);
     } catch (e: any) {
       toast.error(e.message || "Unable to load batches");
     } finally {

@@ -60,9 +60,17 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
     const tutorId =
       asString((meta as any)?.tutorId) ||
       asString((meta as any)?.userId && (meta as any)?.role === 'tutor' ? (meta as any)?.userId : undefined);
-    const studentId =
+    let studentId =
       asString((meta as any)?.studentId) ||
-      asString((meta as any)?.userId && (meta as any)?.role === 'student' ? (meta as any)?.userId : undefined);
+      asString((meta as any)?.userId && (meta as any)?.role === 'student' ? (meta as any)?.userId : undefined) ||
+      undefined;
+    // Heuristic: if userId exists and title/description suggests a student signup, treat as student
+    if (!studentId) {
+      const uid = asString((meta as any)?.userId);
+      if (uid && (text.includes('student') || text.includes('signup'))) {
+        studentId = uid;
+      }
+    }
 
     if (tutorId) {
       return `/dashboard/admin/tutors/${tutorId}/journey`;

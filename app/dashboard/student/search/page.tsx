@@ -227,7 +227,13 @@ export default function SearchTutors() {
     try {
       setLoading(true);
       const res = await fetchTutors(params);
-      const data = res?.data || [];
+      const data = (res?.data || []).filter((t: any) => {
+        const status = String(
+          (t && (t.status || t.user?.status || (t as any).accountStatus || (t as any).userStatus)) ||
+            "",
+        ).toLowerCase();
+        return status !== "suspended";
+      });
       // Client-side safety: ensure tutors match selected classLevel if provided
       const classLevel = (filter.classLevel || "").trim();
       const filtered =
@@ -240,7 +246,7 @@ export default function SearchTutors() {
           : data;
       setTutors(filtered);
       setMode(res?.mode || "");
-      setTotal(res?.total || 0);
+      setTotal(res?.total || filtered.length || 0);
     } catch (err: any) {
       toast.error(err?.message || "Failed to fetch tutors.");
     } finally {

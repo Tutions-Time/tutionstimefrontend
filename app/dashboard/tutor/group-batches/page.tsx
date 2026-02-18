@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { getCreateOptions } from "@/services/groupBatchService";
 import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
+import TimePicker from "@/components/group-batches/TimePicker";
 
 export default function TutorGroupBatchesPage() {
   const { toast } = useToast();
@@ -327,12 +328,9 @@ export default function TutorGroupBatchesPage() {
                     <label className="text-sm font-medium text-gray-700">
                       Class Start Time
                     </label>
-                    <input
-                      type="time"
-                      step={60}
-                      className="border p-2 rounded w-full mt-1 mb-3"
+                    <TimePicker
                       value={classStartTime}
-                      onChange={(e) => setClassStartTime(e.target.value)}
+                      onChange={(v) => setClassStartTime(v)}
                     />
                   </div>
 
@@ -340,12 +338,9 @@ export default function TutorGroupBatchesPage() {
                     <label className="text-sm font-medium text-gray-700">
                       Class End Time
                     </label>
-                    <input
-                      type="time"
-                      step={60}
-                      className="border p-2 rounded w-full mt-1 mb-3"
+                    <TimePicker
                       value={classEndTime}
-                      onChange={(e) => setClassEndTime(e.target.value)}
+                      onChange={(v) => setClassEndTime(v)}
                     />
                   </div>
 
