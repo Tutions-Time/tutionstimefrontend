@@ -125,7 +125,16 @@ export default function TutorDetailPage() {
   useEffect(() => {
     if (!routeTutorId) return;
     fetchTutorById(routeTutorId)
-      .then(setTutor)
+      .then((data) => {
+        const status = String(
+          (data && (data.status || data.user?.status || (data as any).accountStatus)) || "",
+        ).toLowerCase();
+        if (status === "suspended") {
+          setTutor(null);
+        } else {
+          setTutor(data);
+        }
+      })
       .catch((err) => console.error("Error loading tutor:", err));
   }, [routeTutorId]);
 
@@ -150,7 +159,7 @@ export default function TutorDetailPage() {
   if (!tutor)
     return (
       <div className="p-10 text-center text-gray-500 text-sm sm:text-base">
-        Loading tutor details...
+        Tutor is not available at the moment.
       </div>
     );
 
