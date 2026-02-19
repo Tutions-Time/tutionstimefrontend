@@ -104,11 +104,26 @@ const TutorRegularClasses = () => {
     useState<"scheduled" | "not-scheduled">("scheduled");
 
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
-  const [timeValue, setTimeValue] = useState("");
+  const [selectedHour, setSelectedHour] = useState("03");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [selectedMeridiem, setSelectedMeridiem] = useState<"AM" | "PM">("PM");
   const [modalOpen, setModalOpen] = useState(false);
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+
+  const formatDateIST = (value: string) =>
+    new Date(value).toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+
+  const formatTimeIST = (value: string) =>
+    new Date(value).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
+    });
 
   // ------------------------------------------------------
   // ⭐ JOIN LOGIC CALC (Unified frontend logic)
@@ -171,17 +186,26 @@ const TutorRegularClasses = () => {
 
   const openScheduleModal = (id: string) => {
     setSelectedClassId(id);
+    setSelectedHour("03");
+    setSelectedMinute("00");
+    setSelectedMeridiem("PM");
     setModalOpen(true);
   };
 
+  const getTimeValue24h = () => {
+    let h = Number(selectedHour) % 12;
+    if (selectedMeridiem === "PM") h += 12;
+    return `${String(h).padStart(2, "0")}:${selectedMinute}`;
+  };
+
   const handleScheduleSubmit = async () => {
-    if (!timeValue) {
+    if (!selectedClassId) {
       toast({ title: "Time required", description: "Please select a time." });
       return;
     }
 
     try {
-      await scheduleRegularClass(selectedClassId!, { time: timeValue });
+      await scheduleRegularClass(selectedClassId, { time: getTimeValue24h() });
       toast({
         title: "Success",
         description: "Class scheduled successfully!",
@@ -315,20 +339,13 @@ const TutorRegularClasses = () => {
                         <span className="flex items-center gap-1">
                           <CalendarDays className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            new Date(
-                              c.nextSession.startDateTime
-                            ).toLocaleDateString("en-IN")}
+                            formatDateIST(c.nextSession.startDateTime)}
                         </span>
 
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            new Date(
-                              c.nextSession.startDateTime
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            formatTimeIST(c.nextSession.startDateTime)}
                         </span>
                       </div>
                     </div>
@@ -396,7 +413,7 @@ const TutorRegularClasses = () => {
 
                     <div className="text-gray-500 text-sm flex items-center gap-2 mt-2">
                       <CalendarDays className="w-4 h-4" />
-                      {new Date(c.startDate).toLocaleDateString("en-IN")}
+                      {formatDateIST(c.startDate)}
                     </div>
                   </div>
 
@@ -428,12 +445,48 @@ const TutorRegularClasses = () => {
               Schedule Class
             </Dialog.Title>
 
-            <input
-              type="time"
-              value={timeValue}
-              onChange={(e) => setTimeValue(e.target.value)}
-              className="w-full border p-2 rounded-lg"
-            />
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">Select class time</div>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  value={selectedHour}
+                  onChange={(e) => setSelectedHour(e.target.value)}
+                  className="w-full border p-2 rounded-lg bg-white"
+                >
+                  {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedMinute}
+                  onChange={(e) => setSelectedMinute(e.target.value)}
+                  className="w-full border p-2 rounded-lg bg-white"
+                >
+                  {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(
+                    (m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <select
+                  value={selectedMeridiem}
+                  onChange={(e) => setSelectedMeridiem(e.target.value as "AM" | "PM")}
+                  className="w-full border p-2 rounded-lg bg-white"
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
+              <div className="text-xs text-gray-500">
+                Selected: {Number(selectedHour)}:{selectedMinute} {selectedMeridiem}
+              </div>
+            </div>
 
             <button
               onClick={handleScheduleSubmit}
@@ -488,17 +541,10 @@ const TutorRegularClasses = () => {
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           <div>
-                            {new Date(
-                              s.startDateTime
-                            ).toLocaleDateString("en-IN")}
+                            {formatDateIST(s.startDateTime)}
                           </div>
                           <div>
-                            {new Date(
-                              s.startDateTime
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {formatTimeIST(s.startDateTime)}
                           </div>
                           <div className="text-xs text-gray-500">
                             {s.status}
