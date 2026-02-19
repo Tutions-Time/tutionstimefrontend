@@ -253,11 +253,11 @@ export function validateStudentProfileFields(
   if (data.tutorGenderPref === "Other" && isEmpty(data.tutorGenderOther))
     errors.tutorGenderOther = "Please specify tutor gender";
 
-  if (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
-    errors.preferredTimes = "Preferred time slots are required";
+  if (data.preferredTimes && !Array.isArray(data.preferredTimes))
+    errors.preferredTimes = "Preferred time slots must be a list";
 
-  if (!Array.isArray(data.availability) || data.availability.length === 0)
-    errors.availability = "Availability is required";
+  if (data.availability && !Array.isArray(data.availability))
+    errors.availability = "Availability must be a list of dates";
 
   if (isEmpty(data.goals)) errors.goals = "Learning goals are required";
 

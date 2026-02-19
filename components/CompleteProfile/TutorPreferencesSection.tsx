@@ -114,7 +114,7 @@ export default function TutorPreferencesSection({
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-primary" />
-            <Label>Preferred Time Slots</Label>
+            <Label>Preferred Time Slots (Optional)</Label>
           </div>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -216,7 +216,7 @@ export default function TutorPreferencesSection({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-4 h-4 text-primary" />
-              <Label>Availability (Select Dates)</Label>
+              <Label>Availability (Select Dates) — Optional</Label>
             </div>
             <span className="text-xs text-gray-500">
               {(profile.availability || []).length} date(s) selected

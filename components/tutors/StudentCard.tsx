@@ -122,7 +122,7 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
               {availability.length > 2 && ` +${availability.length - 2} more`}
             </span>
           ) : (
-            <span>No availability added</span>
+            <span>Available all days (except Sunday)</span>
           )}
         </div>
 

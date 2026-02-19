@@ -400,9 +400,7 @@ export default function StudentDetailPage() {
                             <Chip key={d}>{d}</Chip>
                           ))
                         ) : (
-                          <span className="text-sm text-gray-400 italic">
-                            No specific dates listed
-                          </span>
+                          <span className="text-sm text-gray-400 italic">Available all days (except Sunday)</span>
                         )}
                       </div>
                     </div>
