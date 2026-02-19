@@ -106,7 +106,11 @@ export default function TutorBatchDetailPage() {
           {sessions.map((s:any)=> (
             <li key={s._id} className="text-sm border rounded p-3">
               <div className="flex items-center justify-between">
-                <div>{new Date(s.startDateTime).toLocaleString()}</div>
+                <div>
+                  {new Date(s.startDateTime).toLocaleString("en-IN", {
+                    timeZone: "UTC",
+                  })}
+                </div>
                 <button className="bg-blue-600 text-white px-3 py-1 rounded" onClick={()=>join(s._id)}>Join</button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">

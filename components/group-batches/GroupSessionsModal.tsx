@@ -59,8 +59,8 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                   <div key={s._id} className="border rounded-lg p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="text-sm">
-                        <div>{new Date(s.startDateTime).toLocaleDateString("en-IN")}</div>
-                        <div>{new Date(s.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div>{new Date(s.startDateTime).toLocaleDateString("en-IN", { timeZone: "UTC" })}</div>
+                        <div>{new Date(s.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</div>
                         <div className="text-xs text-gray-500">{s.status}</div>
                       </div>
                       {!isExpired && s.status !== "completed" && (

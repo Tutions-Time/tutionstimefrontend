@@ -185,20 +185,20 @@ export default function StudentBookingsPage() {
     return { isFuture, inJoinWindow, isExpired };
   };
 
-  const formatDateIST = (value: string) =>
+  const formatDateRaw = (value: string) =>
     new Date(value).toLocaleDateString("en-IN", {
       month: "short",
       day: "numeric",
       year: "numeric",
-      timeZone: "Asia/Kolkata",
+      timeZone: "UTC",
     });
 
-  const formatTimeIST = (value: string) =>
+  const formatTimeRaw = (value: string) =>
     new Date(value).toLocaleTimeString("en-IN", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
-      timeZone: "Asia/Kolkata",
+      timeZone: "UTC",
     });
 
   return (
@@ -289,11 +289,11 @@ export default function StudentBookingsPage() {
                               <div className="text-gray-500 text-sm flex items-center gap-3 mt-3">
                                 <span className="flex items-center gap-1">
                                   <CalendarDays className="w-4 h-4" />
-                                  {formatDateIST(next.startDateTime)}
+                                  {formatDateRaw(next.startDateTime)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-4 h-4" />
-                                  {formatTimeIST(next.startDateTime)}
+                                  {formatTimeRaw(next.startDateTime)}
                                 </span>
                               </div>
                             )}
@@ -400,14 +400,14 @@ export default function StudentBookingsPage() {
                         <div className="text-sm">
                           <div className="font-medium">
                             {new Date(s.startDateTime).toLocaleDateString("en-IN", {
-                              timeZone: "Asia/Kolkata",
+                              timeZone: "UTC",
                             })}
                           </div>
                           <div>
                             {new Date(s.startDateTime).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
-                              timeZone: "Asia/Kolkata",
+                              timeZone: "UTC",
                             })}
                           </div>
                           <div className="text-xs text-gray-500">{s.status}</div>
