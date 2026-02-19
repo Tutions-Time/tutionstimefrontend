@@ -27,7 +27,7 @@ export default function StudentGroupBatches() {
     if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
     const [h, m] = time.split(":").map(Number);
     const d = new Date(0, 0, 0, h, m);
-    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
   };
   const [filters, setFilters] = useState<{ subject?: string; level?: string; date?: string }>({});
   const [loading, setLoading] = useState(false);
@@ -339,19 +339,19 @@ export default function StudentGroupBatches() {
               {b.batchStartDate && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> Start{" "}
-                  {new Date(b.batchStartDate).toLocaleDateString("en-IN")}
+                  {new Date(b.batchStartDate).toLocaleDateString("en-IN", { timeZone: "UTC" })}
                 </div>
               )}
               {b.batchEndDate && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> End{" "}
-                  {new Date(b.batchEndDate).toLocaleDateString("en-IN")}
+                  {new Date(b.batchEndDate).toLocaleDateString("en-IN", { timeZone: "UTC" })}
                 </div>
               )}
               {!b.batchEndDate && b.recurring?.endDate && (
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" /> End{" "}
-                  {new Date(b.recurring.endDate).toLocaleDateString("en-IN")}
+                  {new Date(b.recurring.endDate).toLocaleDateString("en-IN", { timeZone: "UTC" })}
                 </div>
               )}
               {b.recurring?.time && (

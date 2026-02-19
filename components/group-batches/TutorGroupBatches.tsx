@@ -32,7 +32,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
     const [h, m] = time.split(":").map(Number);
     const d = new Date(0, 0, 0, h, m);
-    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
   };
   const [form, setForm] = useState<any>({
     subject: "",
@@ -673,6 +673,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
+                      timeZone: "UTC",
                     })}
                   </span>
                 ) : (
@@ -688,6 +689,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
+                      timeZone: "UTC",
                     })}
                   </span>
                 </div>

@@ -112,17 +112,17 @@ const TutorRegularClasses = () => {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
 
-  const formatDateIST = (value: string) =>
+  const formatDateRaw = (value: string) =>
     new Date(value).toLocaleDateString("en-IN", {
-      timeZone: "Asia/Kolkata",
+      timeZone: "UTC",
     });
 
-  const formatTimeIST = (value: string) =>
+  const formatTimeRaw = (value: string) =>
     new Date(value).toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-      timeZone: "Asia/Kolkata",
+      timeZone: "UTC",
     });
 
   // ------------------------------------------------------
@@ -339,13 +339,13 @@ const TutorRegularClasses = () => {
                         <span className="flex items-center gap-1">
                           <CalendarDays className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            formatDateIST(c.nextSession.startDateTime)}
+                            formatDateRaw(c.nextSession.startDateTime)}
                         </span>
 
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           {c.nextSession?.startDateTime &&
-                            formatTimeIST(c.nextSession.startDateTime)}
+                            formatTimeRaw(c.nextSession.startDateTime)}
                         </span>
                       </div>
                     </div>
@@ -413,7 +413,7 @@ const TutorRegularClasses = () => {
 
                     <div className="text-gray-500 text-sm flex items-center gap-2 mt-2">
                       <CalendarDays className="w-4 h-4" />
-                      {formatDateIST(c.startDate)}
+                      {formatDateRaw(c.startDate)}
                     </div>
                   </div>
 
@@ -541,10 +541,10 @@ const TutorRegularClasses = () => {
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           <div>
-                            {formatDateIST(s.startDateTime)}
+                            {formatDateRaw(s.startDateTime)}
                           </div>
                           <div>
-                            {formatTimeIST(s.startDateTime)}
+                            {formatTimeRaw(s.startDateTime)}
                           </div>
                           <div className="text-xs text-gray-500">
                             {s.status}
