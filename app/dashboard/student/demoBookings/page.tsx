@@ -12,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, Clock, Video } from "lucide-react";
-import dayjs from "dayjs";
 import { Dialog } from "@headlessui/react";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -186,6 +185,22 @@ export default function StudentBookingsPage() {
     return { isFuture, inJoinWindow, isExpired };
   };
 
+  const formatDateIST = (value: string) =>
+    new Date(value).toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    });
+
+  const formatTimeIST = (value: string) =>
+    new Date(value).toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
+    });
+
   return (
     <>
       <div
@@ -274,11 +289,11 @@ export default function StudentBookingsPage() {
                               <div className="text-gray-500 text-sm flex items-center gap-3 mt-3">
                                 <span className="flex items-center gap-1">
                                   <CalendarDays className="w-4 h-4" />
-                                  {dayjs(next.startDateTime).format("MMM D, YYYY")}
+                                  {formatDateIST(next.startDateTime)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-4 h-4" />
-                                  {dayjs(next.startDateTime).format("h:mm A")}
+                                  {formatTimeIST(next.startDateTime)}
                                 </span>
                               </div>
                             )}
@@ -384,12 +399,15 @@ export default function StudentBookingsPage() {
                       <div className="flex justify-between items-start">
                         <div className="text-sm">
                           <div className="font-medium">
-                            {new Date(s.startDateTime).toLocaleDateString("en-IN")}
+                            {new Date(s.startDateTime).toLocaleDateString("en-IN", {
+                              timeZone: "Asia/Kolkata",
+                            })}
                           </div>
                           <div>
                             {new Date(s.startDateTime).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
+                              timeZone: "Asia/Kolkata",
                             })}
                           </div>
                           <div className="text-xs text-gray-500">{s.status}</div>
