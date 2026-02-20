@@ -65,19 +65,38 @@ export default function AdminClassesMonitorPage() {
   const [limit, setLimit] = useState(20);
   const [pages, setPages] = useState(1);
 
-  const refresh = async () => {
+  const refresh = async (overrides?: Partial<{
+    student: string;
+    tutor: string;
+    kind: 'all' | 'group' | 'regular';
+    status: 'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired';
+    isLive: 'all' | 'true' | 'false';
+    from: string;
+    to: string;
+    page: number;
+    limit: number;
+  }>) => {
+    const qStudent = overrides?.student ?? student;
+    const qTutor = overrides?.tutor ?? tutor;
+    const qKind = overrides?.kind ?? kind;
+    const qStatus = overrides?.status ?? status;
+    const qIsLive = overrides?.isLive ?? isLive;
+    const qFrom = overrides?.from ?? from;
+    const qTo = overrides?.to ?? to;
+    const qPage = overrides?.page ?? page;
+    const qLimit = overrides?.limit ?? limit;
     setLoading(true);
     try {
       const res = await getClassesMonitor({
-        student: student.trim() || undefined,
-        tutor: tutor.trim() || undefined,
-        kind: kind === 'all' ? undefined : kind,
-        status: status === 'all' ? undefined : status,
-        isLive: isLive === 'all' ? undefined : isLive,
-        from: from ? new Date(from).toISOString() : undefined,
-        to: to ? new Date(to).toISOString() : undefined,
-        page,
-        limit,
+        student: qStudent.trim() || undefined,
+        tutor: qTutor.trim() || undefined,
+        kind: qKind === 'all' ? undefined : qKind,
+        status: qStatus === 'all' ? undefined : qStatus,
+        isLive: qIsLive === 'all' ? undefined : qIsLive,
+        from: qFrom || undefined,
+        to: qTo || undefined,
+        page: qPage,
+        limit: qLimit,
       });
       setSessions(res.data || []);
       setSummary(res.summary || null);
@@ -97,7 +116,7 @@ export default function AdminClassesMonitorPage() {
   useEffect(() => {
     const h = setTimeout(() => {
       setPage(1);
-      refresh();
+      refresh({ page: 1 });
     }, 400);
     return () => clearTimeout(h);
   }, [student, tutor]);
@@ -181,7 +200,14 @@ export default function AdminClassesMonitorPage() {
                   <option value={50}>50 / page</option>
                   <option value={100}>100 / page</option>
                 </select>
-                <Button size="sm" variant="outline" onClick={refresh} className="h-9">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void refresh();
+                  }}
+                  className="h-9"
+                >
                   Refresh
                 </Button>
               </div>
