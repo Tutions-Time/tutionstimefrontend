@@ -31,6 +31,17 @@ type LiveSession = {
 };
 
 const toDateInput = (d: Date) => d.toISOString().split('T')[0];
+const formatTimeRaw = (value?: string) => {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'UTC',
+  });
+};
 
 export default function AdminClassesMonitorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -227,19 +238,9 @@ export default function AdminClassesMonitorPage() {
                           </div>
                           <div className="text-muted">
                             Time:{' '}
-                            {s.startDateTime
-                              ? new Date(s.startDateTime).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              : '-'}{' '}
+                            {formatTimeRaw(s.startDateTime)}{' '}
                             -{' '}
-                            {s.endDateTime
-                              ? new Date(s.endDateTime).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              : '-'}
+                            {formatTimeRaw(s.endDateTime)}
                           </div>
                           <div className="text-muted">Tutor: {s.tutor?.name || '-'}</div>
                           {s.kind === 'group' ? (
