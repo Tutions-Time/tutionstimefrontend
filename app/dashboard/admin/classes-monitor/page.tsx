@@ -200,7 +200,14 @@ export default function AdminClassesMonitorPage() {
                   <option value={50}>50 / page</option>
                   <option value={100}>100 / page</option>
                 </select>
-                <Button size="sm" variant="outline" onClick={refresh} className="h-9">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void refresh();
+                  }}
+                  className="h-9"
+                >
                   Refresh
                 </Button>
               </div>
