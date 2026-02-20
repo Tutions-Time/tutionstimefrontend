@@ -31,8 +31,10 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   const formatTime = (time?: string) => {
     if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
     const [h, m] = time.split(":").map(Number);
-    const d = new Date(0, 0, 0, h, m);
-    return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+    const hour24 = ((h % 24) + 24) % 24;
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const period = hour24 >= 12 ? "PM" : "AM";
+    return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
   };
   const [form, setForm] = useState<any>({
     subject: "",
