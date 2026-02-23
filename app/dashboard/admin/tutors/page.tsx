@@ -13,6 +13,8 @@ import {
   Eye,
   Map,
 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { FileDown } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -43,6 +45,7 @@ import {
   updateTutorKyc,
   updateTutorStatus,
 } from "@/services/adminService";
+import { hardDeleteUser } from "@/services/adminService";
 
 type Status = "active" | "suspended";
 type Kyc = "pending" | "approved" | "rejected";
@@ -276,8 +279,92 @@ export default function AdminTutorsPage() {
     }
   }
 
-  // delete functionality removed; suspension is the only action now
+  async function handleHardDelete(id: string) {
+    try {
+      if (
+        !window.confirm(
+          "This will permanently delete this tutor and their profile. Continue?",
+        )
+      )
+        return;
+      await hardDeleteUser(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      setTotal((t) => Math.max(0, t - 1));
+      toast({ title: "Tutor permanently deleted" });
+    } catch (err: any) {
+      toast({
+        title: "Failed to delete tutor",
+        description: err.message || "Unexpected error",
+        variant: "destructive",
+      });
+    }
+  }
 
+  function downloadCSV(rows: any[], filename: string) {
+    const headers = ['Name','Email','Phone','KYC','Status','Profile Complete','Joined At'];
+    const csvRows = rows.map((r) => [
+      r.name || '',
+      r.email || '',
+      r.phone || '',
+      r.kyc || '',
+      r.status || '',
+      r.profileComplete ? 'Yes' : 'No',
+      r.joinedAt ? new Date(r.joinedAt).toISOString() : '',
+    ]);
+    const all = [headers, ...csvRows].map((arr) =>
+      arr.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    const blob = new Blob([all], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function exportAllTutorsCSV() {
+    try {
+      const pageSize = 100;
+      let p = 1;
+      const out: any[] = [];
+      while (true) {
+        const res = await getAllTutors({
+          q: query,
+          kyc,
+          status,
+          sort,
+          page: p,
+          limit: pageSize,
+        });
+        const data = res?.data || [];
+        const filtered = data.filter((t: any) => {
+          const statusVal = String((t as any)?.status || "").toLowerCase();
+          const isDeleted =
+            t?.deleted || t?.isDeleted || t?.softDeleted || statusVal === "deleted";
+          const isSuspended = statusVal === "suspended";
+          if (isDeleted) return false;
+          if (status !== "suspended" && isSuspended) return false;
+          return true;
+        });
+        out.push(...filtered.map((t: any) => ({
+          name: t.name,
+          email: t.email,
+          phone: t.phone ?? "",
+          kyc: t.kyc,
+          status: t.status,
+          profileComplete: t.profileComplete,
+          joinedAt: t.joinedAt,
+        })));
+        if (data.length < pageSize) break;
+        p += 1;
+      }
+      downloadCSV(out, "tutors.csv");
+      toast({ title: "Tutors exported" });
+    } catch (err: any) {
+      toast({ title: "Export failed", description: err.message, variant: "destructive" });
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -310,6 +397,12 @@ export default function AdminTutorsPage() {
         <main className="p-4 lg:p-6 space-y-6">
           {/* Filters */}
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium">Filters</div>
+              <Button variant="outline" size="sm" onClick={exportAllTutorsCSV}>
+                <FileDown className="w-4 h-4 mr-2" /> Export CSV
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
               <div className="relative md:col-span-2">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
@@ -533,6 +626,19 @@ export default function AdminTutorsPage() {
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleHardDelete(t.id)}
+                            aria-label="Delete Tutor"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete Tutor</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <Link
                             href={`/dashboard/admin/tutors/${t.id}/journey`}
                           >
@@ -695,6 +801,19 @@ export default function AdminTutorsPage() {
                               </TooltipTrigger>
                               <TooltipContent>Journey</TooltipContent>
                             </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleHardDelete(t.id)}
+                                aria-label="Delete Tutor"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete Tutor</TooltipContent>
+                          </Tooltip>
                           </div>
                         </TooltipProvider>
                       </td>
