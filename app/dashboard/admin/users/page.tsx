@@ -27,7 +27,9 @@ import {
 import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
-import { getAllUsers, getUserById, updateUserStatus } from '@/services/adminService';
+import { getAllUsers, getUserById, updateUserStatus, hardDeleteUser } from '@/services/adminService';
+import { Trash2 } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 
 type Role = 'student' | 'tutor' | 'admin';
 type Status = 'active' | 'inactive' | 'suspended';
@@ -207,6 +209,75 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleHardDelete(id: string) {
+    try {
+      if (!window.confirm('This will permanently delete this user. Continue?')) return;
+      await hardDeleteUser(id);
+      setRows((prev) => prev.filter((r) => r._id !== id));
+      setTotal((t) => Math.max(0, t - 1));
+      toast({ title: 'User permanently deleted' });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to delete user',
+        description: error.message || 'Unexpected error',
+        variant: 'destructive',
+      });
+    }
+  }
+
+  function downloadCSV(rows: any[], filename: string) {
+    const headers = ['Name','Email','Phone','Status','Profile Complete','Created At','Last Active'];
+    const csvRows = rows.map((r) => [
+      r.name || '',
+      r.email || '',
+      r.profilePhone || r.phone || '',
+      r.status || '',
+      r.isProfileComplete ? 'Yes' : 'No',
+      r.createdAt ? new Date(r.createdAt).toISOString() : '',
+      r.lastLogin ? new Date(r.lastLogin).toISOString() : '',
+    ]);
+    const all = [headers, ...csvRows].map((arr) =>
+      arr.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    const blob = new Blob([all], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function exportAllStudentsCSV() {
+    try {
+      const pageSize = 100;
+      let p = 1;
+      const out: any[] = [];
+      while (true) {
+        const res = await getAllUsers({
+          role: 'student',
+          status: status === 'all' ? undefined : (status as Status),
+          q: query,
+          sort,
+          page: p,
+          limit: pageSize,
+        });
+        const users = res?.users || [];
+        const filtered = users.filter((u: any) => {
+          const statusVal = String((u as any)?.status || '').toLowerCase();
+          return !(u?.deleted || u?.isDeleted || u?.softDeleted || statusVal === 'deleted');
+        });
+        out.push(...filtered);
+        if (users.length < pageSize) break;
+        p += 1;
+      }
+      downloadCSV(out, 'students.csv');
+      toast({ title: 'Students exported' });
+    } catch (err: any) {
+      toast({ title: 'Export failed', description: err.message, variant: 'destructive' });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -271,6 +342,12 @@ export default function AdminUsersPage() {
         <main className="p-4 lg:p-6 space-y-6">
           {/* Filters */}
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium">Filters</div>
+              <Button variant="outline" size="sm" onClick={exportAllStudentsCSV}>
+                <FileDown className="w-4 h-4 mr-2" /> Export CSV
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="relative">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
@@ -386,6 +463,14 @@ export default function AdminUsersPage() {
                       )}
                       {u.status === 'active' ? 'Deactivate' : 'Activate'}
                     </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleHardDelete(u._id)}
+                      aria-label="Delete Student"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </Card>
               ))}
@@ -489,7 +574,14 @@ export default function AdminUsersPage() {
                             ) : (
                               <ToggleRight className="w-4 h-4 mr-2" />
                             )}
-                            
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleHardDelete(u._id)}
+                            aria-label="Delete Student"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </td>

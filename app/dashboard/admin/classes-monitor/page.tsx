@@ -9,6 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { getClassesMonitor } from '@/services/adminService';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
+import { getUserById } from '@/services/adminService';
+import { toast } from '@/hooks/use-toast';
 
 type LiveSession = {
   _id: string;
@@ -19,7 +23,7 @@ type LiveSession = {
   status?: string;
   isLive?: boolean;
   meetingLink?: string;
-  tutor?: { name?: string } | null;
+  tutor?: { _id?: string; userId?: string; name?: string; photoUrl?: string } | null;
   student?: { name?: string } | null;
   enrolled?: { _id: string; name?: string }[];
   presence?: {
@@ -31,6 +35,11 @@ type LiveSession = {
 };
 
 const toDateInput = (d: Date) => d.toISOString().split('T')[0];
+const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
 const formatTimeRaw = (value?: string) => {
   if (!value) return '-';
   const d = new Date(value);
@@ -53,8 +62,9 @@ export default function AdminClassesMonitorPage() {
     'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired'
   >('all');
   const [isLive, setIsLive] = useState<'all' | 'true' | 'false'>('all');
+  const [range, setRange] = useState<'next7' | 'today' | 'last7' | 'custom'>('next7');
   const [from, setFrom] = useState<string>(() => toDateInput(new Date()));
-  const [to, setTo] = useState<string>(() => toDateInput(new Date()));
+  const [to, setTo] = useState<string>(() => toDateInput(addDays(new Date(), 7)));
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [summary, setSummary] = useState<{
     isInClass: boolean;
@@ -64,6 +74,11 @@ export default function AdminClassesMonitorPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [pages, setPages] = useState(1);
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const [tutorLoading, setTutorLoading] = useState(false);
+  const [selectedTutor, setSelectedTutor] = useState<{ userId?: string; name?: string; photoUrl?: string } | null>(null);
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const [profileData, setProfileData] = useState<any>(null);
 
   const refresh = async (overrides?: Partial<{
     student: string;
@@ -114,6 +129,22 @@ export default function AdminClassesMonitorPage() {
   }, [kind, status, isLive, from, to, page, limit]);
 
   useEffect(() => {
+    const today = new Date();
+    if (range === 'today') {
+      const f = toDateInput(today);
+      setFrom(f);
+      setTo(f);
+    } else if (range === 'next7') {
+      setFrom(toDateInput(today));
+      setTo(toDateInput(addDays(today, 7)));
+    } else if (range === 'last7') {
+      setFrom(toDateInput(addDays(today, -7)));
+      setTo(toDateInput(today));
+    }
+    // 'custom' leaves current from/to intact
+  }, [range]);
+
+  useEffect(() => {
     const h = setTimeout(() => {
       setPage(1);
       refresh({ page: 1 });
@@ -122,6 +153,52 @@ export default function AdminClassesMonitorPage() {
   }, [student, tutor]);
 
   const rows = useMemo(() => sessions, [sessions]);
+
+  const getProperImageUrl = (path?: string | null) => {
+    if (!path) return '';
+    const p = String(path);
+    if (p.startsWith('http://') || p.startsWith('https://')) return p;
+    const cleaned = p.replace(/^[A-Za-z]:\\.*?uploads\\/i, 'uploads/').replace(/\\/g, '/');
+    const base =
+      process.env.NEXT_PUBLIC_IMAGE_URL ||
+      process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') ||
+      '';
+    const trimmed = cleaned.replace(/^\/+/, '');
+    return base ? `${base}/${trimmed}` : cleaned;
+  };
+  const formatText = (v: any) => {
+    if (v === null || v === undefined) return '-';
+    const s = String(v).trim();
+    return s.length ? s : '-';
+  };
+  const formatArray = (arr: any) => {
+    if (!Array.isArray(arr) || arr.length === 0) return '-';
+    const parts = arr.map((x) => (typeof x === 'string' ? x : String(x))).filter(Boolean);
+    return parts.length ? parts.join(', ') : '-';
+  };
+
+  const openTutorModal = async (t: { userId?: string; name?: string; photoUrl?: string }) => {
+    if (!t?.userId) {
+      toast({ title: 'Tutor detail not available', description: 'User id missing for this tutor', variant: 'destructive' });
+      return;
+    }
+    setSelectedTutor({ userId: t.userId, name: t.name, photoUrl: t.photoUrl });
+    setTutorOpen(true);
+    setTutorLoading(true);
+    setProfileUser(null);
+    setProfileData(null);
+    try {
+      const res = await getUserById(String(t.userId));
+      const user = res?.user || res?.data?.user || res || null;
+      const profile = res?.profile || res?.data?.profile || null;
+      setProfileUser(user);
+      setProfileData(profile);
+    } catch (err: any) {
+      toast({ title: 'Failed to load tutor', description: err.message, variant: 'destructive' });
+    } finally {
+      setTutorLoading(false);
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -134,7 +211,7 @@ export default function AdminClassesMonitorPage() {
 
           <main className="p-4 lg:p-6 space-y-6">
             <Card className="p-3 rounded-2xl bg-white shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+              <div className="grid grid-cols-1 md:grid-cols-8 gap-2 items-center">
                 <select
                   className="h-9 rounded-md border px-2 text-xs"
                   value={kind}
@@ -143,6 +220,16 @@ export default function AdminClassesMonitorPage() {
                   <option value="all">All Types</option>
                   <option value="regular">Regular</option>
                   <option value="group">Group</option>
+                </select>
+                <select
+                  className="h-9 rounded-md border px-2 text-xs"
+                  value={range}
+                  onChange={(e) => setRange(e.target.value as any)}
+                >
+                  <option value="next7">Next 7 Days</option>
+                  <option value="today">Today</option>
+                  <option value="last7">Last 7 Days</option>
+                  <option value="custom">Custom Range</option>
                 </select>
                 <select
                   className="h-9 rounded-md border px-2 text-xs"
@@ -269,6 +356,18 @@ export default function AdminClassesMonitorPage() {
                             {formatTimeRaw(s.endDateTime)}
                           </div>
                           <div className="text-muted">Tutor: {s.tutor?.name || '-'}</div>
+                          {s.tutor?.userId && (
+                            <div>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => openTutorModal(s.tutor!)}
+                                className="p-0 h-auto"
+                              >
+                                View Tutor Detail
+                              </Button>
+                            </div>
+                          )}
                           {s.kind === 'group' ? (
                             <details className="text-muted">
                               <summary className="cursor-pointer">
@@ -317,6 +416,133 @@ export default function AdminClassesMonitorPage() {
           </main>
         </div>
       </div>
+      <Dialog open={tutorOpen} onOpenChange={(o) => {
+        setTutorOpen(o);
+        if (!o) {
+          setSelectedTutor(null);
+          setProfileUser(null);
+          setProfileData(null);
+          setTutorLoading(false);
+        }
+      }}>
+        <DialogContent className="max-w-5xl rounded-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tutor Profile</DialogTitle>
+            <DialogDescription>Full profile details</DialogDescription>
+          </DialogHeader>
+          {tutorLoading ? (
+            <div className="py-10 text-center text-muted">Loading tutor profile...</div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                {getProperImageUrl(profileData?.photoUrl || selectedTutor?.photoUrl) ? (
+                  <img
+                    src={getProperImageUrl(profileData?.photoUrl || selectedTutor?.photoUrl)}
+                    alt={profileData?.name || selectedTutor?.name || 'Tutor'}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-semibold text-primary">
+                    {(profileData?.name || selectedTutor?.name || 'T').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="text-xl font-semibold">{formatText(profileData?.name || selectedTutor?.name)}</div>
+                  <div className="text-sm text-muted">{formatText(profileData?.email || profileUser?.email)}</div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Personal Information</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Full Name</div>
+                    <div>{formatText(profileData?.name)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Email</div>
+                    <div>{formatText(profileData?.email || profileUser?.email)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Gender</div>
+                    <div>{formatText(profileData?.gender)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Teaching Mode</div>
+                    <div>{formatText(profileData?.teachingMode)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">City</div>
+                    <div>{formatText(profileData?.city)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">State</div>
+                    <div>{formatText(profileData?.state)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Academic & Teaching</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Highest Qualification</div>
+                    <div>{formatText(profileData?.qualification)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Specialization</div>
+                    <div>{formatText(profileData?.specialization)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Experience (Years)</div>
+                    <div>{formatText(profileData?.experience)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Subjects & Classes</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Student Types</div>
+                    <div>{formatArray(profileData?.studentTypes)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Subjects</div>
+                    <div>{formatArray(profileData?.subjects)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Classes</div>
+                    <div>{formatArray(profileData?.classLevels)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Boards / Curriculums</div>
+                    <div>{formatArray(profileData?.boards)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Rates & Availability</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Hourly Rate/per student</div>
+                    <div>{formatText(profileData?.hourlyRate)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Monthly Rate/per student</div>
+                    <div>{formatText(profileData?.monthlyRate)}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-muted mb-2">Availability</div>
+                    <AvailabilityPicker value={profileData?.availability || []} onChange={() => {}} readOnly />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ProtectedRoute>
   );
 }

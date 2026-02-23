@@ -209,6 +209,16 @@ export const deleteUser = async (userId: string) => {
   }
 };
 
+// Permanently delete a user (student or tutor)
+export const hardDeleteUser = async (userId: string) => {
+  try {
+    const res = await api.delete(`/admin/users/${userId}/hard`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const deleteTutor = async (id: string) => {
   try {
     const res = await api.delete(`/admin/tutors/${id}`);
