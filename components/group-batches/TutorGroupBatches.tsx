@@ -456,8 +456,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
 
           <div className="relative">
             {(loadingOptions || creating) && (
-              <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+              <div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-10 gap-2">
                 <Loader2 className="w-6 h-6 animate-spin text-gray-700" />
+                <div className="text-sm text-gray-700">
+                  {creating ? "Creating sessions and meetings..." : "Loading options..."}
+                </div>
               </div>
             )}
             <div className={`space-y-2 ${loadingOptions || creating ? "pointer-events-none opacity-60" : ""}`}>
