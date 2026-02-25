@@ -378,14 +378,24 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   };
 
   const getSessionJoinData = (dateStr: string) => {
-    const start = new Date(dateStr).getTime();
-    const classDurationMin = 60;
-    const joinBeforeMin = batch?.accessWindow?.joinBeforeMin ?? 5;
-    const expireAfterMin = batch?.accessWindow?.expireAfterMin ?? 5;
-
-    const end = start + classDurationMin * 60 * 1000;
-    const openAt = start - joinBeforeMin * 60 * 1000;
-    const closeAt = end + expireAfterMin * 60 * 1000;
+    const startMs = new Date(dateStr).getTime();
+    const t = String(batch?.recurring?.time || "");
+    const e = String(batch?.recurring?.endTime || "");
+    const tm = t.match(/^(\d{1,2}):(\d{2})$/);
+    const em = e.match(/^(\d{1,2}):(\d{2})$/);
+    let classDurationMin = 60;
+    if (tm && em) {
+      const sh = Math.max(0, Math.min(23, Number(tm[1])));
+      const sm = Math.max(0, Math.min(59, Number(tm[2])));
+      const eh = Math.max(0, Math.min(23, Number(em[1])));
+      const emn = Math.max(0, Math.min(59, Number(em[2])));
+      let diff = eh * 60 + emn - (sh * 60 + sm);
+      if (diff <= 0) diff += 24 * 60;
+      classDurationMin = diff || 60;
+    }
+    const openAt = startMs - 5 * 60 * 1000;
+    const end = startMs + classDurationMin * 60 * 1000;
+    const closeAt = end;
 
     const now = Date.now();
 
