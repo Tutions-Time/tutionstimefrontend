@@ -38,6 +38,7 @@ export default function StudentGroupBatches() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedBatch, setSelectedBatch] = useState<any | null>(null);
 
   // Enrollment Modal State
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
@@ -234,14 +235,24 @@ export default function StudentGroupBatches() {
   // Sessions Modal
   // --------------------------
   const getSessionJoinData = (dateStr: string) => {
-    const start = new Date(dateStr).getTime();
-    const duration = 60;
-    const joinBefore = 5;
-    const expireAfter = 5;
-
-    const end = start + duration * 60 * 1000;
-    const openAt = start - joinBefore * 60 * 1000;
-    const closeAt = end + expireAfter * 60 * 1000;
+    const startMs = new Date(dateStr).getTime();
+    const t = String(selectedBatch?.recurring?.time || "");
+    const e = String(selectedBatch?.recurring?.endTime || "");
+    const tm = t.match(/^(\d{1,2}):(\d{2})$/);
+    const em = e.match(/^(\d{1,2}):(\d{2})$/);
+    let duration = 60;
+    if (tm && em) {
+      const sh = Math.max(0, Math.min(23, Number(tm[1])));
+      const sm = Math.max(0, Math.min(59, Number(tm[2])));
+      const eh = Math.max(0, Math.min(23, Number(em[1])));
+      const emn = Math.max(0, Math.min(59, Number(em[2])));
+      let diff = eh * 60 + emn - (sh * 60 + sm);
+      if (diff <= 0) diff += 24 * 60;
+      duration = diff || 60;
+    }
+    const openAt = startMs - 5 * 60 * 1000;
+    const end = startMs + duration * 60 * 1000;
+    const closeAt = end;
 
     const now = Date.now();
 
@@ -259,6 +270,8 @@ export default function StudentGroupBatches() {
 
       const res = await api.get(`/group-batches/${batchId}/sessions`);
       setSessions(res.data?.data || []);
+      const b = await api.get(`/group-batches/${batchId}`);
+      setSelectedBatch(b.data?.data || null);
     } finally {
       setSessionsLoading(false);
     }
