@@ -198,7 +198,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
         ...form,
         board: form.board === "Other" ? form.boardOther : form.board,
       };
-      const res = await api.post("/group-batches/create", payload);
+      const res = await api.post("/group-batches/create", payload, {
+        timeout: 180000,
+      });
       if (res.data?.success) {
         toast({
           title: "Batch created",
