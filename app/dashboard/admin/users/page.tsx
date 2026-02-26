@@ -256,8 +256,8 @@ export default function AdminUsersPage() {
       while (true) {
         const res = await getAllUsers({
           role: 'student',
-          status: status === 'all' ? undefined : (status as Status),
-          q: query,
+          status: undefined,
+          q: '',
           sort,
           page: p,
           limit: pageSize,

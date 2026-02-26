@@ -144,6 +144,11 @@ export default function AdminTutorsPage() {
       const normalized = normalizeUserResponse(res);
       setProfileUser(normalized.user);
       setProfileData(normalized.profile);
+      // Ensure email is visible even when profile lacks it
+      if ((!row.email || row.email.trim() === '') && (normalized?.user?.email || normalized?.profile?.email)) {
+        const newEmail = normalized?.profile?.email || normalized?.user?.email;
+        setSelectedTutor((prev) => (prev ? { ...prev, email: newEmail } : prev));
+      }
     } catch (err: any) {
       toast({
         title: "Failed to load tutor profile",
@@ -330,9 +335,9 @@ export default function AdminTutorsPage() {
       const out: any[] = [];
       while (true) {
         const res = await getAllTutors({
-          q: query,
-          kyc,
-          status,
+          q: "",
+          kyc: "all",
+          status: "all",
           sort,
           page: p,
           limit: pageSize,
@@ -342,9 +347,7 @@ export default function AdminTutorsPage() {
           const statusVal = String((t as any)?.status || "").toLowerCase();
           const isDeleted =
             t?.deleted || t?.isDeleted || t?.softDeleted || statusVal === "deleted";
-          const isSuspended = statusVal === "suspended";
           if (isDeleted) return false;
-          if (status !== "suspended" && isSuspended) return false;
           return true;
         });
         out.push(...filtered.map((t: any) => ({
