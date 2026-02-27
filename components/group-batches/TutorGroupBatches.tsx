@@ -28,6 +28,17 @@ type TutorGroupBatchesProps = {
 export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesProps) {
   const { toast } = useToast();
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const toYmd = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(todayStart);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowYmd = toYmd(tomorrow);
   const formatTime = (time?: string) => {
     if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return time || "";
     const [h, m] = time.split(":").map(Number);
@@ -170,6 +181,12 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     if (form.board === "Other" && !form.boardOther) errors.push("Board name is required");
     if (!form.startDate) errors.push("Start date is required");
     if (!form.endDate) errors.push("End date is required");
+    if (form.startDate && form.startDate < tomorrowYmd) {
+      errors.push("Start date must be after today");
+    }
+    if (form.endDate && form.endDate < tomorrowYmd) {
+      errors.push("End date must be after today");
+    }
     if (form.startDate && form.endDate && form.endDate < form.startDate) {
       errors.push("End date must be on or after start date");
     }
@@ -547,6 +564,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
                 disabled={loadingOptions || creating}
+                min={tomorrowYmd}
               />
             </div>
             <div className="space-y-1">
@@ -557,6 +575,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
                 disabled={loadingOptions || creating}
+                min={form.startDate && form.startDate > tomorrowYmd ? form.startDate : tomorrowYmd}
               />
               <p className="text-xs text-gray-500">End date must be on or after start date.</p>
             </div>
