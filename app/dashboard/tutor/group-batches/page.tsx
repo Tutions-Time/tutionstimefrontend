@@ -17,10 +17,22 @@ import {
 import { getCreateOptions } from "@/services/groupBatchService";
 import TutorGroupBatches from "@/components/group-batches/TutorGroupBatches";
 import TimePicker from "@/components/group-batches/TimePicker";
+import { Loader2 } from "lucide-react";
 
 export default function TutorGroupBatchesPage() {
   const { toast } = useToast();
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const toYmd = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(todayStart);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowYmd = toYmd(tomorrow);
   const [form, setForm] = useState<any>({
     subject: "",
     board: "",
@@ -49,6 +61,7 @@ export default function TutorGroupBatchesPage() {
   });
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -85,6 +98,12 @@ export default function TutorGroupBatchesPage() {
     if (!form.board) errors.push("Board is required");
     if (!form.startDate) errors.push("Start date is required");
     if (!form.endDate) errors.push("End date is required");
+    if (form.startDate && form.startDate < tomorrowYmd) {
+      errors.push("Start date must be after today");
+    }
+    if (form.endDate && form.endDate < tomorrowYmd) {
+      errors.push("End date must be after today");
+    }
     if (form.startDate && form.endDate && form.endDate < form.startDate) {
       errors.push("End date must be on or after start date");
     }
@@ -118,6 +137,7 @@ export default function TutorGroupBatchesPage() {
     };
 
     try {
+      setCreating(true);
       const res = await api.post("/group-batches/create", payload, { timeout: 180000 });
       if (res.data?.success) {
         toast({
@@ -170,6 +190,8 @@ export default function TutorGroupBatchesPage() {
             variant: "destructive",
           });
         }
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -282,6 +304,8 @@ export default function TutorGroupBatchesPage() {
                       className="border p-2 rounded w-full"
                       value={form.startDate}
                       onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                      min={tomorrowYmd}
+                      disabled={loadingOptions || creating}
                     />
                   </div>
 
@@ -292,6 +316,8 @@ export default function TutorGroupBatchesPage() {
                       className="border p-2 rounded w-full"
                       value={form.endDate}
                       onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                      min={form.startDate && form.startDate > tomorrowYmd ? form.startDate : tomorrowYmd}
+                      disabled={loadingOptions || creating}
                     />
                     <p className="text-xs text-gray-500">End date must be on or after start date.</p>
                   </div>
@@ -396,8 +422,15 @@ export default function TutorGroupBatchesPage() {
                   </div>
 
                   <div className="flex justify-end">
-                    <Button onClick={create} disabled={loadingOptions}>
-                      Create
+                    <Button onClick={create} disabled={loadingOptions || creating}>
+                      {creating ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Creating...
+                        </span>
+                      ) : (
+                        "Create"
+                      )}
                     </Button>
                   </div>
                 </div>
