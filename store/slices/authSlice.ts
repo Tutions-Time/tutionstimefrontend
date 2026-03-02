@@ -89,11 +89,11 @@ export const loginAsync = createAsyncThunk(
 export const signupAsync = createAsyncThunk(
   'auth/signup',
   async (
-    { email, otp, requestId, role, referralCode }: { email: string; otp: string; requestId: string; role: 'student' | 'tutor'; referralCode?: string },
+    { email, otp, requestId, role, referralCode, name, phone }: { email: string; otp: string; requestId: string; role: 'student' | 'tutor'; referralCode?: string; name: string; phone: string },
     { rejectWithValue, dispatch }
   ) => {
     try {
-      if (!email || !otp || !requestId || !role) {
+      if (!email || !otp || !requestId || !role || !name || !phone) {
         throw new Error('Missing required fields for signup');
       }
 
@@ -104,6 +104,8 @@ export const signupAsync = createAsyncThunk(
         purpose: 'signup',
         role,
         referralCode,
+        name: name.trim(),
+        phone: phone.trim(),
       });
 
       if (!response.data.success) {

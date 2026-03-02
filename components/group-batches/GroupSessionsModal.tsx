@@ -17,7 +17,7 @@ type Props = {
   onAfterFeedback?: () => void | Promise<void>;
 };
 
-export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback }: Props) {
+export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback, allowReschedule = false, onRequestReschedule }: Props & { allowReschedule?: boolean; onRequestReschedule?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void> }) {
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
     if (!s) return "";
@@ -73,6 +73,9 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                         </button>
                       )}
                     </div>
+                    {allowReschedule && s.status === "scheduled" && !isExpired && (
+                      <RescheduleInline sessionId={s._id} onSubmit={onRequestReschedule} />
+                    )}
                     {s.status === "completed" && (
                       <div className="space-y-4">
                         {/* Feedback display / form */}
@@ -240,5 +243,46 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
         </Dialog.Panel>
       </div>
     </Dialog>
+  );
+}
+
+function RescheduleInline({ sessionId, onSubmit }: { sessionId: string; onSubmit?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const submit = async () => {
+    if (!onSubmit) return;
+    if (!date || !time) return;
+    try {
+      setSubmitting(true);
+      await onSubmit(sessionId, date, time, reason || undefined);
+      setOpen(false);
+      setDate("");
+      setTime("");
+      setReason("");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-lg text-sm bg-gray-100">Request Reschedule</button>
+      ) : (
+        <div className="space-y-2 border rounded-lg p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="date" className="border rounded px-2 py-1" value={date} onChange={(e)=>setDate(e.target.value)} />
+            <input type="time" className="border rounded px-2 py-1" value={time} onChange={(e)=>setTime(e.target.value)} />
+            <input type="text" className="border rounded px-2 py-1" placeholder="Reason (optional)" value={reason} onChange={(e)=>setReason(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={submit} disabled={!date || !time || submitting} className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black">{submitting ? "Submitting..." : "Submit"}</button>
+            <button onClick={()=>setOpen(false)} className="px-3 py-2 rounded-lg text-sm bg-gray-200">Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

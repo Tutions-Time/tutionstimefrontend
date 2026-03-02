@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -80,6 +80,26 @@ export default function TutorProfileCompletePage() {
     if (userEmail) {
       dispatch(setBulk({ email: userEmail }));
     }
+  }, [dispatch, userEmail]);
+
+  // Prefill name and phone from server/user if available
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get("/users/profile");
+        const data = res?.data?.data || res?.data || {};
+        const profileData = data?.profile || null;
+        const user = data?.user || {};
+        const patch: Record<string, any> = {};
+        if (profileData?.name) patch.name = profileData.name;
+        if (user?.phone) {
+          patch.phone = String(user.phone);
+          patch.altPhone = String(user.phone);
+        }
+        if (profileData?.email && !userEmail) patch.email = profileData.email;
+        if (Object.keys(patch).length) dispatch(setBulk(patch));
+      } catch {}
+    })();
   }, [dispatch, userEmail]);
 
   // ---------- VALIDATION ----------

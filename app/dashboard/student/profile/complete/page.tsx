@@ -64,6 +64,28 @@ export default function StudentProfileCompletePage() {
     }
   }, [dispatch, userEmail]);
 
+  // Prefill name and phone from server/user if available
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get("/users/profile");
+        const data = res?.data?.data || res?.data || {};
+        const profileData = data?.profile || null;
+        const user = data?.user || {};
+        if (profileData?.name) {
+          dispatch(setField({ key: "name", value: profileData.name }));
+        }
+        if (user?.phone) {
+          dispatch(setField({ key: "phone", value: String(user.phone) }));
+          dispatch(setField({ key: "altPhone", value: String(user.phone) }));
+        }
+        if (profileData?.email && !userEmail) {
+          dispatch(setField({ key: "email", value: profileData.email }));
+        }
+      } catch {}
+    })();
+  }, [dispatch, userEmail]);
+
   // ---------- Validation ----------
   const validate = () => {
     const e = validateStudentProfileFields(profile);

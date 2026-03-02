@@ -34,6 +34,7 @@ import {
   deleteAllAdminNotifications,
 } from '@/services/notificationService';
 import { deriveNotificationRoute } from '@/lib/notificationRoute';
+import { approveReschedule, rejectReschedule } from '@/services/rescheduleService';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -352,6 +353,35 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
                         </Button>
                       </div>
                     </div>
+                    {n?.meta?.rescheduleRequestId && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await approveReschedule(String(n.meta.rescheduleRequestId));
+                              setDrawerItems((prev) => prev.filter((x: any) => x._id !== n._id));
+                            } catch {}
+                          }}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await rejectReschedule(String(n.meta.rescheduleRequestId));
+                              setDrawerItems((prev) => prev.filter((x: any) => x._id !== n._id));
+                            } catch {}
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}

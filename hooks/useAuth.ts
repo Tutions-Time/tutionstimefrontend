@@ -135,7 +135,9 @@ export const useAuth = () => {
       otp: string,
       requestId: string,
       role: "student" | "tutor",
-      referralCode?: string
+      referralCode?: string,
+      name?: string,
+      phone?: string
     ) => {
       if (role === "student") {
         dispatch(resetProfile());
@@ -145,7 +147,7 @@ export const useAuth = () => {
 
       const normalizedEmail = email.trim().toLowerCase();
       const result = await dispatch(
-        signupAsync({ email: normalizedEmail, otp, requestId, role, referralCode })
+        signupAsync({ email: normalizedEmail, otp, requestId, role, referralCode, name: String(name || ""), phone: String(phone || "") })
       );
 
       if (signupAsync.fulfilled.match(result)) {
