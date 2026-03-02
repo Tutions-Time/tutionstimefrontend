@@ -20,6 +20,7 @@ import TutorBatchDetailModal from "@/components/group-batches/TutorBatchDetailMo
 import EditBatchModal from "@/components/group-batches/EditBatchModal";
 import TimePicker from "./TimePicker";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { requestReschedule } from "@/services/rescheduleService";
 
 type TutorGroupBatchesProps = {
   refreshToken?: number;
@@ -839,6 +840,15 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
           await onUpload(sessionId, kind, file)
         }
         allowFeedback={false}
+        allowReschedule
+        onRequestReschedule={async (sessionId, date, time, reason) => {
+          try {
+            await requestReschedule(sessionId, { date, time, reason });
+            toast({ title: "Reschedule request sent" });
+          } catch (e: any) {
+            toast({ title: "Failed to send request", description: e.message || "Failed", variant: "destructive" });
+          }
+        }}
       />
     </div>
   );

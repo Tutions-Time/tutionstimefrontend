@@ -21,6 +21,7 @@ import {
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { requestReschedule } from "@/services/rescheduleService";
 
 export default function StudentGroupBatches() {
   const formatTime = (time?: string) => {
@@ -623,6 +624,15 @@ export default function StudentGroupBatches() {
         loading={sessionsLoading}
         onJoin={joinSession}
         getSessionJoinData={getSessionJoinData}
+        allowReschedule
+        onRequestReschedule={async (sessionId, date, time, reason) => {
+          try {
+            await requestReschedule(sessionId, { date, time, reason });
+            toast.success("Reschedule request sent");
+          } catch (e: any) {
+            toast.error(e.message || "Failed to send request");
+          }
+        }}
       />
     </>
   );

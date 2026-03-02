@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,9 @@ export default function SignupClient() {
   const initialRole = searchParams.get("role") as "student" | "tutor" | null;
 
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [countryCode, setCountryCode] = useState("91");
   const [step, setStep] = useState<"role" | "email" | "otp">("role");
   const [role, setRole] = useState<"student" | "tutor" | null>(initialRole);
   const [otp, setOTP] = useState("");
@@ -49,11 +52,37 @@ export default function SignupClient() {
 
     const normalizedEmail = email.trim().toLowerCase();
     const isValidEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+    const isValidPhone = (value: string) => /^[0-9]{10}$/.test(value);
+    const isValidCountryCode = (value: string) => /^[0-9]{1,3}$/.test(value);
 
     if (!isValidEmail(normalizedEmail)) {
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!fullName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your full name",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!isValidPhone(mobile.trim())) {
+      toast({
+        title: "Invalid Mobile",
+        description: "Please enter a 10-digit mobile number",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!isValidCountryCode(countryCode.trim())) {
+      toast({
+        title: "Invalid Country Code",
+        description: "Please enter a valid country code (1-3 digits)",
         variant: "destructive",
       });
       return;
@@ -90,7 +119,9 @@ export default function SignupClient() {
         otpValue.trim(),
         requestId,
         role,
-        role === "student" ? referralCode.trim() || undefined : undefined
+        role === "student" ? referralCode.trim() || undefined : undefined,
+        fullName.trim(),
+        mobile.trim()
       );
     } catch (error: any) {
       toast({
@@ -157,6 +188,22 @@ export default function SignupClient() {
         {step === "email" && (
           <form onSubmit={handleSendOTP} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
@@ -171,6 +218,42 @@ export default function SignupClient() {
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number</Label>
+              <div className="flex gap-2">
+                <div className="relative w-28">
+                  <Input
+                    id="countryCode"
+                    type="tel"
+                    placeholder="91"
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                    className="pl-6"
+                    inputMode="numeric"
+                    pattern="[0-9]{1,3}"
+                    required
+                  />
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted">+</span>
+                </div>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                  <Input
+                    id="mobile"
+                    type="tel"
+                    placeholder="10-digit mobile number"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    className="pl-10"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            
 
             {role === "student" && (
               <div className="space-y-2">
