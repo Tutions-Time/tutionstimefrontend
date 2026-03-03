@@ -21,6 +21,7 @@ import EditBatchModal from "@/components/group-batches/EditBatchModal";
 import TimePicker from "./TimePicker";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { requestReschedule } from "@/services/rescheduleService";
+import { listMyRescheduleRequests } from "@/services/rescheduleService";
 
 type TutorGroupBatchesProps = {
   refreshToken?: number;
@@ -89,6 +90,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
   // Sessions Modal
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<Record<string, string>>({});
 
   const [editOpen, setEditOpen] = useState(false);
   const [editOptions, setEditOptions] = useState<any>({
@@ -375,6 +377,16 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
 
       setSessions(s.data?.data || []);
       setBatch(b.data?.data || null);
+      try {
+        const reqs = await listMyRescheduleRequests();
+        const map: Record<string, string> = {};
+        (reqs || []).forEach((r: any) => {
+          if (r?.sessionId && r?.proposedStartDateTime && r?.status === "pending") {
+            map[String(r.sessionId)] = r.proposedStartDateTime;
+          }
+        });
+        setPendingRequests(map);
+      } catch {}
     } catch {
       toast({
         title: "Unable to load sessions",
@@ -849,6 +861,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
             toast({ title: "Failed to send request", description: e.message || "Failed", variant: "destructive" });
           }
         }}
+        pendingRequests={pendingRequests}
       />
     </div>
   );

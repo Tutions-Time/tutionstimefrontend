@@ -17,7 +17,7 @@ type Props = {
   onAfterFeedback?: () => void | Promise<void>;
 };
 
-export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback, allowReschedule = false, onRequestReschedule }: Props & { allowReschedule?: boolean; onRequestReschedule?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void> }) {
+export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback, allowReschedule = false, onRequestReschedule, pendingRequests }: Props & { allowReschedule?: boolean; onRequestReschedule?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void>; pendingRequests?: Record<string, string> }) {
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
     if (!s) return "";
@@ -73,6 +73,11 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                         </button>
                       )}
                     </div>
+                    {pendingRequests && pendingRequests[s._id] && (
+                      <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                        Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                      </div>
+                    )}
                     {allowReschedule && s.status === "scheduled" && !isExpired && (
                       <RescheduleInline sessionId={s._id} onSubmit={onRequestReschedule} />
                     )}
