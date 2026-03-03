@@ -861,17 +861,26 @@ export default function StudentSessions() {
 function StudentRescheduleInline({ sessionId, onAfter }: { sessionId: string; onAfter?: () => Promise<void> | void }) {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [hour, setHour] = useState("03");
+  const [minute, setMinute] = useState("00");
+  const [meridiem, setMeridiem] = useState<"AM" | "PM">("PM");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const timeValue = () => {
+    let h = Number(hour) % 12;
+    if (meridiem === "PM") h += 12;
+    return `${String(h).padStart(2, "0")}:${minute}`;
+  };
   const submit = async () => {
     const { requestReschedule } = await import("@/services/rescheduleService");
     try {
       setSubmitting(true);
-      await requestReschedule(sessionId, { date, time, reason });
+      await requestReschedule(sessionId, { date, time: timeValue(), reason });
       setOpen(false);
       setDate("");
-      setTime("");
+      setHour("03");
+      setMinute("00");
+      setMeridiem("PM");
       setReason("");
       toast({ title: "Reschedule request sent" });
       if (onAfter) await onAfter();
@@ -887,13 +896,25 @@ function StudentRescheduleInline({ sessionId, onAfter }: { sessionId: string; on
         <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-lg text-sm bg-gray-100">Request Reschedule</button>
       ) : (
         <div className="space-y-2 border rounded-lg p-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
             <input type="date" className="border rounded px-2 py-1" value={date} onChange={(e)=>setDate(e.target.value)} />
-            <input type="time" className="border rounded px-2 py-1" value={time} onChange={(e)=>setTime(e.target.value)} />
+            <select className="border rounded px-2 py-1" value={hour} onChange={(e)=>setHour(e.target.value)}>
+              {Array.from({length:12}).map((_,i)=> {
+                const val = String(i===0?12:i).padStart(2,"0");
+                return <option key={val} value={val}>{val}</option>;
+              })}
+            </select>
+            <select className="border rounded px-2 py-1" value={minute} onChange={(e)=>setMinute(e.target.value)}>
+              {["00","15","30","45"].map(m=> <option key={m} value={m}>{m}</option>)}
+            </select>
+            <select className="border rounded px-2 py-1" value={meridiem} onChange={(e)=>setMeridiem(e.target.value as "AM"|"PM")}>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
             <input type="text" className="border rounded px-2 py-1" placeholder="Reason (optional)" value={reason} onChange={(e)=>setReason(e.target.value)} />
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={submit} disabled={!date || !time || submitting} className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black">{submitting ? "Submitting..." : "Submit"}</button>
+            <button onClick={submit} disabled={!date || submitting} className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black">{submitting ? "Submitting..." : "Submit"}</button>
             <button onClick={()=>setOpen(false)} className="px-3 py-2 rounded-lg text-sm bg-gray-200">Cancel</button>
           </div>
         </div>
