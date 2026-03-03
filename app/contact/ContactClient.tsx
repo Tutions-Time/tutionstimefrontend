@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Phone, Globe, Instagram, Linkedin, Facebook, Twitter } from "lucide-react";
+import { ArrowLeft, Phone, Globe, Instagram, Linkedin, Facebook, Twitter, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -29,8 +29,7 @@ export default function ContactClient() {
               Contact <span className="text-primary">Us</span>
             </h1>
             <p className="mt-3 max-w-2xl text-slate-600">
-              Weâ€™re here to help. Reach out to us through our official contact number
-              or connect with us on our social platforms.
+              We're here to help. Reach out via our official contact number, email, or connect with us on our social platforms.
             </p>
           </div>
 
@@ -49,6 +48,21 @@ export default function ContactClient() {
                     className="text-lg font-semibold text-slate-900 hover:text-primary"
                   >
                     +918755313291
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Email</p>
+                  <a
+                    href="mailto:Support@tuitionstime.com"
+                    className="text-lg font-semibold text-slate-900 hover:text-primary break-all"
+                  >
+                    support@tuitionstime.com
                   </a>
                 </div>
               </div>
