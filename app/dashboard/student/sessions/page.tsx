@@ -53,6 +53,7 @@ export default function StudentSessions() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [regularClassSessions, setRegularClassSessions] = useState<any[]>([]);
   const [selectedRegularClassId, setSelectedRegularClassId] = useState<string | null>(null);
+  const [pendingRequests, setPendingRequests] = useState<Record<string, string>>({});
   const [regularSessionsByClass, setRegularSessionsByClass] = useState<Record<string, any[]>>({});
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
@@ -109,6 +110,17 @@ export default function StudentSessions() {
       setSessionsLoading(true);
       const res = await getRegularClassSessions(regularClassId);
       setRegularClassSessions(res.success ? (res.data || []) : []);
+      try {
+        const { listMyRescheduleRequests } = await import("@/services/rescheduleService");
+        const reqs = await listMyRescheduleRequests();
+        const map: Record<string, string> = {};
+        (reqs || []).forEach((r: any) => {
+          if (r?.sessionId && r?.proposedStartDateTime && r?.status === "pending") {
+            map[String(r.sessionId)] = r.proposedStartDateTime;
+          }
+        });
+        setPendingRequests(map);
+      } catch {}
     } catch {
       setRegularClassSessions([]);
     } finally {
@@ -715,6 +727,21 @@ export default function StudentSessions() {
                         </div>
                       </div>
 
+                      {pendingRequests[s._id] && (
+                        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                          Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                        </div>
+                      )}
+                      {s.status === "scheduled" && nowMs < endMs && (
+                        <StudentRescheduleInline
+                          sessionId={s._id}
+                          onAfter={async () => {
+                            const res = await getRegularClassSessions(selectedRegularClassId!);
+                            setRegularClassSessions(res.success ? (res.data || []) : []);
+                          }}
+                        />
+                      )}
+
                       {s.status === "completed" && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           <div className="border rounded-lg p-2 text-sm">
@@ -826,6 +853,50 @@ export default function StudentSessions() {
       </Dialog>
       {upgradeModalOpen && upgradeBooking && (
         <UpgradeToRegularModal booking={upgradeBooking} onClose={() => { setUpgradeModalOpen(false); setUpgradeBooking(null); }} />
+      )}
+    </div>
+  );
+}
+
+function StudentRescheduleInline({ sessionId, onAfter }: { sessionId: string; onAfter?: () => Promise<void> | void }) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const submit = async () => {
+    const { requestReschedule } = await import("@/services/rescheduleService");
+    try {
+      setSubmitting(true);
+      await requestReschedule(sessionId, { date, time, reason });
+      setOpen(false);
+      setDate("");
+      setTime("");
+      setReason("");
+      toast({ title: "Reschedule request sent" });
+      if (onAfter) await onAfter();
+    } catch (e: any) {
+      toast({ title: "Failed to send request", description: e.message || "Error", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  return (
+    <div className="space-y-2">
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-lg text-sm bg-gray-100">Request Reschedule</button>
+      ) : (
+        <div className="space-y-2 border rounded-lg p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="date" className="border rounded px-2 py-1" value={date} onChange={(e)=>setDate(e.target.value)} />
+            <input type="time" className="border rounded px-2 py-1" value={time} onChange={(e)=>setTime(e.target.value)} />
+            <input type="text" className="border rounded px-2 py-1" placeholder="Reason (optional)" value={reason} onChange={(e)=>setReason(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={submit} disabled={!date || !time || submitting} className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black">{submitting ? "Submitting..." : "Submit"}</button>
+            <button onClick={()=>setOpen(false)} className="px-3 py-2 rounded-lg text-sm bg-gray-200">Cancel</button>
+          </div>
+        </div>
       )}
     </div>
   );
