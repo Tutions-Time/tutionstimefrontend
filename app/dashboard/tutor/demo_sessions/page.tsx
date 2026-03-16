@@ -13,6 +13,7 @@ import {
   markTutorDemoJoin,
   updateDemoRequestStatus,
 } from '@/services/tutorService';
+import DemoInsights from '@/components/tutors/DemoInsights';
 import { toast } from '@/hooks/use-toast';
 import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 
@@ -116,7 +117,10 @@ export default function TutorDemoRequests() {
           subtitle="Review and manage your demo class requests"
         />
 
-        <main className="p-4 lg:p-6 space-y-4">
+        <main className="p-4 lg:p-6 space-y-6">
+          {/* Demo Insights */}
+          <DemoInsights />
+
           {/* Loading */}
           {loading && (
             <div className="text-center text-muted py-10 animate-pulse">

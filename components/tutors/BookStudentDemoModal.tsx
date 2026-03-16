@@ -22,6 +22,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     userId,
     subjects = [],
     availability = [],
+    preferredTimes = [],
     board,
     learningMode,
     studentLearningMode,
@@ -29,9 +30,11 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
+  const [selectedPreferredSlot, setSelectedPreferredSlot] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const resolvedLearningMode = learningMode || studentLearningMode || "";
+  const hasPreferredSlots = Array.isArray(preferredTimes) && preferredTimes.length > 0;
 
   const selectedDay = selectedDate ? dayjs(selectedDate) : null;
   const isSelectedDayToday = selectedDay?.isSame(dayjs(), "day");
@@ -53,12 +56,27 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     if (!open) return;
     setSelectedDate("");
     setSelectedTime(null);
+    setSelectedPreferredSlot("");
     setNote("");
   }, [open]);
 
   useEffect(() => {
     setSelectedTime(null);
+    setSelectedPreferredSlot("");
   }, [selectedDate]);
+
+  const getStartTimeFromPreferredSlot = (slot: string) => {
+    const part = String(slot || "").split("-")[0]?.trim();
+    const m = part?.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return null;
+    let h = Number(m[1]);
+    const min = Number(m[2]);
+    const period = String(m[3]).toUpperCase();
+    if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+    h = h % 12;
+    if (period === "PM") h += 12;
+    return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+  };
 
   const showSuccess = (msg: string) =>
     toast({
@@ -74,14 +92,27 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     });
 
   const handleSubmit = async () => {
-    if (!selectedSubject || !selectedDate || !selectedTime) {
+    if (!selectedSubject || !selectedDate) {
       showError("Please fill all fields");
       return;
     }
 
+    const selectedTime24 = hasPreferredSlots
+      ? getStartTimeFromPreferredSlot(selectedPreferredSlot)
+      : selectedTime
+      ? selectedTime.format("HH:mm")
+      : "";
+
+    if (!selectedTime24) {
+      showError("Please select a preferred time");
+      return;
+    }
+
+    const [selHour, selMinute] = selectedTime24.split(":").map(Number);
+
     const bookingMoment = dayjs(selectedDate)
-      .hour(selectedTime.hour())
-      .minute(selectedTime.minute())
+      .hour(selHour || 0)
+      .minute(selMinute || 0)
       .second(0)
       .millisecond(0);
 
@@ -97,7 +128,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         studentId: userId,
         subject: selectedSubject,
         date: selectedDate,
-        time: selectedTime.format("HH:mm"),
+        time: selectedTime24,
         note,
         studentLearningMode: resolvedLearningMode,
       });
@@ -185,33 +216,57 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         </select>
 
         {/* Time */}
-        <label className="text-xs font-medium text-gray-600">Select Time</label>
-        {isSelectedDayToday && (
-          <p className="text-[10px] text-gray-500 mb-1">
-            Only future time slots are selectable for today.
-          </p>
+        <label className="text-xs font-medium text-gray-600">
+          {hasPreferredSlots ? "Student Preferred Time" : "Select Time"}
+        </label>
+        {hasPreferredSlots ? (
+          <>
+            <p className="text-[10px] text-gray-500 mb-1">
+              Select one of the student's preferred time slots.
+            </p>
+            <select
+              className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"
+              value={selectedPreferredSlot}
+              onChange={(e) => setSelectedPreferredSlot(e.target.value)}
+            >
+              <option value="">Select Preferred Time</option>
+              {preferredTimes.map((slot: string, idx: number) => (
+                <option key={`${slot}-${idx}`} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+          </>
+        ) : (
+          <>
+            {isSelectedDayToday && (
+              <p className="text-[10px] text-gray-500 mb-1">
+                Only future time slots are selectable for today.
+              </p>
+            )}
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <TimePicker
+                value={selectedTime}
+                onChange={setSelectedTime}
+                ampm
+                minutesStep={1}
+                viewRenderers={{
+                  hours: renderTimeViewClock,
+                  minutes: renderTimeViewClock,
+                }}
+                minTime={minTimeForToday}
+                disablePast={isSelectedDayToday}
+                slotProps={{
+                  textField: {
+                    size: "small",
+                    fullWidth: true,
+                    className: "mt-1 mb-3",
+                  },
+                }}
+              />
+            </LocalizationProvider>
+          </>
         )}
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <TimePicker
-            value={selectedTime}
-            onChange={setSelectedTime}
-            ampm
-            minutesStep={1}
-            viewRenderers={{
-              hours: renderTimeViewClock,
-              minutes: renderTimeViewClock,
-            }}
-            minTime={minTimeForToday}
-            disablePast={isSelectedDayToday}
-            slotProps={{
-              textField: {
-                size: "small",
-                fullWidth: true,
-                className: "mt-1 mb-3",
-              },
-            }}
-          />
-        </LocalizationProvider>
 
         {/* Note */}
         <label className="text-xs font-medium text-gray-600">Note (Optional)</label>

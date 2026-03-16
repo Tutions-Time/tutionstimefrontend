@@ -15,9 +15,32 @@ type Props = {
   onUpload?: (sessionId: string, kind: "recording" | "notes" | "assignment", file: File) => Promise<void>;
   allowFeedback?: boolean;
   onAfterFeedback?: () => void | Promise<void>;
+  allowReschedule?: boolean;
+  onRequestReschedule?: (
+    sessionId: string,
+    date: string,
+    time: string,
+    reason?: string
+  ) => Promise<void> | void;
+  pendingRequests?: Record<string, string>;
 };
 
-export default function GroupSessionsModal({ open, onClose, sessions, loading, onJoin, getSessionJoinData, title = "Sessions", allowUpload = false, onUpload, allowFeedback = false, onAfterFeedback, allowReschedule = false, onRequestReschedule, pendingRequests }: Props & { allowReschedule?: boolean; onRequestReschedule?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void>; pendingRequests?: Record<string, string> }) {
+export default function GroupSessionsModal({
+  open,
+  onClose,
+  sessions,
+  loading,
+  onJoin,
+  getSessionJoinData,
+  title = "Sessions",
+  allowUpload = false,
+  onUpload,
+  allowFeedback = false,
+  onAfterFeedback,
+  allowReschedule = false,
+  onRequestReschedule,
+  pendingRequests = {},
+}: Props) {
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
     if (!s) return "";
@@ -30,6 +53,8 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
     }
   };
   const [feedbackState, setFeedbackState] = useState<Record<string, { teaching: number; communication: number; understanding: number; comment: string }>>({});
+  const [rescheduleOpen, setRescheduleOpen] = useState<Record<string, boolean>>({});
+  const [rescheduleForm, setRescheduleForm] = useState<Record<string, { date: string; time: string; reason: string }>>({});
   const updateFeedback = (id: string, key: "teaching" | "communication" | "understanding" | "comment", value: number | string) => {
     setFeedbackState((prev) => ({
       ...prev,
@@ -55,6 +80,7 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
             <div className="space-y-3">
               {sessions.map((s: any) => {
                 const { canJoin, isExpired } = getSessionJoinData(s.startDateTime);
+                const rf = rescheduleForm[s._id] || { date: "", time: "", reason: "" };
                 return (
                   <div key={s._id} className="border rounded-lg p-3 space-y-3">
                     <div className="flex items-center justify-between">
@@ -73,13 +99,70 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
                         </button>
                       )}
                     </div>
-                    {pendingRequests && pendingRequests[s._id] && (
+                    {pendingRequests[s._id] && (
                       <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                        Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
+                        Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN")}
                       </div>
                     )}
-                    {allowReschedule && s.status === "scheduled" && !isExpired && (
-                      <RescheduleInline sessionId={s._id} onSubmit={onRequestReschedule} />
+                    {allowReschedule && !isExpired && s.status !== "completed" && onRequestReschedule && (
+                      <div className="space-y-2">
+                        {!rescheduleOpen[s._id] ? (
+                          <button
+                            onClick={() => setRescheduleOpen((p) => ({ ...p, [s._id]: true }))}
+                            className="px-3 py-2 rounded-lg text-sm bg-gray-100"
+                          >
+                            Request Reschedule
+                          </button>
+                        ) : (
+                          <div className="border rounded-lg p-3 space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="date"
+                                className="border rounded px-2 py-1"
+                                value={rf.date}
+                                onChange={(e) =>
+                                  setRescheduleForm((p) => ({ ...p, [s._id]: { ...rf, date: e.target.value } }))
+                                }
+                              />
+                              <input
+                                type="time"
+                                className="border rounded px-2 py-1"
+                                value={rf.time}
+                                onChange={(e) =>
+                                  setRescheduleForm((p) => ({ ...p, [s._id]: { ...rf, time: e.target.value } }))
+                                }
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              className="border rounded px-2 py-1 w-full"
+                              placeholder="Reason (optional)"
+                              value={rf.reason}
+                              onChange={(e) =>
+                                setRescheduleForm((p) => ({ ...p, [s._id]: { ...rf, reason: e.target.value } }))
+                              }
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                disabled={!rf.date || !rf.time}
+                                onClick={async () => {
+                                  await onRequestReschedule(s._id, rf.date, rf.time, rf.reason);
+                                  setRescheduleOpen((p) => ({ ...p, [s._id]: false }));
+                                }}
+                                className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black disabled:opacity-50"
+                              >
+                                Submit
+                              </button>
+                              <button
+                                onClick={() => setRescheduleOpen((p) => ({ ...p, [s._id]: false }))}
+                                className="px-3 py-2 rounded-lg text-sm bg-gray-200"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                     {s.status === "completed" && (
                       <div className="space-y-4">
@@ -251,64 +334,3 @@ export default function GroupSessionsModal({ open, onClose, sessions, loading, o
   );
 }
 
-function RescheduleInline({ sessionId, onSubmit }: { sessionId: string; onSubmit?: (sessionId: string, date: string, time: string, reason?: string) => Promise<void> }) {
-  const [open, setOpen] = useState(false);
-  const [date, setDate] = useState("");
-  const [hour, setHour] = useState("03");
-  const [minute, setMinute] = useState("00");
-  const [meridiem, setMeridiem] = useState<"AM" | "PM">("PM");
-  const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const timeValue = () => {
-    let h = Number(hour) % 12;
-    if (meridiem === "PM") h += 12;
-    return `${String(h).padStart(2, "0")}:${minute}`;
-  };
-  const submit = async () => {
-    if (!onSubmit) return;
-    if (!date) return;
-    try {
-      setSubmitting(true);
-      await onSubmit(sessionId, date, timeValue(), reason || undefined);
-      setOpen(false);
-      setDate("");
-      setHour("03");
-      setMinute("00");
-      setMeridiem("PM");
-      setReason("");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  return (
-    <div className="space-y-2">
-      {!open ? (
-        <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-lg text-sm bg-gray-100">Request Reschedule</button>
-      ) : (
-        <div className="space-y-2 border rounded-lg p-3">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <input type="date" className="border rounded px-2 py-1" value={date} onChange={(e)=>setDate(e.target.value)} />
-            <select className="border rounded px-2 py-1" value={hour} onChange={(e)=>setHour(e.target.value)}>
-              {Array.from({length:12}).map((_,i)=> {
-                const val = String(i===0?12:i).padStart(2,"0");
-                return <option key={val} value={val}>{val}</option>;
-              })}
-            </select>
-            <select className="border rounded px-2 py-1" value={minute} onChange={(e)=>setMinute(e.target.value)}>
-              {["00","15","30","45"].map(m=> <option key={m} value={m}>{m}</option>)}
-            </select>
-            <select className="border rounded px-2 py-1" value={meridiem} onChange={(e)=>setMeridiem(e.target.value as "AM"|"PM")}>
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
-            </select>
-            <input type="text" className="border rounded px-2 py-1" placeholder="Reason (optional)" value={reason} onChange={(e)=>setReason(e.target.value)} />
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={submit} disabled={!date || submitting} className="px-3 py-2 rounded-lg text-sm bg-[#FFD54F] text-black">{submitting ? "Submitting..." : "Submit"}</button>
-            <button onClick={()=>setOpen(false)} className="px-3 py-2 rounded-lg text-sm bg-gray-200">Cancel</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

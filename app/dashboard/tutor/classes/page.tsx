@@ -194,9 +194,25 @@ const TutorRegularClasses = () => {
   // ------------------------------------------------------
   // ⭐ JOIN LOGIC CALC (Unified frontend logic)
   // ------------------------------------------------------
+  const getUtcWallClockMs = (value: string) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return NaN;
+    return new Date(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      d.getUTCHours(),
+      d.getUTCMinutes(),
+      d.getUTCSeconds(),
+      d.getUTCMilliseconds()
+    ).getTime();
+  };
+
   const getSessionJoinData = (dateStr: string) => {
-    const start = new Date(dateStr);
-    const startMs = start.getTime();
+    const startMs = getUtcWallClockMs(dateStr);
+    if (!Number.isFinite(startMs)) {
+      return { canJoin: false, isExpired: false };
+    }
 
     const classDurationMin = 60;
     const joinBeforeMin = 5;
@@ -252,9 +268,21 @@ const TutorRegularClasses = () => {
 
   const openScheduleModal = (id: string) => {
     setSelectedClassId(id);
-    setSelectedHour("03");
-    setSelectedMinute("00");
-    setSelectedMeridiem("PM");
+    const selectedClass = classes.find((c) => String(c.regularClassId) === String(id));
+    const preferredSlot = selectedClass?.preferredTimes?.[0] || selectedClass?.student?.preferredTimes?.[0] || "";
+    const slotStart = getStartTimeFromPreferredSlot(preferredSlot);
+    if (slotStart) {
+      const [hh, mm] = slotStart.split(":").map(Number);
+      const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+      const meridiem = hh >= 12 ? "PM" : "AM";
+      setSelectedHour(String(hour12).padStart(2, "0"));
+      setSelectedMinute(String(mm).padStart(2, "0"));
+      setSelectedMeridiem(meridiem as "AM" | "PM");
+    } else {
+      setSelectedHour("03");
+      setSelectedMinute("00");
+      setSelectedMeridiem("PM");
+    }
     setModalOpen(true);
   };
 
@@ -262,6 +290,30 @@ const TutorRegularClasses = () => {
     let h = Number(selectedHour) % 12;
     if (selectedMeridiem === "PM") h += 12;
     return `${String(h).padStart(2, "0")}:${selectedMinute}`;
+  };
+
+  const getStartTimeFromPreferredSlot = (slot: string) => {
+    const part = String(slot || "").split("-")[0]?.trim();
+    const m = part?.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return null;
+    let h = Number(m[1]);
+    const min = Number(m[2]);
+    const period = String(m[3]).toUpperCase();
+    if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+    h = h % 12;
+    if (period === "PM") h += 12;
+    return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+  };
+
+  const applyPreferredSlot = (slot: string) => {
+    const start = getStartTimeFromPreferredSlot(slot);
+    if (!start) return;
+    const [hh, mm] = start.split(":").map(Number);
+    const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+    const meridiem = hh >= 12 ? "PM" : "AM";
+    setSelectedHour(String(hour12).padStart(2, "0"));
+    setSelectedMinute(String(mm).padStart(2, "0"));
+    setSelectedMeridiem(meridiem as "AM" | "PM");
   };
 
   const handleScheduleSubmit = async () => {
@@ -492,6 +544,11 @@ const TutorRegularClasses = () => {
                       <CalendarDays className="w-4 h-4" />
                       {formatDateRaw(c.startDate)}
                     </div>
+                    {!!(c.preferredTimes?.length || c.student?.preferredTimes?.length) && (
+                      <div className="text-gray-600 text-xs mt-2">
+                        Preferred Time: {(c.preferredTimes || c.student?.preferredTimes || []).join(", ")}
+                      </div>
+                    )}
                   </div>
 
                   <Badge className="bg-[#FFD54F] text-red-700">
@@ -521,6 +578,29 @@ const TutorRegularClasses = () => {
             <Dialog.Title className="text-lg font-semibold">
               Schedule Class
             </Dialog.Title>
+
+            {(() => {
+              const selectedClass = classes.find((c) => String(c.regularClassId) === String(selectedClassId));
+              const preferredTimes = selectedClass?.preferredTimes || selectedClass?.student?.preferredTimes || [];
+              if (!preferredTimes.length) return null;
+              return (
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-600">Student preferred slots</div>
+                  <div className="flex flex-wrap gap-2">
+                    {preferredTimes.map((slot: string) => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => applyPreferredSlot(slot)}
+                        className="px-2 py-1 rounded-full text-xs border bg-[#FFD54F]/20 hover:bg-[#FFD54F]/30 text-gray-800"
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="space-y-2">
               <div className="text-sm text-gray-600">Select class time</div>

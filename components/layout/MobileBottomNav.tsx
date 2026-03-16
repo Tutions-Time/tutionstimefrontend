@@ -96,7 +96,7 @@ export default function MobileBottomNav({
   }, [show]);
 
   return show ? (
-    <div ref={barRef} className="fixed bottom-0 left-0 right-0 z-40 border-t bg-white shadow-lg md:hidden pb-[env(safe-area-inset-bottom)]">
+    <div ref={barRef} className="fixed bottom-0 left-0 right-0 z-30 border-t bg-white shadow-lg md:hidden pb-[env(safe-area-inset-bottom)]">
       <nav className="grid grid-cols-4">
         {items.map((it) => {
           const active = pathname === it.href || pathname.startsWith(it.href + '/');
