@@ -46,7 +46,7 @@ export default function StudentGroupBatches() {
   const [enrollMonths, setEnrollMonths] = useState(1);
   const [enrollMonthsInput, setEnrollMonthsInput] = useState("1");
   const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
-  const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
+  const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null });
 
   // --------------------------
   // Razorpay Loader
@@ -290,11 +290,12 @@ export default function StudentGroupBatches() {
       const res = await requestRefund({
         paymentId: refundModal.paymentId,
         reasonCode: refundModal.reasonCode,
-        reasonText: refundModal.reasonText
+        reasonText: refundModal.reasonText,
+        upiId: String(refundModal.upiId || "").trim(),
       });
       if (res.success) {
         toast.success("Refund requested");
-        setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
+        setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null });
       } else {
         toast.error(res.message || "Failed");
       }
@@ -458,7 +459,7 @@ export default function StudentGroupBatches() {
                       <Button
                         variant="outline"
                         className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null })}
+                        onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null })}
                       >
                         Refund
                       </Button>
@@ -592,6 +593,16 @@ export default function StudentGroupBatches() {
               </div>
             )}
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium">UPI ID</label>
+              <input
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={refundModal.upiId}
+                onChange={(e) => setRefundModal((f: any) => ({ ...f, upiId: e.target.value }))}
+                placeholder="yourname@upi"
+              />
+            </div>
+
             {refundModal.preview && (
               <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded space-y-1">
                 <div className="flex justify-between"><span>Completion:</span> <span>{Math.round((refundModal.preview.completionPercentage || 0) * 100)}%</span></div>
@@ -606,7 +617,12 @@ export default function StudentGroupBatches() {
             <Button variant="outline" onClick={() => setRefundModal({ ...refundModal, open: false })}>Cancel</Button>
             <Button 
               onClick={submitRefund} 
-              disabled={refundModal.submitting || !refundModal.reasonCode || (refundModal.reasonCode === "OTHER" && !refundModal.reasonText)}
+              disabled={
+                refundModal.submitting ||
+                !refundModal.reasonCode ||
+                !String(refundModal.upiId || "").trim() ||
+                (refundModal.reasonCode === "OTHER" && !refundModal.reasonText)
+              }
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               {refundModal.submitting ? "Submitting..." : "Submit Request"}

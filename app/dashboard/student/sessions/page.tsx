@@ -57,7 +57,7 @@ export default function StudentSessions() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; upiId?: string; preview?: any }>({});
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -133,7 +133,12 @@ export default function StudentSessions() {
   const submitRefund = async () => {
     try {
       if (!refundForm.paymentId || !refundForm.reasonCode) return;
-      const res = await requestRefund({ paymentId: refundForm.paymentId, reasonCode: String(refundForm.reasonCode), reasonText: refundForm.reasonText || undefined });
+      const res = await requestRefund({
+        paymentId: refundForm.paymentId,
+        reasonCode: String(refundForm.reasonCode),
+        reasonText: refundForm.reasonText || undefined,
+        upiId: String(refundForm.upiId || "").trim(),
+      });
       if (res?.success) {
         toast({ title: "Refund requested" });
         const rf = await getStudentRefunds();
@@ -788,6 +793,15 @@ export default function StudentSessions() {
                 </select>
               </div>
               <div>
+                <label className="block text-sm text-gray-600">UPI ID</label>
+                <input
+                  value={refundForm.upiId || ""}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, upiId: e.target.value }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  placeholder="yourname@upi"
+                />
+              </div>
+              <div>
                 {refundForm.reasonCode === "OTHER" && (
                   <textarea
                     value={refundForm.reasonText || ""}
@@ -818,7 +832,18 @@ export default function StudentSessions() {
               )}
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setRefundModalOpen(false)}>Cancel</Button>
-                <Button onClick={submitRefund} className="bg-primary text-white" disabled={!refundForm.paymentId || !refundForm.reasonCode || (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())}>Submit</Button>
+                <Button
+                  onClick={submitRefund}
+                  className="bg-primary text-white"
+                  disabled={
+                    !refundForm.paymentId ||
+                    !refundForm.reasonCode ||
+                    !String(refundForm.upiId || "").trim() ||
+                    (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())
+                  }
+                >
+                  Submit
+                </Button>
               </div>
             </div>
           </Dialog.Panel>

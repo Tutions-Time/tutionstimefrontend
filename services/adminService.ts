@@ -248,7 +248,7 @@ export const getAdminRefunds = async (params?: { status?: string; from?: string;
 
 export const updateRefundStatus = async (
   id: string,
-  status: 'approved' | 'rejected' | 'processed',
+  status: 'approved' | 'rejected',
   method?: 'provider' | 'payout'
 ) => {
   try {

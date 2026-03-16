@@ -46,7 +46,7 @@ export default function AdminRefundsPage() {
     refresh();
   }, isRefundNotification);
 
-  const act = async (id: string, status: 'approved' | 'rejected' | 'processed', method?: 'provider' | 'payout') => {
+  const act = async (id: string, status: 'approved' | 'rejected', method?: 'provider' | 'payout') => {
     setUpdating(id);
     try {
       await updateRefundStatus(id, status, method);
@@ -264,17 +264,6 @@ export default function AdminRefundsPage() {
                 disabled={updating === selected?._id}
               >
                 Reject
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (!selected?._id) return;
-                  act(selected._id, 'processed');
-                }}
-                disabled={updating === selected?._id}
-              >
-                Process
               </Button>
               <Button
                 variant="outline"
