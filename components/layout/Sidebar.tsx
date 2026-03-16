@@ -96,12 +96,12 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={onClose} />
       )}
 
       <aside
         className={cn(
-          'fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform duration-200 z-40',
+          'fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform duration-200 z-[60]',
           'lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}

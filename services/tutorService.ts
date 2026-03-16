@@ -196,6 +196,15 @@ export const getTutorEarningsSummary = async (params?: { startDate?: string; end
 //   }
 // };
 
+export const getTutorDemoInsights = async () => {
+  try {
+    const res = await api.get('/bookings/tutor/insights');
+    return res.data; // { success, data: { total, completed, rejectedByStudent, likedByStudent, ... } }
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 /**
  * Update demo booking status (Accept / Reject)
  * Endpoint: PATCH /api/bookings/:id/status

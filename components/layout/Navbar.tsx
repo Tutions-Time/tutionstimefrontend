@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, User, Menu, Trash2 } from 'lucide-react';
+import { Bell, User, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
@@ -206,8 +206,14 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
         {/* LEFT SECTION */}
         <div className="flex items-center gap-4">
           {onMenuClick && (
-            <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-              <Menu className="h-5 w-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMenuClick}
+              aria-label="Open menu"
+              className="lg:hidden h-11 w-11 rounded-xl touch-manipulation active:scale-95 relative z-[60]"
+            >
+              <MoreVertical className="h-5 w-5" />
             </Button>
           )}
 
@@ -228,7 +234,13 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
         <div className="flex items-center gap-2 sm:gap-4">
 
           <div className="relative">
-            <Button variant="ghost" size="icon" aria-label="Notifications" onClick={handleToggleDrawer}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Notifications"
+              onClick={handleToggleDrawer}
+              className="h-11 w-11 rounded-xl touch-manipulation"
+            >
               <Bell className="h-5 w-5" />
             </Button>
             {effectiveUnread > 0 && (
@@ -241,7 +253,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
           {/* USER DROPDOWN */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
+              <Button variant="ghost" className="gap-2 h-11 rounded-xl touch-manipulation">
                 <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
                   <User className="h-4 w-4" />
                 </div>

@@ -33,10 +33,25 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     return `${hour}:${m} ${ampm}`;
   };
 
+  const getUtcWallClockMs = (value: string) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return NaN;
+    return new Date(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      d.getUTCHours(),
+      d.getUTCMinutes(),
+      d.getUTCSeconds(),
+      d.getUTCMilliseconds()
+    ).getTime();
+  };
+
   const computeJoinAvailability = (startTime: string) => {
     if (!startTime) return false;
 
-    const start = new Date(startTime).getTime();
+    const start = getUtcWallClockMs(startTime);
+    if (!Number.isFinite(start)) return false;
     const classDurationMin = 60;
     const joinBeforeMin = 5;
     const expireAfterMin = 5;

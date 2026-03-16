@@ -105,18 +105,7 @@ export default function StudentBookingsPage() {
 
   // Filter bookings based on active tab
   const filtered = bookings.filter((b) => {
-    const isTabMatch = b.type?.toLowerCase() === activeTab;
-    if (!isTabMatch) return false;
-
-    // Hide demo bookings that have an associated PAID regular class
-    if (activeTab !== "demo") return true;
-
-    const rc = regularClasses.find(
-      (rc: any) => String(rc.regularClassId) === String(b.regularClassId)
-    );
-
-    if (!rc) return true;
-    return rc.paymentStatus !== "paid";
+    return b.type?.toLowerCase() === activeTab;
   });
 
   const openSessionsModal = async (regularClassId: string) => {
@@ -171,8 +160,25 @@ export default function StudentBookingsPage() {
   // ============================================
   // JOIN BUTTON LOGIC — UNIVERSAL FUNCTION
   // ============================================
+  const getUtcWallClockMs = (value: string) => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return NaN;
+    return new Date(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      d.getUTCHours(),
+      d.getUTCMinutes(),
+      d.getUTCSeconds(),
+      d.getUTCMilliseconds()
+    ).getTime();
+  };
+
   const getJoinState = (startDateTime: string) => {
-    const startMs = new Date(startDateTime).getTime();
+    const startMs = getUtcWallClockMs(startDateTime);
+    if (!Number.isFinite(startMs)) {
+      return { isFuture: true, inJoinWindow: false, isExpired: false };
+    }
     const nowMs = Date.now();
 
     const joinOpenAt = startMs - 5 * 60 * 1000; // 5 min before
@@ -385,7 +391,8 @@ export default function StudentBookingsPage() {
                 <div className="text-center text-gray-500">No sessions found.</div>
               ) : (
                 sessions.map((s: any) => {
-                  const startMs = new Date(s.startDateTime).getTime();
+                  const startMs = getUtcWallClockMs(s.startDateTime);
+                  if (!Number.isFinite(startMs)) return null;
                   const nowMs = Date.now();
 
                   const joinOpenAt = startMs - 5 * 60 * 1000;
@@ -472,7 +479,7 @@ export default function StudentBookingsPage() {
                       </div>
                     </div>
                   );
-                })
+                }).filter(Boolean)
               )}
             </div>
           </Dialog.Panel>
