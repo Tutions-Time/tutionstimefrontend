@@ -25,6 +25,11 @@ export default function UpgradeToRegularModal({
     const hourlyRate = booking?.tutorHourlyRate || 0;
     const monthlyRate = booking?.tutorMonthlyRate || 0;
 
+    const completeUpgradeFlow = () => {
+        onClose();
+        router.push(`/dashboard/student/demoBookings`);
+    };
+
     /* -----------------------------------------
      * Razorpay Script Loader (Fresh)
      * --------------------------------------- */
@@ -90,9 +95,15 @@ export default function UpgradeToRegularModal({
                         }
                     );
 
-                    if (verifyRes?.success) {
+                    const isVerified =
+                        Boolean(verifyRes?.success) ||
+                        Boolean(verifyRes?.verified) ||
+                        Boolean(verifyRes?.data?.success) ||
+                        Boolean(verifyRes?.data?.verified);
+
+                    if (isVerified) {
                         toast.success("Payment successful!");
-                        router.push(`/dashboard/student/demoBookings`);
+                        completeUpgradeFlow();
                     } else {
                         toast.error(verifyRes?.message || "Verification failed");
                     }
@@ -143,7 +154,7 @@ export default function UpgradeToRegularModal({
             });
             if (orderRes?.walletPaid) {
                 toast.success("Payment successful via wallet");
-                router.push(`/dashboard/student/demoBookings`);
+                completeUpgradeFlow();
             } else {
                 openRazorpay(orderRes, regularClassId);
             }

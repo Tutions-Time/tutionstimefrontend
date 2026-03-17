@@ -47,6 +47,10 @@ export interface TutorProfileState {
   resumeUrl: string;
   demoVideoUrl: string;
   certificateUrl: string;
+  upiId: string;
+  accountHolderName: string;
+  bankAccountNumber: string;
+  ifsc: string;
 
   // ----- Optional UI fields -----
   subjectOther?: string;
@@ -104,6 +108,10 @@ export const initialState: TutorProfileState = {
   resumeUrl: "",
   demoVideoUrl: "",
   certificateUrl: "",
+  upiId: "",
+  accountHolderName: "",
+  bankAccountNumber: "",
+  ifsc: "",
 
   // Optionals
   subjectOther: "",

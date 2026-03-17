@@ -32,6 +32,14 @@ export default function ReviewModal() {
   const [hourlyCount, setHourlyCount] = useState(4);
   const router = useRouter();
 
+  const completeRegularPaymentFlow = () => {
+    if (typeof window !== "undefined" && bookingId) {
+      localStorage.setItem(`review_submitted_${bookingId}`, "1");
+    }
+    dispatch(closeReviewModal());
+    router.push(`/dashboard/student/demoBookings`);
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       dispatch(closeReviewModal());
@@ -172,10 +180,14 @@ export default function ReviewModal() {
               regularClassId: meta.regularClassId,
             }
           );
-          if (verifyRes?.success) {
+          const isVerified =
+            Boolean(verifyRes?.success) ||
+            Boolean(verifyRes?.verified) ||
+            Boolean(verifyRes?.data?.success) ||
+            Boolean(verifyRes?.data?.verified);
+          if (isVerified) {
             toast.success("Payment successful and verified!");
-            dispatch(closeReviewModal());
-            router.push(`/dashboard/student/demoBookings`);
+            completeRegularPaymentFlow();
           } else {
             toast.error(verifyRes?.message || "Verification failed");
           }
@@ -215,8 +227,7 @@ export default function ReviewModal() {
       });
       if ((orderRes as any)?.walletPaid) {
         toast.success("Payment successful via wallet!");
-        dispatch(closeReviewModal());
-        router.push(`/dashboard/student/demoBookings`);
+        completeRegularPaymentFlow();
       } else {
         openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
       }

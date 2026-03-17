@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Wallet } from "lucide-react";
+import { Plus, ShieldCheck, Wallet } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -118,6 +118,9 @@ export default function TutorDashboard() {
   }, []);
 
   const displayName = tutorProfile?.name || "Tutor";
+  const isVerifiedTutor =
+    Boolean(user?.isProfileComplete) &&
+    String((tutorProfile as any)?.kycStatus || "").toLowerCase() === "approved";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -139,7 +142,17 @@ export default function TutorDashboard() {
       {/* Main Content */}
       <div className="lg:pl-64">
         <Topbar
-          title={displayName}
+          title={
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>{displayName}</span>
+              {isVerifiedTutor && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 border border-green-200 px-2 py-1 text-xs font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                  Verified Tutor
+                </span>
+              )}
+            </div>
+          }
           subtitle="Manage your classes, earnings & verification"
           greeting
           action={

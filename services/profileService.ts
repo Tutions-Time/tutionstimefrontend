@@ -44,3 +44,17 @@ export const getUserProfile = async () => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const updateTutorPayoutDetails = async (payload: {
+  upiId: string;
+  accountHolderName: string;
+  bankAccountNumber: string;
+  ifsc: string;
+}) => {
+  try {
+    const response = await api.patch("/users/tutor-payout-details", payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

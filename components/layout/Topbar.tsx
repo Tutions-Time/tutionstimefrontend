@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 interface TopbarProps {
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   action?: ReactNode;
   actionPosition?: 'left' | 'right';

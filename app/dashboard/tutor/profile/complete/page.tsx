@@ -169,6 +169,10 @@ export default function TutorProfileCompletePage() {
         availableDays: [],
         bio: "",
         achievements: "",
+        upiId: "",
+        accountHolderName: "",
+        bankAccountNumber: "",
+        ifsc: "",
         phone: "",
         isSubmitting: false,
       })
