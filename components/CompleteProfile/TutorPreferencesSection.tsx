@@ -15,9 +15,8 @@ import OtherInline from "@/components/forms/OtherInline";
 
 /* ---------------- MUI Time Picker ---------------- */
 import dayjs, { Dayjs } from "dayjs";
-import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import { Textarea } from "../ui/textarea";
 
 /* ---------------- Constants ---------------- */
@@ -38,6 +37,7 @@ export default function TutorPreferencesSection({
   /* -------- Time Slot Local State -------- */
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [timeError, setTimeError] = useState<string>("");
 
   /* -------- OtherInline handler -------- */
   const onOtherChange =
@@ -60,6 +60,10 @@ export default function TutorPreferencesSection({
   /* -------- Add Slot -------- */
   const addSlot = () => {
     if (!startTime || !endTime || disabled) return;
+    if (!endTime.isAfter(startTime)) {
+      setTimeError("End time must be after start time.");
+      return;
+    }
 
     const slot = `${startTime.format("hh:mm A")} - ${endTime.format("hh:mm A")}`;
 
@@ -75,6 +79,7 @@ export default function TutorPreferencesSection({
 
     setStartTime(null);
     setEndTime(null);
+    setTimeError("");
   };
 
   /* ---------------- Render ---------------- */
@@ -119,41 +124,43 @@ export default function TutorPreferencesSection({
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="grid grid-cols-2 gap-3">
-              <TimePicker
+              <MobileTimePicker
                 label="Start Time"
                 value={startTime}
-                onChange={setStartTime}
+                onChange={(value) => {
+                  setStartTime(value);
+                  setTimeError("");
+                  if (value && endTime && !endTime.isAfter(value)) {
+                    setEndTime(null);
+                  }
+                }}
                 ampm
                 minutesStep={1}
-                viewRenderers={{
-                  hours: renderTimeViewClock,
-                  minutes: renderTimeViewClock,
-                }}
                 disabled={disabled}
                 slotProps={{
                   textField: {
                     size: "small",
                     fullWidth: true,
+                    inputProps: { readOnly: true },
                   },
                 }}
               />
 
-              <TimePicker
+              <MobileTimePicker
                 label="End Time"
                 value={endTime}
-                onChange={setEndTime}
-                minTime={startTime ?? undefined}
+                onChange={(value) => {
+                  setEndTime(value);
+                  setTimeError("");
+                }}
                 ampm
                 minutesStep={1}
-                viewRenderers={{
-                  hours: renderTimeViewClock,
-                  minutes: renderTimeViewClock,
-                }}
                 disabled={disabled}
                 slotProps={{
                   textField: {
                     size: "small",
                     fullWidth: true,
+                    inputProps: { readOnly: true },
                   },
                 }}
               />
@@ -168,6 +175,9 @@ export default function TutorPreferencesSection({
           >
             Add Slot
           </button>
+          {timeError && (
+            <p className="mt-2 text-xs text-red-600">{timeError}</p>
+          )}
 
           {/* Selected Slots */}
           {(profile.preferredTimes || []).length > 0 && (

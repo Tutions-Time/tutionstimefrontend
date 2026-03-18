@@ -42,7 +42,7 @@ export default function StudentBookingsPage() {
     comment: "",
   });
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; upiId?: string; preview?: any }>({});
 
   const themePrimary = "#FFD54F";
 
@@ -632,6 +632,15 @@ export default function StudentBookingsPage() {
                 </select>
               </div>
               <div>
+                <label className="block text-sm text-gray-600">UPI ID</label>
+                <input
+                  value={refundForm.upiId || ""}
+                  onChange={(e) => setRefundForm((f) => ({ ...f, upiId: e.target.value }))}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  placeholder="yourname@upi"
+                />
+              </div>
+              <div>
                 {refundForm.reasonCode === "OTHER" && (
                   <textarea
                     value={refundForm.reasonText || ""}
@@ -671,8 +680,13 @@ export default function StudentBookingsPage() {
                   className="bg-[#FFD54F] text-black font-semibold rounded-full px-5"
                   onClick={async () => {
                     try {
-                      if (!refundForm.paymentId || !refundForm.reasonCode) return;
-                      const res = await requestRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: refundForm.reasonText || undefined });
+                      if (!refundForm.paymentId || !refundForm.reasonCode || !String(refundForm.upiId || "").trim()) return;
+                      const res = await requestRefund({
+                        paymentId: String(refundForm.paymentId),
+                        reasonCode: String(refundForm.reasonCode),
+                        reasonText: refundForm.reasonText || undefined,
+                        upiId: String(refundForm.upiId || "").trim(),
+                      });
                       if (res?.success) {
                         alert("Refund requested");
                         try {
@@ -687,6 +701,12 @@ export default function StudentBookingsPage() {
                       alert("Refund request failed");
                     }
                   }}
+                  disabled={
+                    !refundForm.paymentId ||
+                    !refundForm.reasonCode ||
+                    !String(refundForm.upiId || "").trim() ||
+                    (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())
+                  }
                 >
                   Submit
                 </Button>

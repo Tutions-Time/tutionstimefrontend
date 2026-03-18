@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BookDemoModal from "@/components/tutors/BookDemoModal";
-import { Sparkles, Star, MapPin, Clock3 } from "lucide-react";
+import { Sparkles, Star, MapPin, Clock3, ShieldCheck } from "lucide-react";
 
 // ---------- TYPES ----------
 type Tutor = {
@@ -28,6 +28,7 @@ type Tutor = {
   lastLogin?: string;
   addressLine1?: string;
   isFeatured?: boolean;
+  isVerifiedTutor?: boolean;
   userId?: { _id: string };
 };
 
@@ -171,8 +172,14 @@ export default function TutorList({
 
                   {/* Text */}
                   <div>
-                    <div className="font-medium text-sm text-gray-800">
-                      {tutor.name}
+                    <div className="font-medium text-sm text-gray-800 flex items-center gap-1.5">
+                      <span>{tutor.name}</span>
+                      {tutor.isVerifiedTutor && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 border border-green-200 px-2 py-[2px] text-[10px] font-semibold">
+                          <ShieldCheck className="w-3 h-3" />
+                          Verified
+                        </span>
+                      )}
                     </div>
                     <div className="text-[11px] text-gray-500">
                       {tutor.qualification || tutor.specialization || "—"}

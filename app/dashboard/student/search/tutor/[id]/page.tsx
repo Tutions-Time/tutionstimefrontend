@@ -225,8 +225,11 @@ export default function TutorDetailPage() {
                   <h1 className="text-2xl font-semibold text-gray-900">
                     {tutor.name}
                   </h1>
-                  {tutor.isKycVerified && (
-                    <ShieldCheck className="w-5 h-5 text-green-600" />
+                  {tutor.isVerifiedTutor && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 border border-green-200 px-2 py-1 text-xs font-semibold">
+                      <ShieldCheck className="w-4 h-4 text-green-600" />
+                      Verified Tutor
+                    </span>
                   )}
                 </div>
 
