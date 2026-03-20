@@ -80,7 +80,7 @@ export default function AdminCouponsPage() {
     <div className="min-h-screen bg-[#F6F7FB]">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="admin" />
       <Sidebar userRole="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Coupons" subtitle="Create and manage discount coupons" />
         <main className="p-4 lg:p-8">
           <div className="grid grid-cols-1 gap-6 max-w-5xl">
@@ -153,3 +153,4 @@ export default function AdminCouponsPage() {
     </div>
   );
 }
+

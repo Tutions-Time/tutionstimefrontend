@@ -262,7 +262,7 @@ function exportHistoryCsv() {
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={4} userRole="admin" userName="Admin" />
       <Sidebar userRole="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Revenue"
           subtitle="Financial overview, breakdowns, and payouts"
@@ -525,3 +525,4 @@ function exportHistoryCsv() {
     </div>
   );
 }
+

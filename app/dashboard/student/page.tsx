@@ -71,7 +71,7 @@ export default function StudentDashboard() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title={displayName}
           greeting
@@ -162,3 +162,4 @@ export default function StudentDashboard() {
     </div>
   );
 }
+

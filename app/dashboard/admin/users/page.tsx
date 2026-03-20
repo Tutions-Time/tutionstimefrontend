@@ -292,7 +292,7 @@ export default function AdminUsersPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Students"
           subtitle="Manage students"
@@ -818,3 +818,4 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+

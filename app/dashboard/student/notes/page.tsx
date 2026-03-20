@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, IndianRupee, FileText } from "lucide-react";
@@ -176,7 +176,7 @@ export default function NotesPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Notes" subtitle="Search & purchase premium curated notes" />
 
         <main className="p-4 lg:p-8">
@@ -327,3 +327,4 @@ export default function NotesPage() {
     </div>
   );
 }
+

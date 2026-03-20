@@ -162,7 +162,7 @@ export default function StudentDetailPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Student Profile"
           subtitle="Review student preferences and book a demo"

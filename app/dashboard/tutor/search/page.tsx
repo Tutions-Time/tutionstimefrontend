@@ -181,7 +181,7 @@ export default function SearchStudents() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Find Students"
           subtitle="View students and book demo sessions"
@@ -214,3 +214,4 @@ export default function SearchStudents() {
     </div>
   );
 }
+

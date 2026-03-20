@@ -220,7 +220,7 @@ export default function StudentBookingsPage() {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <div className="lg:pl-64">
+        <div className="lg:pr-64">
           <Topbar title="My Classes" subtitle="Track and manage your sessions" />
 
           <main className="p-4 lg:p-6">
@@ -718,3 +718,4 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+

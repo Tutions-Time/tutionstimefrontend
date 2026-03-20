@@ -62,7 +62,7 @@ export default function AdminRefundsPage() {
         <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={3} userRole="admin" userName="Admin" />
         <Sidebar userRole="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className="lg:pl-64">
+        <div className="lg:pr-64">
           <Topbar title="Refund Requests" subtitle="Review and process" />
 
           <main className="p-3 sm:p-4 lg:p-6 space-y-6">
@@ -278,3 +278,4 @@ export default function AdminRefundsPage() {
     </ProtectedRoute>
   );
 }
+

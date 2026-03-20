@@ -347,7 +347,7 @@ export default function StudentSessions() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="My Sessions"
           subtitle="View and manage your learning journey"
@@ -855,4 +855,5 @@ export default function StudentSessions() {
     </div>
   );
 }
+
 

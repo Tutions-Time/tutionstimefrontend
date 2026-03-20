@@ -183,7 +183,7 @@ export default function TutorDetailPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Tutor Profile"
           subtitle="View qualifications, availability, and schedule a demo"

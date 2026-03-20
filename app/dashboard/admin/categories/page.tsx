@@ -137,7 +137,7 @@ export default function AdminCategoriesPage() {
       />
       <Sidebar userRole="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Categories"
           subtitle="Organize subjects into catalogs"
@@ -303,3 +303,4 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
+
