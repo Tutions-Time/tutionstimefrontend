@@ -85,8 +85,8 @@ export default function GroupSessionsModal({
                   <div key={s._id} className="border rounded-lg p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="text-sm">
-                        <div>{new Date(s.startDateTime).toLocaleDateString()}</div>
-                        <div>{new Date(s.startDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                        <div>{new Date(s.startDateTime).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}</div>
+                        <div>{new Date(s.startDateTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}</div>
                         <div className="text-xs text-gray-500">{s.status}</div>
                       </div>
                       {!isExpired && s.status !== "completed" && (
@@ -101,7 +101,7 @@ export default function GroupSessionsModal({
                     </div>
                     {pendingRequests[s._id] && (
                       <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                        Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN")}
+                        Pending reschedule: {new Date(pendingRequests[s._id]).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}
                       </div>
                     )}
                     {allowReschedule && !isExpired && s.status !== "completed" && onRequestReschedule && (

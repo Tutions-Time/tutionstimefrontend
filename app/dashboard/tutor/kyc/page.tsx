@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState, ChangeEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -330,7 +330,7 @@ export default function TutorKycPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Verification" subtitle="Upload your KYC documents" />
 
         <main className="p-4 lg:p-8">
@@ -428,3 +428,4 @@ export default function TutorKycPage() {
     </div>
   );
 }
+

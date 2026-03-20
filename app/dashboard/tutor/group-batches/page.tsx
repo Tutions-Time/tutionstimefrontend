@@ -206,7 +206,7 @@ export default function TutorGroupBatchesPage() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Group Batches"
           subtitle="Create and manage your batches and these services only for online classes."
@@ -446,3 +446,4 @@ export default function TutorGroupBatchesPage() {
     </div>
   );
 }
+

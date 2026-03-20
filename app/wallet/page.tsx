@@ -178,7 +178,7 @@ export default function WalletPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         {/* <Topbar
           title="Wallet"
           subtitle="Your balance and transactions"
@@ -367,3 +367,4 @@ export default function WalletPage() {
     </div>
   );
 }
+

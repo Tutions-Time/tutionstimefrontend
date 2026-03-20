@@ -111,7 +111,7 @@ export default function TutorDemoRequests() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Demo Requests"
           subtitle="Review and manage your demo class requests"
@@ -288,3 +288,4 @@ export default function TutorDemoRequests() {
     </div>
   );
 }
+

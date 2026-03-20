@@ -283,7 +283,7 @@ export default function TutorJourneyPage() {
       />
       <Sidebar userRole="admin" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title={isAllView ? sectionTitles[activeSection] || "Tutor Journey" : "Tutor Journey"}
           subtitle={

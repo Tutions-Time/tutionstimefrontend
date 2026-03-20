@@ -15,7 +15,7 @@ export default function StudentBatchDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Batch Sessions"
           subtitle="View and join your sessions"

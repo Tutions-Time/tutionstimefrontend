@@ -145,7 +145,7 @@ export default function TutorNotesPage() {
         userRole="tutor"
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Notes"
           subtitle="Upload and manage paid notes"
@@ -214,3 +214,4 @@ export default function TutorNotesPage() {
     </div>
   );
 }
+

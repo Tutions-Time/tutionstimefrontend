@@ -379,7 +379,7 @@ const TutorRegularClasses = () => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Regular Classes"
           subtitle="Your active regular class students"
@@ -863,3 +863,4 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   return `${IMAGE_BASE}/${cleaned}`;
 };
+

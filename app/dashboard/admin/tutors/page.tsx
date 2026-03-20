@@ -382,7 +382,7 @@ export default function AdminTutorsPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Tutors"
           subtitle="KYC, performance, and controls"
@@ -1129,3 +1129,4 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+

@@ -140,7 +140,7 @@ export default function TutorDashboard() {
       />
 
       {/* Main Content */}
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title={
             <div className="flex items-center gap-2 flex-wrap">
@@ -208,3 +208,4 @@ export default function TutorDashboard() {
     </div>
   );
 }
+

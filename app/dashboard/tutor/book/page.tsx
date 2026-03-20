@@ -219,7 +219,7 @@ export default function TutorBookingFlow() {
       />
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Set Your Availability" subtitle="Create, view, and manage your slots" />
         <main className="p-6 space-y-6">
           {/* CREATE NEW SLOTS */}
@@ -412,3 +412,4 @@ export default function TutorBookingFlow() {
     </div>
   );
 }
+

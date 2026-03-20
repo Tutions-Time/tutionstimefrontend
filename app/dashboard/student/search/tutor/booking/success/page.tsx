@@ -31,7 +31,7 @@ export default function BookingSuccessPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={0} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Booking Confirmed" subtitle="Your session details" />
         <main className="p-6">
           <Card className="p-6 bg-white rounded-2xl shadow-sm">
@@ -70,3 +70,4 @@ export default function BookingSuccessPage() {
     </div>
   );
 }
+

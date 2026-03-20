@@ -61,7 +61,7 @@ export default function AssignmentsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Assignments" subtitle="Your homework and classwork" />
         <main className="p-4 lg:p-6 space-y-4">
           {loading && (
@@ -88,3 +88,4 @@ export default function AssignmentsPage() {
     </div>
   );
 }
+

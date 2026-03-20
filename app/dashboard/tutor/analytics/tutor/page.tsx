@@ -54,7 +54,7 @@ export default function TutorAnalyticsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="tutor" />
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="Tutor Analytics" subtitle="Performance and earnings overview" />
         <main className="p-4 lg:p-6 space-y-6">
           {noteRev && (
@@ -230,3 +230,4 @@ export default function TutorAnalyticsPage() {
     </div>
   );
 }
+

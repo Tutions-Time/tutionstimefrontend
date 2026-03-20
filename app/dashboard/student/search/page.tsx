@@ -294,7 +294,7 @@ export default function SearchTutors() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Find Tutors"
           subtitle="Search and book your next class"
@@ -330,3 +330,4 @@ export default function SearchTutors() {
     </div>
   );
 }
+

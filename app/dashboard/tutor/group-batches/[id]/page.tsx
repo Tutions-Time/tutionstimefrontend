@@ -108,7 +108,7 @@ export default function TutorBatchDetailPage() {
               <div className="flex items-center justify-between">
                 <div>
                   {new Date(s.startDateTime).toLocaleString("en-IN", {
-                    timeZone: "UTC",
+                    timeZone: "Asia/Kolkata",
                   })}
                 </div>
                 <button className="bg-blue-600 text-white px-3 py-1 rounded" onClick={()=>join(s._id)}>Join</button>

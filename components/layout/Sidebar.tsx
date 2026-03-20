@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -78,6 +79,29 @@ const adminLinks: NavLink[] = [
 
 export function Sidebar({ userRole = 'student', isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const isControlled = typeof onClose === 'function';
+  const [internalOpen, setInternalOpen] = useState(isOpen);
+
+  useEffect(() => {
+    if (!isControlled) {
+      setInternalOpen(isOpen);
+    }
+  }, [isControlled, isOpen]);
+
+  useEffect(() => {
+    if (!isControlled) {
+      setInternalOpen(false);
+    }
+  }, [isControlled, pathname]);
+
+  const open = isControlled ? isOpen : internalOpen;
+  const handleClose = () => {
+    if (isControlled) {
+      onClose?.();
+      return;
+    }
+    setInternalOpen(false);
+  };
 
   const links =
     userRole === 'admin' ? adminLinks : userRole === 'tutor' ? tutorLinks : studentLinks;
@@ -95,20 +119,20 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
 
   return (
     <>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={onClose} />
+      {open && (
+        <div className="fixed inset-0 bg-black/50 z-50 lg:hidden" onClick={handleClose} />
       )}
 
       <aside
         className={cn(
-          'fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform duration-200 z-[60]',
+          'fixed right-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-l transition-transform duration-200 z-[60]',
           'lg:translate-x-0',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          open ? 'translate-x-0' : 'translate-x-full'
         )}
       >
         <div className="flex items-center justify-between p-4 lg:hidden">
           <span className="font-semibold">Menu</span>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={handleClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -122,7 +146,7 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={onClose}
+                onClick={handleClose}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-base',
                   active
@@ -150,3 +174,4 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
     </>
   );
 }
+

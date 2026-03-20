@@ -78,7 +78,7 @@ export default function ProgressPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar title="My Progress" subtitle="Learning analytics dashboard" />
 
         <main className="p-4 lg:p-6 space-y-10">
@@ -331,3 +331,4 @@ export default function ProgressPage() {
     </div>
   );
 }
+

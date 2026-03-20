@@ -111,7 +111,7 @@ export default function StudentDemoRequests() {
         userRole="student"
       />
 
-      <div className="lg:pl-64">
+      <div className="lg:pr-64">
         <Topbar
           title="Demo Requests"
           subtitle="Accept or reject demo requests from tutors"
@@ -270,3 +270,4 @@ export default function StudentDemoRequests() {
     </div>
   );
 }
+
