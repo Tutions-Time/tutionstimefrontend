@@ -136,7 +136,7 @@ export const getRegularPaymentByClass = async (regularClassId: string) => {
   }
 };
 
-export const requestRefund = async (payload: { paymentId: string; reasonCode: string; reasonText?: string; upiId: string }) => {
+export const requestRefund = async (payload: { paymentId: string; reasonCode: string; reasonText?: string }) => {
   try {
     const res = await api.post('/payments/refunds/request', payload);
     return res.data;

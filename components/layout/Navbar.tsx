@@ -266,7 +266,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-48 z-[120]">
               {/* PROFILE LINK */}
               {user?.role !== 'admin' && (
                 <DropdownMenuItem asChild>

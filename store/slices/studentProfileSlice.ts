@@ -64,6 +64,10 @@ export interface StudentProfileState {
 
   goals: string;
   photoUrl?: string;
+  upiId: string;
+  accountHolderName: string;
+  bankAccountNumber: string;
+  ifsc: string;
 
   learningMode: '' | 'Online' | 'Offline' | 'Both';
 
@@ -120,6 +124,10 @@ const initialState: StudentProfileState = {
 
   goals: '',
   photoUrl: undefined,
+  upiId: '',
+  accountHolderName: '',
+  bankAccountNumber: '',
+  ifsc: '',
 
   learningMode: '',
 

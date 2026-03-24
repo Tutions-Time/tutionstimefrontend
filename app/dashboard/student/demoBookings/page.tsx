@@ -18,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { submitSessionFeedback } from "@/services/progressService";
 import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { getUserProfile } from "@/services/profileService";
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +43,8 @@ export default function StudentBookingsPage() {
     comment: "",
   });
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; upiId?: string; preview?: any }>({});
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
+  const [studentPayoutReady, setStudentPayoutReady] = useState(true);
 
   const themePrimary = "#FFD54F";
 
@@ -349,6 +351,20 @@ export default function StudentBookingsPage() {
                                   alert("No payment found for this class");
                                   return;
                                 }
+                                let payoutReady = false;
+                                try {
+                                  const profileRes = await getUserProfile();
+                                  const sp = profileRes?.data?.profile;
+                                  payoutReady = Boolean(
+                                    sp?.upiId &&
+                                      sp?.accountHolderName &&
+                                      sp?.bankAccountNumber &&
+                                      sp?.ifsc
+                                  );
+                                } catch {
+                                  payoutReady = false;
+                                }
+                                setStudentPayoutReady(payoutReady);
                                 setRefundForm({ regularClassId: rc.regularClassId, paymentId: p._id });
                                 setRefundModalOpen(true);
                               } catch {
@@ -631,15 +647,23 @@ export default function StudentBookingsPage() {
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm text-gray-600">UPI ID</label>
-                <input
-                  value={refundForm.upiId || ""}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, upiId: e.target.value }))}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  placeholder="yourname@upi"
-                />
-              </div>
+              {!studentPayoutReady && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+                  <div>
+                    Add UPI and bank details in your profile before requesting a refund.
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setRefundModalOpen(false);
+                      window.location.href = "/dashboard/student/profile";
+                    }}
+                  >
+                    Complete Bank Details
+                  </Button>
+                </div>
+              )}
               <div>
                 {refundForm.reasonCode === "OTHER" && (
                   <textarea
@@ -680,12 +704,11 @@ export default function StudentBookingsPage() {
                   className="bg-[#FFD54F] text-black font-semibold rounded-full px-5"
                   onClick={async () => {
                     try {
-                      if (!refundForm.paymentId || !refundForm.reasonCode || !String(refundForm.upiId || "").trim()) return;
+                      if (!refundForm.paymentId || !refundForm.reasonCode || !studentPayoutReady) return;
                       const res = await requestRefund({
                         paymentId: String(refundForm.paymentId),
                         reasonCode: String(refundForm.reasonCode),
                         reasonText: refundForm.reasonText || undefined,
-                        upiId: String(refundForm.upiId || "").trim(),
                       });
                       if (res?.success) {
                         alert("Refund requested");
@@ -704,7 +727,7 @@ export default function StudentBookingsPage() {
                   disabled={
                     !refundForm.paymentId ||
                     !refundForm.reasonCode ||
-                    !String(refundForm.upiId || "").trim() ||
+                    !studentPayoutReady ||
                     (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())
                   }
                 >
