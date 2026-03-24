@@ -7,6 +7,7 @@ import {
   verifyGroupPayment,
 } from "@/services/groupBatchService";
 import { requestRefund, previewRefund } from "@/services/studentService";
+import { getUserProfile } from "@/services/profileService";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,8 @@ export default function StudentGroupBatches() {
   const [enrollMonths, setEnrollMonths] = useState(1);
   const [enrollMonthsInput, setEnrollMonthsInput] = useState("1");
   const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
-  const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null });
+  const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
+  const [studentPayoutReady, setStudentPayoutReady] = useState(true);
 
   // --------------------------
   // Razorpay Loader
@@ -291,11 +293,10 @@ export default function StudentGroupBatches() {
         paymentId: refundModal.paymentId,
         reasonCode: refundModal.reasonCode,
         reasonText: refundModal.reasonText,
-        upiId: String(refundModal.upiId || "").trim(),
       });
       if (res.success) {
         toast.success("Refund requested");
-        setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null });
+        setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
       } else {
         toast.error(res.message || "Failed");
       }
@@ -459,7 +460,23 @@ export default function StudentGroupBatches() {
                       <Button
                         variant="outline"
                         className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", upiId: "", submitting: false, preview: null })}
+                        onClick={async () => {
+                          let payoutReady = false;
+                          try {
+                            const profileRes = await getUserProfile();
+                            const sp = profileRes?.data?.profile;
+                            payoutReady = Boolean(
+                              sp?.upiId &&
+                              sp?.accountHolderName &&
+                              sp?.bankAccountNumber &&
+                              sp?.ifsc
+                            );
+                          } catch {
+                            payoutReady = false;
+                          }
+                          setStudentPayoutReady(payoutReady);
+                          setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
+                        }}
                       >
                         Refund
                       </Button>
@@ -593,15 +610,21 @@ export default function StudentGroupBatches() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">UPI ID</label>
-              <input
-                className="w-full border rounded px-3 py-2 text-sm"
-                value={refundModal.upiId}
-                onChange={(e) => setRefundModal((f: any) => ({ ...f, upiId: e.target.value }))}
-                placeholder="yourname@upi"
-              />
-            </div>
+            {!studentPayoutReady && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+                <div>Add UPI and bank details in your profile before requesting a refund.</div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setRefundModal({ ...refundModal, open: false });
+                    window.location.href = "/dashboard/student/profile";
+                  }}
+                >
+                  Complete Bank Details
+                </Button>
+              </div>
+            )}
 
             {refundModal.preview && (
               <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded space-y-1">
@@ -620,7 +643,7 @@ export default function StudentGroupBatches() {
               disabled={
                 refundModal.submitting ||
                 !refundModal.reasonCode ||
-                !String(refundModal.upiId || "").trim() ||
+                !studentPayoutReady ||
                 (refundModal.reasonCode === "OTHER" && !refundModal.reasonText)
               }
               className="bg-red-600 hover:bg-red-700 text-white"

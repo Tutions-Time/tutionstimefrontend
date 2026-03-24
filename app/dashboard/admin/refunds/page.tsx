@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { getAdminRefunds, updateRefundStatus } from '@/services/adminService';
 import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
+import { toast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -51,6 +52,12 @@ export default function AdminRefundsPage() {
     try {
       await updateRefundStatus(id, status, method);
       refresh();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to update refund',
+        description: error?.message || 'Unexpected error',
+        variant: 'destructive',
+      });
     } finally {
       setUpdating(null);
     }

@@ -254,7 +254,9 @@ export const updateRefundStatus = async (
   try {
     const payload: any = { status };
     if (method) payload.method = method;
-    const res = await api.patch(`/payments/admin/refunds/${id}`, payload);
+    const res = await api.patch(`/payments/admin/refunds/${id}`, payload, {
+      timeout: 60000,
+    });
     return res.data?.data;
   } catch (error) {
     throw new Error(handleApiError(error));

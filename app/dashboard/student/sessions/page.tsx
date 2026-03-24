@@ -32,6 +32,7 @@ import { Dialog } from "@headlessui/react";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { getStudentRefunds } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { getUserProfile } from "@/services/profileService";
 
 export default function StudentSessions() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -57,7 +58,8 @@ export default function StudentSessions() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; upiId?: string; preview?: any }>({});
+  const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
+  const [studentPayoutReady, setStudentPayoutReady] = useState(true);
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -123,6 +125,20 @@ export default function StudentSessions() {
         toast({ title: "No payment found for this class", variant: "destructive" });
         return;
       }
+      let payoutReady = false;
+      try {
+        const profileRes = await getUserProfile();
+        const sp = profileRes?.data?.profile;
+        payoutReady = Boolean(
+          sp?.upiId &&
+            sp?.accountHolderName &&
+            sp?.bankAccountNumber &&
+            sp?.ifsc
+        );
+      } catch {
+        payoutReady = false;
+      }
+      setStudentPayoutReady(payoutReady);
       setRefundForm({ regularClassId, paymentId: p._id });
       setRefundModalOpen(true);
     } catch {
@@ -137,7 +153,6 @@ export default function StudentSessions() {
         paymentId: refundForm.paymentId,
         reasonCode: String(refundForm.reasonCode),
         reasonText: refundForm.reasonText || undefined,
-        upiId: String(refundForm.upiId || "").trim(),
       });
       if (res?.success) {
         toast({ title: "Refund requested" });
@@ -792,15 +807,23 @@ export default function StudentSessions() {
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm text-gray-600">UPI ID</label>
-                <input
-                  value={refundForm.upiId || ""}
-                  onChange={(e) => setRefundForm((f) => ({ ...f, upiId: e.target.value }))}
-                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                  placeholder="yourname@upi"
-                />
-              </div>
+              {!studentPayoutReady && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
+                  <div>
+                    Add UPI and bank details in your profile before requesting a refund.
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setRefundModalOpen(false);
+                      router.push("/dashboard/student/profile");
+                    }}
+                  >
+                    Complete Bank Details
+                  </Button>
+                </div>
+              )}
               <div>
                 {refundForm.reasonCode === "OTHER" && (
                   <textarea
@@ -838,7 +861,7 @@ export default function StudentSessions() {
                   disabled={
                     !refundForm.paymentId ||
                     !refundForm.reasonCode ||
-                    !String(refundForm.upiId || "").trim() ||
+                    !studentPayoutReady ||
                     (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())
                   }
                 >
