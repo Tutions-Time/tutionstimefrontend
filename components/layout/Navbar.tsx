@@ -127,6 +127,9 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
     const next = !drawerOpen;
     setDrawerOpen(next);
     if (next) {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("tt:close-sidebar"));
+      }
       loadNotifications();
     }
   };
@@ -200,7 +203,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
 
   return (
     <>
-    <nav className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+    <nav className="sticky top-0 z-[100] w-full border-b bg-white shadow-sm">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
 
         {/* LEFT SECTION */}
@@ -224,7 +227,10 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
             <Button
               variant="ghost"
               size="icon"
-              onClick={onMenuClick}
+              onClick={() => {
+                setDrawerOpen(false);
+                onMenuClick();
+              }}
               aria-label="Open menu"
               className="lg:hidden h-11 w-11 rounded-xl touch-manipulation active:scale-95 relative z-[60]"
             >
@@ -300,8 +306,8 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
 
       {drawerOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setDrawerOpen(false)} />
-          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-sm border-l bg-white shadow-xl">
+          <div className="fixed inset-0 z-[80] bg-black/40" onClick={() => setDrawerOpen(false)} />
+          <div className="fixed right-0 top-0 z-[90] h-full w-full max-w-sm border-l bg-white shadow-xl">
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="text-sm font-semibold">Notifications</div>
               <div className="flex items-center gap-2">
