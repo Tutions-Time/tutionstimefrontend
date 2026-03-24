@@ -94,6 +94,26 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
     }
   }, [isControlled, pathname]);
 
+  useEffect(() => {
+    const closeFromGlobalEvent = () => {
+      if (isControlled) {
+        onClose?.();
+      } else {
+        setInternalOpen(false);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("tt:close-sidebar", closeFromGlobalEvent);
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("tt:close-sidebar", closeFromGlobalEvent);
+      }
+    };
+  }, [isControlled, onClose]);
+
   const open = isControlled ? isOpen : internalOpen;
   const handleClose = () => {
     if (isControlled) {
