@@ -825,23 +825,23 @@ export default function StudentSessions() {
                 </div>
               )}
               <div>
-                {refundForm.reasonCode === "OTHER" && (
-                  <textarea
-                    value={refundForm.reasonText || ""}
-                    onChange={async (e) => {
-                      const txt = e.target.value;
-                      setRefundForm((f) => ({ ...f, reasonText: txt }));
-                      if (refundForm.paymentId && refundForm.reasonCode) {
-                        try {
-                          const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: txt });
-                          setRefundForm((f) => ({ ...f, preview: pv }));
-                        } catch {}
-                      }
-                    }}
-                    className="mt-1 w-full border rounded px-3 py-2 text-sm"
-                    rows={3}
-                  />
-                )}
+                <label className="block text-sm text-gray-600">Description</label>
+                <textarea
+                  value={refundForm.reasonText || ""}
+                  onChange={async (e) => {
+                    const txt = e.target.value;
+                    setRefundForm((f) => ({ ...f, reasonText: txt }));
+                    if (refundForm.paymentId && refundForm.reasonCode) {
+                      try {
+                        const pv = await previewRefund({ paymentId: String(refundForm.paymentId), reasonCode: String(refundForm.reasonCode), reasonText: txt });
+                        setRefundForm((f) => ({ ...f, preview: pv }));
+                      } catch {}
+                    }
+                  }}
+                  className="mt-1 w-full border rounded px-3 py-2 text-sm"
+                  rows={3}
+                  placeholder="Please describe why you are requesting the refund"
+                />
               </div>
               {refundForm.preview && (
                 <div className="text-sm text-gray-700 space-y-1">
@@ -862,7 +862,7 @@ export default function StudentSessions() {
                     !refundForm.paymentId ||
                     !refundForm.reasonCode ||
                     !studentPayoutReady ||
-                    (refundForm.reasonCode === "OTHER" && !(refundForm.reasonText || "").trim())
+                    !(refundForm.reasonText || "").trim()
                   }
                 >
                   Submit

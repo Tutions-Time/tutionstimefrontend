@@ -248,12 +248,10 @@ export const getAdminRefunds = async (params?: { status?: string; from?: string;
 
 export const updateRefundStatus = async (
   id: string,
-  status: 'approved' | 'rejected',
-  method?: 'provider' | 'payout'
+  status: 'approved' | 'rejected'
 ) => {
   try {
     const payload: any = { status };
-    if (method) payload.method = method;
     const res = await api.patch(`/payments/admin/refunds/${id}`, payload, {
       timeout: 60000,
     });
