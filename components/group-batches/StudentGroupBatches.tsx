@@ -589,26 +589,25 @@ export default function StudentGroupBatches() {
               </select>
             </div>
 
-            {refundModal.reasonCode === "OTHER" && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <textarea
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  rows={3}
-                  value={refundModal.reasonText}
-                  onChange={async (e) => {
-                    const txt = e.target.value;
-                    setRefundModal((f: any) => ({ ...f, reasonText: txt }));
-                    if (refundModal.paymentId && refundModal.reasonCode) {
-                      try {
-                        const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: txt });
-                        setRefundModal((f: any) => ({ ...f, preview: pv }));
-                      } catch {}
-                    }
-                  }}
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <textarea
+                className="w-full border rounded px-3 py-2 text-sm"
+                rows={3}
+                value={refundModal.reasonText}
+                onChange={async (e) => {
+                  const txt = e.target.value;
+                  setRefundModal((f: any) => ({ ...f, reasonText: txt }));
+                  if (refundModal.paymentId && refundModal.reasonCode) {
+                    try {
+                      const pv = await previewRefund({ paymentId: refundModal.paymentId, reasonCode: refundModal.reasonCode, reasonText: txt });
+                      setRefundModal((f: any) => ({ ...f, preview: pv }));
+                    } catch {}
+                  }
+                }}
+                placeholder="Please describe why you are requesting the refund"
+              />
+            </div>
 
             {!studentPayoutReady && (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
@@ -644,7 +643,7 @@ export default function StudentGroupBatches() {
                 refundModal.submitting ||
                 !refundModal.reasonCode ||
                 !studentPayoutReady ||
-                (refundModal.reasonCode === "OTHER" && !refundModal.reasonText)
+                !String(refundModal.reasonText || "").trim()
               }
               className="bg-red-600 hover:bg-red-700 text-white"
             >

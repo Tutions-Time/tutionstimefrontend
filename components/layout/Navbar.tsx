@@ -223,21 +223,6 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
 
         {/* RIGHT SECTION */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {onMenuClick && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setDrawerOpen(false);
-                onMenuClick();
-              }}
-              aria-label="Open menu"
-              className="lg:hidden h-11 w-11 rounded-xl touch-manipulation active:scale-95 relative z-[60]"
-            >
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          )}
-
           <div className="relative">
             <Button
               variant="ghost"
@@ -300,6 +285,21 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {onMenuClick && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setDrawerOpen(false);
+                onMenuClick();
+              }}
+              aria-label="Open menu"
+              className="lg:hidden h-11 w-11 rounded-xl touch-manipulation active:scale-95 relative z-[60]"
+            >
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          )}
 
         </div>
       </div>

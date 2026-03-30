@@ -278,6 +278,27 @@ export const joinSession = async (sessionId: string) => {
   }
 };
 
+export const getTutorRefunds = async (params?: { status?: string }) => {
+  try {
+    const res = await api.get("/payments/tutor/refunds", { params });
+    return res.data?.data || [];
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const submitTutorRefundReview = async (
+  refundId: string,
+  payload: { decision: "legal" | "illegal"; tutorDescription: string }
+) => {
+  try {
+    const res = await api.patch(`/payments/tutor/refunds/${refundId}/review`, payload);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 // Upload session recording (tutor only)
 export const uploadSessionRecording = async (sessionId: string, file: File) => {
   try {

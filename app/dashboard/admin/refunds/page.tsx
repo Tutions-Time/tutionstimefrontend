@@ -47,10 +47,10 @@ export default function AdminRefundsPage() {
     refresh();
   }, isRefundNotification);
 
-  const act = async (id: string, status: 'approved' | 'rejected', method?: 'provider' | 'payout') => {
+  const act = async (id: string, status: 'approved' | 'rejected') => {
     setUpdating(id);
     try {
-      await updateRefundStatus(id, status, method);
+      await updateRefundStatus(id, status);
       refresh();
     } catch (error: any) {
       toast({
@@ -139,7 +139,7 @@ export default function AdminRefundsPage() {
             <DialogHeader>
               <DialogTitle>Refund Details</DialogTitle>
               <DialogDescription>
-                {updating === selected?._id ? 'Updating…' : 'Review all information and take action'}
+                {updating === selected?._id ? 'Updating…' : 'Review all information and take action (manual settlement)'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 text-sm">
@@ -178,6 +178,14 @@ export default function AdminRefundsPage() {
                 <div>
                   <div className="text-muted">Reason Text</div>
                   <div className="font-medium">{selected?.reasonText || selected?.reason || '—'}</div>
+                </div>
+                <div>
+                  <div className="text-muted">Tutor Decision</div>
+                  <div className="font-medium capitalize">{selected?.tutorDecision || 'pending'}</div>
+                </div>
+                <div>
+                  <div className="text-muted">Tutor Description</div>
+                  <div className="font-medium">{selected?.tutorDescription || '—'}</div>
                 </div>
                 <div>
                   <div className="text-muted">Completion %</div>
@@ -254,12 +262,12 @@ export default function AdminRefundsPage() {
                 size="sm"
                 onClick={async () => {
                   if (!selected?._id) return;
-                  await act(selected._id, 'approved', 'payout');
+                  await act(selected._id, 'approved');
                   setShowDetails(false);
                 }}
                 disabled={updating === selected?._id}
               >
-                Approve
+                Mark Approved (Manual)
               </Button>
               <Button
                 size="sm"

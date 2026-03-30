@@ -1,5 +1,6 @@
 "use client";
 import Navbar from "@/components/Navbar";
+import ContactTicker from "@/components/home/ContactTicker";
 import HeroSection from "@/components/HeroSection";
 import WhyChoose from "@/components/WhyChoose";
 import WhyChooseUs from "@/components/WhyChooseUs";
@@ -13,6 +14,7 @@ export default function HomePageClient() {
   return (
     <div className="bg-white min-h-screen">
       <Navbar />
+      <ContactTicker />
       <HeroSection />
       <WhyChooseUs />
       <WhyChoose />

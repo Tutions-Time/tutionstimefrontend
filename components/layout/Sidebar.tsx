@@ -56,6 +56,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
   { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
   { href: '/dashboard/tutor/group-batches', label: 'Group Batches', icon: Calendar },
+  { href: '/dashboard/tutor/refunds', label: 'Refund Requests', icon: ClipboardList },
   { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
