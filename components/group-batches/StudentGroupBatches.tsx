@@ -6,7 +6,7 @@ import {
   createGroupOrder,
   verifyGroupPayment,
 } from "@/services/groupBatchService";
-import { requestRefund, previewRefund } from "@/services/studentService";
+import { requestRefund, previewRefund, getStudentRefunds } from "@/services/studentService";
 import { getUserProfile } from "@/services/profileService";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
@@ -49,6 +49,12 @@ export default function StudentGroupBatches() {
   const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
   const [studentPayoutReady, setStudentPayoutReady] = useState(true);
+  const [refunds, setRefunds] = useState<any[]>([]);
+  const refundsByPaymentId = refunds.reduce((acc: Record<string, any>, refund: any) => {
+    const paymentId = refund?.paymentId?._id || refund?.paymentId;
+    if (paymentId) acc[String(paymentId)] = refund;
+    return acc;
+  }, {});
 
   // --------------------------
   // Razorpay Loader
@@ -116,7 +122,10 @@ export default function StudentGroupBatches() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await listBatches(filters as any);
+      const [data, refundData] = await Promise.all([
+        listBatches(filters as any),
+        getStudentRefunds().catch(() => []),
+      ]);
       const filtered = (data || []).filter((b: any) => {
         const tutor = b?.tutor || b?.owner || b?.createdBy || {};
         const status = String(
@@ -125,6 +134,7 @@ export default function StudentGroupBatches() {
         return status !== "suspended";
       });
       setItems(filtered);
+      setRefunds(refundData || []);
     } catch (e: any) {
       toast.error(e.message || "Unable to load batches");
     } finally {
@@ -456,31 +466,57 @@ export default function StudentGroupBatches() {
                         Renew Now
                       </Button>
                     )}
-                    {b.myPaymentId && (
-                      <Button
-                        variant="outline"
-                        className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={async () => {
-                          let payoutReady = false;
-                          try {
-                            const profileRes = await getUserProfile();
-                            const sp = profileRes?.data?.profile;
-                            payoutReady = Boolean(
-                              sp?.upiId &&
-                              sp?.accountHolderName &&
-                              sp?.bankAccountNumber &&
-                              sp?.ifsc
-                            );
-                          } catch {
-                            payoutReady = false;
-                          }
-                          setStudentPayoutReady(payoutReady);
-                          setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
-                        }}
-                      >
-                        Refund
-                      </Button>
-                    )}
+                    {b.myPaymentId && (() => {
+                      const refund = refundsByPaymentId[String(b.myPaymentId)];
+                      const refundStatus = String(refund?.status || "").toLowerCase();
+                      if (refundStatus === "requested") {
+                        return (
+                          <Button
+                            variant="outline"
+                            disabled
+                            className="flex-1 h-8 px-3 text-xs"
+                          >
+                            Refund Requested
+                          </Button>
+                        );
+                      }
+                      if (refundStatus === "approved" || refundStatus === "processed") {
+                        return (
+                          <Button
+                            variant="outline"
+                            disabled
+                            className="flex-1 h-8 px-3 text-xs"
+                          >
+                            Refunded
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Button
+                          variant="outline"
+                          className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                          onClick={async () => {
+                            let payoutReady = false;
+                            try {
+                              const profileRes = await getUserProfile();
+                              const sp = profileRes?.data?.profile;
+                              payoutReady = Boolean(
+                                sp?.upiId &&
+                                sp?.accountHolderName &&
+                                sp?.bankAccountNumber &&
+                                sp?.ifsc
+                              );
+                            } catch {
+                              payoutReady = false;
+                            }
+                            setStudentPayoutReady(payoutReady);
+                            setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
+                          }}
+                        >
+                          Refund
+                        </Button>
+                      );
+                    })()}
                   </>
                 );
               })()}
