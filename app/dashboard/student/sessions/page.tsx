@@ -60,6 +60,11 @@ export default function StudentSessions() {
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
   const [studentPayoutReady, setStudentPayoutReady] = useState(true);
+  const refundsByRegularClassId = refunds.reduce((acc: Record<string, any>, refund: any) => {
+    const regularClassId = refund?.paymentId?.regularClassId;
+    if (regularClassId) acc[String(regularClassId)] = refund;
+    return acc;
+  }, {});
 
   const safeUrl = (u?: string) => {
     const s = String(u || "").trim();
@@ -120,6 +125,16 @@ export default function StudentSessions() {
 
   const openRefundModal = async (regularClassId: string) => {
     try {
+      const existingRefund = refundsByRegularClassId[String(regularClassId)];
+      const existingRefundStatus = String(existingRefund?.status || "").toLowerCase();
+      if (existingRefundStatus === "requested") {
+        toast({ title: "Refund already requested for this class" });
+        return;
+      }
+      if (existingRefundStatus === "approved" || existingRefundStatus === "processed") {
+        toast({ title: "This class has already been refunded" });
+        return;
+      }
       const p = await getRegularPaymentByClass(regularClassId);
       if (!p?._id) {
         toast({ title: "No payment found for this class", variant: "destructive" });
@@ -547,12 +562,32 @@ export default function StudentSessions() {
                     </Button>
                   )}
                   {s.type === "regular" && s.regularClassId && (
-                    <Button
-                      variant="outline"
-                      onClick={() => openRefundModal(s.regularClassId)}
-                    >
-                      Request Refund
-                    </Button>
+                    (() => {
+                      const refund = refundsByRegularClassId[String(s.regularClassId)];
+                      const refundStatus = String(refund?.status || "").toLowerCase();
+                      if (refundStatus === "requested") {
+                        return (
+                          <Button variant="outline" disabled>
+                            Refund Requested
+                          </Button>
+                        );
+                      }
+                      if (refundStatus === "approved" || refundStatus === "processed") {
+                        return (
+                          <Button variant="outline" disabled>
+                            Refunded
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Button
+                          variant="outline"
+                          onClick={() => openRefundModal(s.regularClassId)}
+                        >
+                          Request Refund
+                        </Button>
+                      );
+                    })()
                   )}
                 </div>
 
@@ -643,7 +678,11 @@ export default function StudentSessions() {
                       {refunds.map((x: any) => (
                         <tr key={x._id} className="border-t">
                           <td className="p-2">₹{x.amount}</td>
-                          <td className="p-2 capitalize">{x.status}</td>
+                          <td className="p-2 capitalize">
+                            {["approved", "processed"].includes(String(x.status || "").toLowerCase())
+                              ? "Refunded"
+                              : x.status}
+                          </td>
                           <td className="p-2">{x.reason || ""}</td>
                           <td className="p-2">{new Date(x.createdAt).toLocaleString()}</td>
                         </tr>
