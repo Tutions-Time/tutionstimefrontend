@@ -1,6 +1,12 @@
 "use client";
 import Link from "next/link";
-import { Instagram, Linkedin, Facebook, Twitter } from "lucide-react";
+import {
+  Instagram,
+  Linkedin,
+  Facebook,
+  Twitter,
+  MessageCircle,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeInUp, useScrollAnimation } from "./animations";
 import Image from "next/image";
@@ -121,7 +127,16 @@ export default function Footer() {
             &copy; 2026 Tuitions time (Choudhary Enterprise). All rights
             reserved.
           </p>
-          <div className="mt-4 flex flex-col items-center gap-2">
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <Link
+              href="https://wa.me/918755313291"
+              target="_blank"
+              className="inline-flex items-center gap-3 rounded-full bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700"
+              aria-label="Chat on WhatsApp"
+            >
+              <MessageCircle className="h-6 w-6" />
+              <span>Chat on WhatsApp</span>
+            </Link>
             {/* <span className="text-xs text-muted">Follow us on</span> */}
             <div className="flex items-center gap-6">
               <Link
