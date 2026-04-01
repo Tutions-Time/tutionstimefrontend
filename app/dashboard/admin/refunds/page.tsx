@@ -27,6 +27,7 @@ export default function AdminRefundsPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [selected, setSelected] = useState<any | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const selectedStatus = String(selected?.status || '').trim().toLowerCase();
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -50,7 +51,16 @@ export default function AdminRefundsPage() {
   const act = async (id: string, status: 'approved' | 'rejected') => {
     setUpdating(id);
     try {
-      await updateRefundStatus(id, status);
+      const updated = await updateRefundStatus(id, status);
+      setItems((prev) =>
+        prev.map((item) => (item._id === id ? { ...item, ...(updated || {}), status } : item)),
+      );
+      setSelected((prev: any) =>
+        prev?._id === id ? { ...prev, ...(updated || {}), status } : prev,
+      );
+      toast({
+        title: status === 'approved' ? 'Refund approved' : 'Refund rejected',
+      });
       refresh();
     } catch (error: any) {
       toast({
@@ -185,7 +195,9 @@ export default function AdminRefundsPage() {
                 </div>
                 <div>
                   <div className="text-muted">Tutor Description</div>
-                  <div className="font-medium">{selected?.tutorDescription || '—'}</div>
+                  <div className="font-medium">
+                    {String(selected?.tutorDescription || '').trim() || 'No note from tutor'}
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted">Completion %</div>
@@ -258,28 +270,39 @@ export default function AdminRefundsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                size="sm"
-                onClick={async () => {
-                  if (!selected?._id) return;
-                  await act(selected._id, 'approved');
-                  setShowDetails(false);
-                }}
-                disabled={updating === selected?._id}
-              >
-                Mark Approved (Manual)
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => {
-                  if (!selected?._id) return;
-                  act(selected._id, 'rejected');
-                }}
-                disabled={updating === selected?._id}
-              >
-                Reject
-              </Button>
+              {selectedStatus === 'approved' || selectedStatus === 'processed' ? (
+                <Button
+                  size="sm"
+                  disabled
+                >
+                  Approved
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!selected?._id) return;
+                    await act(selected._id, 'approved');
+                    setShowDetails(false);
+                  }}
+                  disabled={updating === selected?._id}
+                >
+                  Mark Approved (Manual)
+                </Button>
+              )}
+              {selectedStatus !== 'rejected' && selectedStatus !== 'processed' && selectedStatus !== 'approved' && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    if (!selected?._id) return;
+                    act(selected._id, 'rejected');
+                  }}
+                  disabled={updating === selected?._id}
+                >
+                  Reject
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => setShowDetails(false)}
