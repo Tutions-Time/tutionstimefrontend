@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { Mail, ArrowLeft, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SignupClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") as "student" | "tutor" | null;
 
@@ -137,13 +139,14 @@ export default function SignupClient() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 rounded-2xl shadow-soft">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={() => router.push("/")}
           className="inline-flex items-center gap-2 text-sm text-muted hover:text-text mb-6 transition-base"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to home
-        </Link>
+        </button>
 
         <div className="mb-8">
           {/* ✅ LOGO – SAME FORMAT AS LOGIN */}

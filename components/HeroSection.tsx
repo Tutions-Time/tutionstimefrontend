@@ -19,7 +19,7 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden bg-[#FFD54F] min-h-screen flex items-center"
+      className="relative flex min-h-screen items-start overflow-hidden bg-[#FFD54F] pt-10 sm:items-center sm:pt-0"
     >
       {/* Background glow */}
       <motion.div
@@ -28,7 +28,7 @@ export default function HeroSection() {
       />
 
       <motion.div
-        className="w-full max-w-7xl mx-auto grid lg:grid-cols-2 items-center px-6 lg:px-8 gap-12 relative z-10"
+        className="relative z-10 mx-auto grid w-full max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:items-center lg:px-8"
         variants={staggerContainer}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
@@ -92,7 +92,7 @@ tutors from Nursery to Graduation level.
               <motion.div whileHover={floatHover} whileTap={{ scale: 0.96 }}>
                 <Button
                   size="lg"
-                  className="bg-black hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  className="w-full sm:w-auto sm:min-w-[220px] bg-black hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
                 >
                   Find a Tutor <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -104,7 +104,7 @@ tutors from Nursery to Graduation level.
                 <Button
                   size="lg"
                   variant="outline"
-                  className="w-full sm:w-auto border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors"
+                  className="w-full sm:w-auto sm:min-w-[220px] border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-colors"
                 >
                   Become a Tutor
                 </Button>
@@ -114,25 +114,42 @@ tutors from Nursery to Graduation level.
 
           {/* Stats */}
           <motion.div
-            className="flex items-center gap-10 mt-14"
+            className="mt-14 flex flex-col items-start gap-8"
             variants={fadeInUp}
           >
-            {[
-              { label: 'Active Students', value: '10K+' },
-              { label: 'Expert Tutors', value: '2K+' },
-              { label: 'Classes Completed', value: '50K+' },
-            ].map((stat, i) => (
+            <div className="flex w-full items-start justify-between gap-4 sm:w-auto sm:flex-wrap sm:justify-start sm:gap-10">
+              {[
+                { label: 'Active Students', value: '10K+' },
+                { label: 'Expert Tutors', value: '2K+' },
+                { label: 'Classes Completed', value: '50K+' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={floatHover}
+                  className="min-w-0 flex-1 text-center cursor-default sm:flex-none"
+                >
+                  <p className="text-3xl font-bold text-gray-900 drop-shadow-sm sm:text-4xl">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-gray-700">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <Link href="/signup?role=student" className="w-full sm:w-auto">
               <motion.div
-                key={i}
                 whileHover={floatHover}
-                className="text-center cursor-default"
+                whileTap={{ scale: 0.96 }}
+                className="w-full sm:w-auto"
               >
-                <p className="text-4xl font-bold text-gray-900 drop-shadow-sm">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-gray-700">{stat.label}</p>
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
+                >
+                  Book a Free Demo <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
               </motion.div>
-            ))}
+            </Link>
           </motion.div>
         </motion.div>
 
