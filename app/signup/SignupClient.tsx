@@ -244,7 +244,7 @@ export default function SignupClient() {
                   <Input
                     id="mobile"
                     type="tel"
-                    placeholder="10-digit mobile number"
+                    placeholder="mobile number"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     className="pl-10"
