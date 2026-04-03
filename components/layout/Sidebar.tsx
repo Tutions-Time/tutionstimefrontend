@@ -38,27 +38,26 @@ type NavLink = {
 };
 
 const studentLinks: NavLink[] = [
-  { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/search', label: 'Find Tutors', icon: Search },
-  { href: '/dashboard/student/group-batches', label: 'Group Batches', icon: Calendar },
-  { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
   { href: '/dashboard/student/demoRequests', label: 'Demo Requests', icon: ClipboardList },
+  { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
+  { href: '/dashboard/student/group-batches', label: 'Group Batches', icon: Calendar },
   { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
+  { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/progress', label: 'Progress', icon: FileText },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
 
 const tutorLinks: NavLink[] = [
-  { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/tutor/search', label: 'Find Students', icon: User },
   { href: '/dashboard/tutor/demo_sessions', label: 'Demo request', icon: Calendar },
   { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
-  { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
   { href: '/dashboard/tutor/group-batches', label: 'Group Batches', icon: Calendar },
-  { href: '/dashboard/tutor/refunds', label: 'Refund Requests', icon: ClipboardList },
-  { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
+  { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
 ];
