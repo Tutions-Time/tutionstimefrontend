@@ -46,17 +46,18 @@ export const sendOtpAsync = createAsyncThunk(
       const data: any = response?.data || {};
       const requestId = data.requestId ?? data.data?.requestId ?? data.reqId ?? null;
       const expiresIn = data.expiresIn ?? data.data?.expiresIn ?? 30;
+      const resendIn = data.resendIn ?? data.data?.resendIn ?? 30;
 
       // Accept success in local even if 'success' flag is missing/false, as long as requestId is present
       if (requestId) {
-        return { requestId, expiresIn };
+        return { requestId, expiresIn, resendIn };
       }
 
       // Fallback to 'success' semantics when requestId is not present
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to send OTP');
       }
-      return { requestId: data.requestId, expiresIn: data.expiresIn };
+      return { requestId: data.requestId, expiresIn: data.expiresIn, resendIn };
     } catch (error: any) {
       const msg =
         error?.response?.data?.message ||

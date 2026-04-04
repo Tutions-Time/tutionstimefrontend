@@ -1,26 +1,23 @@
-'use client';
-import { motion } from 'framer-motion';
-import { fadeInUp, scaleHover, useScrollAnimation } from './animations';
+"use client";
+import { motion } from "framer-motion";
+import { fadeInUp, scaleHover, useScrollAnimation } from "./animations";
 
 export default function AboutUs() {
   const { ref, isInView } = useScrollAnimation();
 
   return (
-    <section
-      ref={ref}
-      className="relative py-24 bg-white overflow-hidden"
-    >
+    <section ref={ref} className="relative py-24 bg-white overflow-hidden">
       {/* Decorative glow accents */}
       <motion.div
         className="absolute -top-32 -left-32 w-96 h-96 bg-[#FFE98A]/30 blur-3xl rounded-full"
         animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.1, 1] }}
-        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
       />
 
       <motion.div
         className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#FFF2B4]/40 blur-3xl rounded-full"
         animate={{ opacity: [0.7, 1, 0.7], scale: [1, 1.05, 1] }}
-        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
       />
 
       {/* CONTENT WRAPPER */}
@@ -28,7 +25,7 @@ export default function AboutUs() {
         className="relative max-w-5xl mx-auto px-6 sm:px-10 text-center"
         variants={fadeInUp}
         initial="hidden"
-        animate={isInView ? 'visible' : 'hidden'}
+        animate={isInView ? "visible" : "hidden"}
       >
         {/* TITLE */}
         <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6">
@@ -37,9 +34,9 @@ export default function AboutUs() {
 
         {/* SUBTITLE */}
         <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
-          TuitionsTime is a modern platform connecting students and tutors across India. 
-          Our mission is to make quality education accessible, flexible, and affordable 
-          for every learner.
+          TuitionsTime is a modern platform connecting students and tutors
+          across India. Our mission is to make quality education accessible,
+          flexible, and affordable for every learner.
         </p>
 
         {/* Decorative divider */}
@@ -54,9 +51,10 @@ export default function AboutUs() {
           whileHover={scaleHover}
         >
           <p className="text-gray-800 text-lg leading-relaxed">
-            Whether you're looking to strengthen fundamentals, prepare for exams, 
-            or learn at your own pace, TuitionsTime empowers you with verified tutors, 
-            one-to-one sessions, and personalized learning paths designed for success.
+            Whether you&apos;re looking to strengthen fundamentals, prepare for
+            exams, or learn at your own pace, TuitionsTime empowers you with
+            verified tutors, one-to-one sessions, and personalized learning
+            paths designed for success.
           </p>
         </motion.div>
       </motion.div>

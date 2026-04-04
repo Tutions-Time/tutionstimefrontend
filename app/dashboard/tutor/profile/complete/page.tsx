@@ -17,6 +17,7 @@ import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSec
 import { toast } from "@/hooks/use-toast";
 import TutorAgeConfirmationSection from
   "@/components/TutorCompleteProfile/TutorAgeConfirmationSection";
+import { useAuth } from "@/hooks/useAuth";
 
 
 import {
@@ -35,6 +36,7 @@ export default function TutorProfileCompletePage() {
   const profile = useAppSelector((s) => s.tutorProfile);
   const userId = useAppSelector((s) => s.auth.user?.id);
   const userEmail = useAppSelector((s) => s.auth.user?.email);
+  const { logout } = useAuth();
 
   // ---------- FILE STATES ----------
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -179,6 +181,13 @@ export default function TutorProfileCompletePage() {
     );
   };
 
+  const handleLogout = async () => {
+    try {
+      clearAllStateAndCache();
+    } catch {}
+    await logout();
+  };
+
   // ---------- SUBMIT ----------
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -281,6 +290,9 @@ export default function TutorProfileCompletePage() {
               priority
             />
           </div>
+          <SecondaryButton onClick={handleLogout}>
+            Logout
+          </SecondaryButton>
         </div>
       </nav>
 

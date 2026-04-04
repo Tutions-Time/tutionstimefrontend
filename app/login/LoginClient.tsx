@@ -47,7 +47,7 @@ export default function LoginClient() {
       const response = await sendOtp(email, "login");
       setRequestId(response.requestId);
       setStep("otp");
-      setCountdown(response.expiresIn || 30);
+      setCountdown(response.resendIn || 30);
       toast({
         title: "OTP Sent",
         description: "Please check your email for the verification code",

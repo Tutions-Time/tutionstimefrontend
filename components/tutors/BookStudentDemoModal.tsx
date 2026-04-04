@@ -9,24 +9,32 @@ import { X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { bookStudentDemo } from "@/services/bookingService";
 
+const EMPTY_ARRAY: any[] = [];
+
 interface Props {
   open: boolean;
   onClose: () => void;
   student: any;
 }
 
-export default function BookStudentDemoModal({ open, onClose, student }: Props) {
-  if (!open || !student) return null;
-
-  const {
-    userId,
-    subjects = [],
-    availability = [],
-    preferredTimes = [],
-    board,
-    learningMode,
-    studentLearningMode,
-  } = student;
+export default function BookStudentDemoModal({
+  open,
+  onClose,
+  student,
+}: Props) {
+  const userId = student?.userId;
+  const subjects = Array.isArray(student?.subjects)
+    ? student.subjects
+    : EMPTY_ARRAY;
+  const availability = Array.isArray(student?.availability)
+    ? student.availability
+    : EMPTY_ARRAY;
+  const preferredTimes = Array.isArray(student?.preferredTimes)
+    ? student.preferredTimes
+    : EMPTY_ARRAY;
+  const board = student?.board;
+  const learningMode = student?.learningMode;
+  const studentLearningMode = student?.studentLearningMode;
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
@@ -34,11 +42,14 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const resolvedLearningMode = learningMode || studentLearningMode || "";
-  const hasPreferredSlots = Array.isArray(preferredTimes) && preferredTimes.length > 0;
+  const hasPreferredSlots =
+    Array.isArray(preferredTimes) && preferredTimes.length > 0;
 
   const selectedDay = selectedDate ? dayjs(selectedDate) : null;
   const isSelectedDayToday = selectedDay?.isSame(dayjs(), "day");
-  const minTimeForToday = isSelectedDayToday ? dayjs().startOf("minute") : undefined;
+  const minTimeForToday = isSelectedDayToday
+    ? dayjs().startOf("minute")
+    : undefined;
 
   const validAvailability = useMemo(() => {
     const today = new Date();
@@ -66,7 +77,9 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
   }, [selectedDate]);
 
   const getStartTimeFromPreferredSlot = (slot: string) => {
-    const part = String(slot || "").split("-")[0]?.trim();
+    const part = String(slot || "")
+      .split("-")[0]
+      ?.trim();
     const m = part?.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
     if (!m) return null;
     let h = Number(m[1]);
@@ -92,7 +105,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     });
 
   const handleSubmit = async () => {
-    if (!selectedSubject || !selectedDate) {
+    if (!userId || !selectedSubject || !selectedDate) {
       showError("Please fill all fields");
       return;
     }
@@ -100,8 +113,8 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     const selectedTime24 = hasPreferredSlots
       ? getStartTimeFromPreferredSlot(selectedPreferredSlot)
       : selectedTime
-      ? selectedTime.format("HH:mm")
-      : "";
+        ? selectedTime.format("HH:mm")
+        : "";
 
     if (!selectedTime24) {
       showError("Please select a preferred time");
@@ -141,9 +154,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
       }
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to book demo.";
+        err?.response?.data?.message || err?.message || "Failed to book demo.";
 
       showError(msg);
     } finally {
@@ -151,10 +162,11 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
     }
   };
 
+  if (!open || !student) return null;
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-5 relative">
-
         <button
           className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
           onClick={onClose}
@@ -169,13 +181,17 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         {/* Board */}
         {board && (
           <p className="mb-3 text-sm text-gray-700">
-            <span className="text-xs font-medium text-gray-600 mr-1.5">Board:</span>
+            <span className="text-xs font-medium text-gray-600 mr-1.5">
+              Board:
+            </span>
             {board}
           </p>
         )}
         {resolvedLearningMode && (
           <p className="mb-3 text-sm text-gray-700">
-            <span className="text-xs font-medium text-gray-600 mr-1.5">Mode:</span>
+            <span className="text-xs font-medium text-gray-600 mr-1.5">
+              Mode:
+            </span>
             {resolvedLearningMode}
           </p>
         )}
@@ -187,7 +203,9 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
           </p>
           <div className="flex flex-wrap gap-2">
             {subjects.length === 0 && (
-              <span className="text-xs text-gray-500">No subjects provided</span>
+              <span className="text-xs text-gray-500">
+                No subjects provided
+              </span>
             )}
             {subjects.map((s: string, idx: number) => (
               <span
@@ -201,7 +219,9 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         </div>
 
         {/* Dates */}
-        <label className="text-xs font-medium text-gray-600">Available Dates</label>
+        <label className="text-xs font-medium text-gray-600">
+          Available Dates
+        </label>
         <select
           className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"
           value={selectedDate}
@@ -222,7 +242,7 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         {hasPreferredSlots ? (
           <>
             <p className="text-[10px] text-gray-500 mb-1">
-              Select one of the student's preferred time slots.
+              Select one of the student&apos;s preferred time slots.
             </p>
             <select
               className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"
@@ -269,7 +289,9 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         )}
 
         {/* Note */}
-        <label className="text-xs font-medium text-gray-600">Note (Optional)</label>
+        <label className="text-xs font-medium text-gray-600">
+          Note (Optional)
+        </label>
         <textarea
           rows={3}
           className="w-full mt-1 mb-4 rounded-lg border px-3 py-2 text-sm"
@@ -285,7 +307,6 @@ export default function BookStudentDemoModal({ open, onClose, student }: Props) 
         >
           {loading ? "Booking..." : "Book Demo"}
         </button>
-
       </div>
     </div>
   );

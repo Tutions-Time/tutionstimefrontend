@@ -164,7 +164,7 @@ export default function AdminSessionsPage() {
                 <>
                   <div className="flex items-center justify-between px-4 py-3 border-b">
                     <div>
-                      <div className="text-sm font-semibold">Today's Sessions</div>
+                      <div className="text-sm font-semibold">Today&apos;s Sessions</div>
                       <div className="text-xs text-muted">Only sessions scheduled for today</div>
                     </div>
                     <Badge variant="outline" className="text-xs">
