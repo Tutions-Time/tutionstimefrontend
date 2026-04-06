@@ -39,7 +39,6 @@ export default function BookDemoModal({
   const [studentBoard, setStudentBoard] = useState("");
   const [studentLearningMode, setStudentLearningMode] = useState("");
   const todayStr = new Date().toISOString().slice(0, 10);
-  const availableFromToday = availability.filter((d) => d >= todayStr);
   const isTodaySelected = date === todayStr;
   const minTime = isTodaySelected ? dayjs() : undefined;
 
@@ -238,26 +237,13 @@ export default function BookDemoModal({
               Select Date <span className="text-red-500">*</span>
             </label>
 
-            {availableFromToday.length > 0 ? (
-              <select
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
-              >
-                <option value="">-- Select available date --</option>
-                {availableFromToday.map((d) => (
-                  <option key={d} value={d}>
-                    {new Date(d).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-sm text-gray-500">No available dates.</p>
-            )}
+            <input
+              type="date"
+              min={todayStr}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#FFD54F]"
+            />
           </div>
 
           {/* Time – MUI Clock Picker with every minute */}

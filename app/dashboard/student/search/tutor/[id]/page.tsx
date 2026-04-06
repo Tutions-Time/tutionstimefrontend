@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { fetchTutorById } from "@/services/studentService";
 import BookDemoModal from "@/components/tutors/BookDemoModal";
 import EnquiryModal from "@/components/tutors/EnquiryModal";
+import DirectRegularBookingModal from "@/components/DirectRegularBookingModal";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -118,6 +119,7 @@ export default function TutorDetailPage() {
   const [tab, setTab] = useState<"about" | "reviews">("about");
   const [showModal, setShowModal] = useState(false);
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
+  const [showRegularModal, setShowRegularModal] = useState(false);
 
   const routeTutorId = Array.isArray(id) ? id[0] : (id as string);
   const tutorIdForPayload = (userIdFromQuery as string) || routeTutorId;
@@ -255,6 +257,12 @@ export default function TutorDetailPage() {
                     onClick={() => setShowModal(true)}
                   >
                     Book Free Demo
+                  </button>
+                  <button
+                    className={`${buttonBase} border border-gray-300 bg-white text-gray-900 hover:bg-gray-100`}
+                    onClick={() => setShowRegularModal(true)}
+                  >
+                    Start Regular Classes
                   </button>
                 </div>
               </div>
@@ -449,6 +457,12 @@ export default function TutorDetailPage() {
         onClose={() => setShowEnquiryModal(false)}
         tutorId={tutorIdForPayload}
         tutorName={tutor.name}
+      />
+      <DirectRegularBookingModal
+        open={showRegularModal}
+        onClose={() => setShowRegularModal(false)}
+        tutor={tutor}
+        tutorId={tutorIdForPayload}
       />
     </div>
   );
