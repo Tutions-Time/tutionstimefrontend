@@ -26,9 +26,6 @@ export default function BookStudentDemoModal({
   const subjects = Array.isArray(student?.subjects)
     ? student.subjects
     : EMPTY_ARRAY;
-  const availability = Array.isArray(student?.availability)
-    ? student.availability
-    : EMPTY_ARRAY;
   const preferredTimes = Array.isArray(student?.preferredTimes)
     ? student.preferredTimes
     : EMPTY_ARRAY;
@@ -42,6 +39,7 @@ export default function BookStudentDemoModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const resolvedLearningMode = learningMode || studentLearningMode || "";
+  const todayStr = dayjs().format("YYYY-MM-DD");
   const hasPreferredSlots =
     Array.isArray(preferredTimes) && preferredTimes.length > 0;
 
@@ -50,15 +48,6 @@ export default function BookStudentDemoModal({
   const minTimeForToday = isSelectedDayToday
     ? dayjs().startOf("minute")
     : undefined;
-
-  const validAvailability = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return availability.filter((date: string) => {
-      const parsed = new Date(date);
-      return !Number.isNaN(parsed.getTime()) && parsed >= today;
-    });
-  }, [availability]);
 
   // Auto-select all subjects (joined) for submission
   const selectedSubject = useMemo(() => subjects.join(", "), [subjects]);
@@ -219,21 +208,14 @@ export default function BookStudentDemoModal({
         </div>
 
         {/* Dates */}
-        <label className="text-xs font-medium text-gray-600">
-          Available Dates
-        </label>
-        <select
+        <label className="text-xs font-medium text-gray-600">Select Date</label>
+        <input
+          type="date"
+          min={todayStr}
           className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-        >
-          <option value="">Select Date</option>
-          {validAvailability.map((d: string, idx: number) => (
-            <option key={idx} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
+        />
 
         {/* Time */}
         <label className="text-xs font-medium text-gray-600">
@@ -242,7 +224,7 @@ export default function BookStudentDemoModal({
         {hasPreferredSlots ? (
           <>
             <p className="text-[10px] text-gray-500 mb-1">
-              Select one of the student&apos;s preferred time slots.
+              Select one of the student's preferred time slots.
             </p>
             <select
               className="w-full mt-1 mb-3 rounded-lg border px-3 py-2 text-sm"

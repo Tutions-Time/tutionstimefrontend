@@ -160,9 +160,6 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
   else if (Number(data.monthlyRate) <= 0)
     errors.monthlyRate = "Monthly rate must be greater than 0";
 
-  if (!Array.isArray(data.availability) || data.availability.length === 0)
-    errors.availability = "Availability is required";
-
   if (isEmpty(data.bio)) errors.bio = "Bio is required";
 
   return errors;
@@ -253,8 +250,8 @@ export function validateStudentProfileFields(
   if (data.tutorGenderPref === "Other" && isEmpty(data.tutorGenderOther))
     errors.tutorGenderOther = "Please specify tutor gender";
 
-  if (data.preferredTimes && !Array.isArray(data.preferredTimes))
-    errors.preferredTimes = "Preferred time slots must be a list";
+  if (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
+    errors.preferredTimes = "Preferred time slots are required";
 
   if (data.availability && !Array.isArray(data.availability))
     errors.availability = "Availability must be a list of dates";

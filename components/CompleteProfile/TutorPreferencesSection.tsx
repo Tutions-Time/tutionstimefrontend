@@ -1,31 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Users2,
-  Calendar as CalendarIcon,
-  Clock,
-  X,
-} from "lucide-react";
+import { Users2, Clock, X } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/studentProfileSlice";
 import { Label } from "@/components/ui/label";
-import AvailabilityPicker from "@/components/forms/AvailabilityPicker";
 import OtherInline from "@/components/forms/OtherInline";
-
-/* ---------------- MUI Time Picker ---------------- */
-import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import type { Dayjs } from "dayjs";
 import { Textarea } from "../ui/textarea";
 
-/* ---------------- Constants ---------------- */
 const TUTOR_GENDER = ["No Preference", "Male", "Female", "Other"] as const;
 
 const toOptions = (arr: readonly string[]) =>
   arr.map((v) => ({ value: v, label: v }));
 
-/* ---------------- Component ---------------- */
 export default function TutorPreferencesSection({
   disabled = false,
 }: {
@@ -34,12 +24,10 @@ export default function TutorPreferencesSection({
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
-  /* -------- Time Slot Local State -------- */
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
-  const [timeError, setTimeError] = useState<string>("");
+  const [timeError, setTimeError] = useState("");
 
-  /* -------- OtherInline handler -------- */
   const onOtherChange =
     (baseKey: string, otherKey: string, options: readonly string[]) =>
     (val: string) => {
@@ -57,7 +45,6 @@ export default function TutorPreferencesSection({
       }
     };
 
-  /* -------- Add Slot -------- */
   const addSlot = () => {
     if (!startTime || !endTime || disabled) return;
     if (!endTime.isAfter(startTime)) {
@@ -66,26 +53,17 @@ export default function TutorPreferencesSection({
     }
 
     const slot = `${startTime.format("hh:mm A")} - ${endTime.format("hh:mm A")}`;
-
     const next = new Set(profile.preferredTimes || []);
     next.add(slot);
 
-    dispatch(
-      setField({
-        key: "preferredTimes",
-        value: Array.from(next),
-      })
-    );
-
+    dispatch(setField({ key: "preferredTimes", value: Array.from(next) }));
     setStartTime(null);
     setEndTime(null);
     setTimeError("");
   };
 
-  /* ---------------- Render ---------------- */
   return (
     <div className="bg-white/90 rounded-2xl border shadow-[0_8px_24px_rgba(12,74,110,0.08)] backdrop-blur p-8 relative">
-      {/* Disabled Overlay */}
       {disabled && (
         <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-2xl z-10 cursor-not-allowed" />
       )}
@@ -100,7 +78,6 @@ export default function TutorPreferencesSection({
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 relative z-20">
-        {/* Tutor Gender */}
         <OtherInline
           label="Preferred Tutor Gender"
           value={profile.tutorGenderPref}
@@ -115,11 +92,10 @@ export default function TutorPreferencesSection({
           disabled={disabled}
         />
 
-        {/* Preferred Time Slots */}
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-primary" />
-            <Label>Preferred Time Slots (Optional)</Label>
+            <Label>Preferred Time Slots</Label>
           </div>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -175,11 +151,8 @@ export default function TutorPreferencesSection({
           >
             Add Slot
           </button>
-          {timeError && (
-            <p className="mt-2 text-xs text-red-600">{timeError}</p>
-          )}
+          {timeError && <p className="mt-2 text-xs text-red-600">{timeError}</p>}
 
-          {/* Selected Slots */}
           {(profile.preferredTimes || []).length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
               {(profile.preferredTimes || []).map((slot) => (
@@ -191,9 +164,7 @@ export default function TutorPreferencesSection({
                     dispatch(
                       setField({
                         key: "preferredTimes",
-                        value: profile.preferredTimes.filter(
-                          (s) => s !== slot
-                        ),
+                        value: profile.preferredTimes.filter((s) => s !== slot),
                       })
                     );
                   }}
@@ -209,37 +180,16 @@ export default function TutorPreferencesSection({
           )}
         </div>
 
-        {/* Learning Goals */}
         <div className="md:col-span-2">
           <Label className="mb-2 block">Learning Goals (Optional)</Label>
           <Textarea
             placeholder="e.g. I want to prepare for JEE Mains, or I need help with Calculus..."
             value={profile.goals || ""}
-            onChange={(e) => dispatch(setField({ key: "goals", value: e.target.value }))}
+            onChange={(e) =>
+              dispatch(setField({ key: "goals", value: e.target.value }))
+            }
             disabled={disabled}
             className="h-24 resize-none"
-          />
-        </div>
-
-        {/* Availability */}
-        <div className="md:col-span-2">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-primary" />
-              <Label>Availability (Select Dates) — Optional</Label>
-            </div>
-            <span className="text-xs text-gray-500">
-              {(profile.availability || []).length} date(s) selected
-            </span>
-          </div>
-
-          <AvailabilityPicker
-            disabled={disabled}
-            value={profile.availability}
-            onChange={(next) =>
-              !disabled &&
-              dispatch(setField({ key: "availability", value: next }))
-            }
           />
         </div>
       </div>

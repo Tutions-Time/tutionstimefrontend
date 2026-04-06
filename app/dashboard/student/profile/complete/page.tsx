@@ -173,29 +173,7 @@ export default function StudentProfileCompletePage() {
       if (profile.tutorGenderPref === "Other") {
         appendIf("tutorGenderOther", profile.tutorGenderOther);
       }
-      
       appendIf("preferredTimes", profile.preferredTimes);
-      // If student didn't select availability, auto-fill with current month's dates excluding Sundays
-      (() => {
-        const hasAvail =
-          Array.isArray(profile.availability) && profile.availability.length > 0;
-        if (hasAvail) {
-          appendIf("availability", profile.availability);
-          return;
-        }
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth(); // 0-based
-        const lastDay = new Date(year, month + 1, 0).getDate();
-        const pad = (n: number) => String(n).padStart(2, "0");
-        const dates: string[] = [];
-        for (let d = 1; d <= lastDay; d++) {
-          const dt = new Date(year, month, d);
-          if (dt.getDay() === 0) continue; // skip Sundays
-          dates.push(`${year}-${pad(month + 1)}-${pad(d)}`);
-        }
-        appendIf("availability", dates);
-      })();
       appendIf("goals", profile.goals);
 
       // ---------- PHOTO ----------

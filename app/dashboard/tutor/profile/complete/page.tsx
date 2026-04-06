@@ -224,7 +224,6 @@ export default function TutorProfileCompletePage() {
             : [],
         hourlyRate: profile.hourlyRate,
         monthlyRate: profile.monthlyRate,
-        availability: profile.availability,
         availableDays: profile.availableDays || [],
         bio: profile.bio,
         achievements: profile.achievements,

@@ -75,3 +75,22 @@ export const startRegularFromDemo = async (
     throw new Error(handleApiError(error));
   }
 };
+
+export const startRegularDirect = async (
+  tutorId: string,
+  payload: {
+    subject: string;
+    billingType: "hourly" | "monthly";
+    numberOfClasses?: number;
+  }
+) => {
+  try {
+    const response = await api.post(
+      `/bookings/tutor/${tutorId}/start-regular-direct`,
+      payload
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
