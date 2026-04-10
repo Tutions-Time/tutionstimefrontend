@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 
 import {
   searchNotes,
@@ -30,7 +31,7 @@ export default function NotesPage() {
   const [activeTab, setActiveTab] =
     useState<"purchased" | "all">("all");
 
-  // Prevent multiple Razorpay popups
+  // Prevent multiple payment popups
   const paymentInProgress = useRef(false);
 
   const fetchPurchased = async () => {
@@ -78,76 +79,25 @@ export default function NotesPage() {
         return;
       }
 
-      if (!orderRes?.orderId || !(orderRes?.key || orderRes?.razorpayKey)) {
+      if (!orderRes?.orderId || !orderRes?.paymentSessionId) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
+      paymentInProgress.current = true;
+      await openCashfreeCheckout(orderRes.paymentSessionId);
+      const verify = await verifyNotePayment(
+        { orderId: orderRes.orderId },
+        String(note._id)
+      );
 
-      const ensureRazorpay = async () => {
-        if ((window as any).Razorpay) return true;
-        return await new Promise<boolean>((resolve) => {
-          const script = document.createElement("script");
-          script.src = "https://checkout.razorpay.com/v1/checkout.js";
-          script.onload = () => resolve(!!(window as any).Razorpay);
-          script.onerror = () => resolve(false);
-          document.body.appendChild(script);
-        });
-      };
+      paymentInProgress.current = false;
 
-      const sdkReady = await ensureRazorpay();
-      if (!sdkReady) {
-        toast({ title: "Razorpay SDK not loaded", variant: "destructive" });
-        return;
+      if (verify?.success) {
+        toast({ title: "Purchased" });
+        fetchPurchased();
+      } else {
+        toast({ title: "Verification failed", variant: "destructive" });
       }
-
-      const options = {
-        key: orderRes.key || orderRes.razorpayKey,
-        amount: orderRes.amount,
-        currency: "INR",
-        name: "TuitionsTime",
-        description: "Paid Note",
-        order_id: orderRes.orderId,
-
-        modal: {
-          ondismiss: () => {
-            paymentInProgress.current = false; // reset lock
-            toast({ title: "Payment cancelled", variant: "destructive" });
-          },
-        },
-
-        handler: async (response: any) => {
-          const verify = await verifyNotePayment(
-            {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            },
-            String(note._id)
-          );
-
-          paymentInProgress.current = false; // reset
-
-          if (verify?.success) {
-            toast({ title: "Purchased" });
-            fetchPurchased();
-          } else {
-            toast({ title: "Verification failed", variant: "destructive" });
-          }
-        },
-
-        theme: { color: "#207EA9" },
-      };
-
-      paymentInProgress.current = true; // lock Razorpay
-      const rz = new (window as any).Razorpay(options);
-
-      rz.on("payment.failed", (response: any) => {
-        paymentInProgress.current = false;
-        const msg = response?.error?.description || "Payment failed";
-        toast({ title: msg, variant: "destructive" });
-      });
-
-      rz.open();
     } catch {
       paymentInProgress.current = false;
       toast({ title: "Payment failed", variant: "destructive" });

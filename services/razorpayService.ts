@@ -1,10 +1,14 @@
 import api, { handleApiError } from "../lib/api";
 
+type CashfreeVerificationPayload = {
+  orderId: string;
+};
+
 // ----- Regular Class (One-Time Payment) -----
 export const convertBookingToRegular = async (bookingId: string) => {
   try {
     const res = await api.post(`/bookings/${bookingId}/convert`);
-    return res.data; // { success, order, data }
+    return res.data;
   } catch (error) {
     throw new Error(handleApiError(error));
   }
@@ -12,11 +16,7 @@ export const convertBookingToRegular = async (bookingId: string) => {
 
 export const verifyBookingPayment = async (
   bookingId: string,
-  payload: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  }
+  payload: CashfreeVerificationPayload,
 ) => {
   try {
     const res = await api.post(`/bookings/${bookingId}/payment/verify`, payload);
@@ -26,8 +26,7 @@ export const verifyBookingPayment = async (
   }
 };
 
-// ----- Subscription (Monthly) -----
-// STEP 1: create Razorpay order only
+// ----- Subscription (Monthly legacy path) -----
 export const createSubscriptionCheckout = async (payload: {
   tutorId: string;
   planType: "monthly";
@@ -36,65 +35,50 @@ export const createSubscriptionCheckout = async (payload: {
 }) => {
   try {
     const response = await api.post("/subscriptions/checkout", payload);
-    // Expecting: { success, order, meta }
     return response.data;
   } catch (error) {
     return { success: false, message: handleApiError(error) };
   }
 };
 
-// STEP 2: after payment success, verify and create+activate subscription
 export const verifySubscriptionPayment = async (
-  razorpayResponse: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  },
+  paymentResponse: CashfreeVerificationPayload,
   meta: {
     tutorId: string;
     planType: "monthly";
     sessionsPerWeek: number;
     subject: string;
-  }
+  },
 ) => {
   try {
     const res = await api.post(`/subscriptions/verify`, {
-      ...razorpayResponse,
+      ...paymentResponse,
       meta,
     });
-    return res.data; // { success, subscription, ... }
+    return res.data;
   } catch (error) {
     return { success: false, message: handleApiError(error) };
   }
 };
 
 // ----- Generic Payment Verification -----
-// Use for client-side Razorpay payment verification that updates DB payment status
-// Backend: POST /payments/verify
 export const verifyGenericPayment = async (
-  razorpayResponse: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
-  },
+  paymentResponse: CashfreeVerificationPayload,
   meta?: {
     planType?: "regular" | "monthly" | "hourly" | string;
     billingType?: "hourly" | "monthly";
     numberOfClasses?: number;
     regularClassId?: string;
-  }
+  },
 ) => {
   try {
     const res = await api.post(`/payments/verify`, {
-      // Backend expects generic names: orderId, paymentId, signature
-      orderId: razorpayResponse.razorpay_order_id,
-      paymentId: razorpayResponse.razorpay_payment_id,
-      signature: razorpayResponse.razorpay_signature,
+      orderId: paymentResponse.orderId,
       regularClassId: meta?.regularClassId,
       billingType: meta?.billingType,
       numberOfClasses: meta?.numberOfClasses,
     });
-    return res.data; // { success, ... }
+    return res.data;
   } catch (error) {
     return { success: false, message: handleApiError(error) };
   }
@@ -115,7 +99,11 @@ export const createSubscriptionOrder = async (payload: {
 };
 
 // ----- Admin payouts -----
-export const getAdminPayouts = async (params?: { status?: 'created' | 'settled'; from?: string; to?: string }) => {
+export const getAdminPayouts = async (params?: {
+  status?: "created" | "settled";
+  from?: string;
+  to?: string;
+}) => {
   try {
     const res = await api.get(`/payments/admin/payouts`, { params });
     return res.data?.data || [];
@@ -133,8 +121,11 @@ export const settleAdminPayout = async (payoutId: string) => {
   }
 };
 
-// Admin: payment history (student → admin subscription payments)
-export const getAdminPaymentHistory = async (params?: { status?: 'paid' | 'failed' | 'pending'; from?: string; to?: string }) => {
+export const getAdminPaymentHistory = async (params?: {
+  status?: "paid" | "failed" | "pending";
+  from?: string;
+  to?: string;
+}) => {
   try {
     const res = await api.get(`/payments/admin/history`, { params });
     return res.data?.data || [];
@@ -143,7 +134,11 @@ export const getAdminPaymentHistory = async (params?: { status?: 'paid' | 'faile
   }
 };
 
-export const getAdminNotePaymentHistory = async (params?: { status?: 'paid' | 'failed' | 'pending'; from?: string; to?: string }) => {
+export const getAdminNotePaymentHistory = async (params?: {
+  status?: "paid" | "failed" | "pending";
+  from?: string;
+  to?: string;
+}) => {
   try {
     const res = await api.get(`/payments/admin/note-history`, { params });
     return res.data?.data || [];
@@ -152,16 +147,36 @@ export const getAdminNotePaymentHistory = async (params?: { status?: 'paid' | 'f
   }
 };
 
-export const getAdminAllPaymentHistory = async (params?: { from?: string; to?: string; status?: string; type?: 'subscription' | 'note' | 'group' | 'payout' | 'referral' | ''; page?: number; limit?: number; student?: string; tutor?: string; }) => {
+export const getAdminAllPaymentHistory = async (params?: {
+  from?: string;
+  to?: string;
+  status?: string;
+  type?: "subscription" | "note" | "group" | "payout" | "referral" | "";
+  page?: number;
+  limit?: number;
+  student?: string;
+  tutor?: string;
+}) => {
   try {
     const res = await api.get(`/payments/admin/all-history`, { params });
-    return { data: res.data?.data || [], pagination: res.data?.pagination || { total: 0, page: 1, limit: params?.limit || 50, pages: 1 } };
+    return {
+      data: res.data?.data || [],
+      pagination: res.data?.pagination || {
+        total: 0,
+        page: 1,
+        limit: params?.limit || 50,
+        pages: 1,
+      },
+    };
   } catch (error) {
     throw new Error(handleApiError(error));
   }
 };
 
-export const getAdminRevenueTimeseries = async (params?: { from?: string; to?: string }) => {
+export const getAdminRevenueTimeseries = async (params?: {
+  from?: string;
+  to?: string;
+}) => {
   try {
     const res = await api.get(`/payments/admin/revenue-timeseries`, { params });
     return res.data?.data;
@@ -170,7 +185,10 @@ export const getAdminRevenueTimeseries = async (params?: { from?: string; to?: s
   }
 };
 
-export const getTutorNoteHistory = async (params?: { from?: string; to?: string }) => {
+export const getTutorNoteHistory = async (params?: {
+  from?: string;
+  to?: string;
+}) => {
   try {
     const res = await api.get(`/payments/tutor/note-history`, { params });
     return res.data?.data || [];

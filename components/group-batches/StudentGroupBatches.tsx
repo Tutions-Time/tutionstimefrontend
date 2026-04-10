@@ -6,6 +6,7 @@ import {
   createGroupOrder,
   verifyGroupPayment,
 } from "@/services/groupBatchService";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 import { requestRefund, previewRefund, getStudentRefunds } from "@/services/studentService";
 import { getUserProfile } from "@/services/profileService";
 import api from "@/lib/api";
@@ -57,63 +58,25 @@ export default function StudentGroupBatches() {
   }, {});
 
   // --------------------------
-  // Razorpay Loader
-  // --------------------------
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const existing = document.getElementById("razorpay-js");
-      if (existing) existing.remove();
-      const script = document.createElement("script");
-      script.id = "razorpay-js";
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      document.body.appendChild(script);
-    });
-  };
-
-  // --------------------------
   // Payment
   // --------------------------
-  const openRazorpay = async (order: any, batchId: string) => {
-    delete (window as any).Razorpay;
-    await loadRazorpayScript();
+  const openCashfree = async (order: any, batchId: string) => {
+    await openCashfreeCheckout(order.paymentSessionId);
+    try {
+      const verifyRes = await verifyGroupPayment({
+        orderId: order.orderId,
+        batchId,
+      });
 
-    if (!(window as any).Razorpay) {
-      toast.error("Unable to load Razorpay");
-      return;
+      if (verifyRes?.success) {
+        toast.success("Enrollment confirmed");
+        await fetchData();
+      } else {
+        toast.error("Verification failed");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Verification failed");
     }
-
-    const options = {
-      key: order.key,
-      amount: order.amount,
-      currency: order.currency,
-      name: "TuitionsTime",
-      description: "Batch Payment",
-      order_id: order.orderId,
-      handler: async (response: any) => {
-        try {
-          const verifyRes = await verifyGroupPayment({
-            orderId: response.razorpay_order_id,
-            paymentId: response.razorpay_payment_id,
-            signature: response.razorpay_signature,
-            batchId,
-          });
-
-          if (verifyRes?.success) {
-            toast.success("Enrollment confirmed");
-            await fetchData();
-          } else {
-            toast.error("Verification failed");
-          }
-        } catch (e: any) {
-          toast.error(e.message || "Verification failed");
-        }
-      },
-      theme: { color: "#207EA9" },
-    } as any;
-
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
   };
 
   // --------------------------
@@ -236,7 +199,7 @@ export default function StudentGroupBatches() {
         return;
       }
 
-      await openRazorpay(order, batchId);
+      await openCashfree(order, batchId);
       setEnrollModalOpen(false);
     } catch (e: any) {
       toast.error(e.message || "Join failed");
