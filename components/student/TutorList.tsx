@@ -50,6 +50,7 @@ type TutorListProps = {
   onPageChange: (page: number) => void;
   sortOptions: SortOption[];
   getImageUrl: (photoUrl?: string) => string;
+  emptyMessage?: string;
 };
 
 // ---------- COMPONENT ----------
@@ -84,11 +85,16 @@ export default function TutorList({
   onPageChange,
   sortOptions,
   getImageUrl,
+  emptyMessage,
 }: TutorListProps) {
   const currentPage = Number(filter.page || "1");
   const todayStr = new Date().toISOString().slice(0, 10);
   const getUpcomingAvailability = (dates?: string[]) =>
     (dates || []).filter((d) => d >= todayStr);
+  const pageNumbers = Array.from(
+    { length: totalPages },
+    (_, idx) => idx + 1
+  ).filter((page) => Math.abs(page - currentPage) <= 1);
 
   // Modal States
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -268,6 +274,82 @@ export default function TutorList({
               </Card>
             ))}
       </div>
+
+      {!loading && tutors.length === 0 && (
+        <Card className="p-8 text-center rounded-xl bg-white border border-gray-100 shadow-sm">
+          <p className="text-sm text-gray-600">
+            {emptyMessage || "No tutors available for the selected filters."}
+          </p>
+        </Card>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={currentPage <= 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="rounded-full"
+          >
+            Previous
+          </Button>
+
+          {currentPage > 2 && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onPageChange(1)}
+                className="rounded-full min-w-10"
+              >
+                1
+              </Button>
+              {currentPage > 3 && (
+                <span className="px-1 text-sm text-gray-400">...</span>
+              )}
+            </>
+          )}
+
+          {pageNumbers.map((page) => (
+            <Button
+              key={page}
+              type="button"
+              variant={page === currentPage ? "default" : "outline"}
+              onClick={() => onPageChange(page)}
+              className="rounded-full min-w-10"
+            >
+              {page}
+            </Button>
+          ))}
+
+          {currentPage < totalPages - 1 && (
+            <>
+              {currentPage < totalPages - 2 && (
+                <span className="px-1 text-sm text-gray-400">...</span>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onPageChange(totalPages)}
+                className="rounded-full min-w-10"
+              >
+                {totalPages}
+              </Button>
+            </>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            disabled={currentPage >= totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="rounded-full"
+          >
+            Next
+          </Button>
+        </div>
+      )}
 
       {/* DEMO BOOKING MODAL */}
       {selectedTutor && (

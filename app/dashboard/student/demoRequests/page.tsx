@@ -27,6 +27,16 @@ export default function StudentDemoRequests() {
     [key: string]: "confirmed" | "cancelled" | null;
   }>({});
 
+  const getExpiryMessage = (booking: any) => {
+    if (booking?.expiryReason === "tutor-no-response") {
+      return "Expired because the tutor did not accept the request within 5 hours.";
+    }
+    if (booking?.status === "expired") {
+      return "This demo is no longer active.";
+    }
+    return null;
+  };
+
   // Load Requests
   const loadRequests = useCallback(async () => {
     try {
@@ -171,6 +181,10 @@ export default function StudentDemoRequests() {
                     <Badge className="bg-green-100 text-green-700 border-green-200">
                       <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
                     </Badge>
+                  ) : req.status === "expired" ? (
+                    <Badge className="bg-gray-100 text-gray-700 border-gray-200">
+                      Expired
+                    </Badge>
                   ) : req.status === "cancelled" ? (
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                       cancelled
@@ -190,6 +204,12 @@ export default function StudentDemoRequests() {
                     </Badge>
                   )}
                 </div>
+
+                {getExpiryMessage(req) && (
+                  <p className="mt-3 text-sm text-gray-500">
+                    {getExpiryMessage(req)}
+                  </p>
+                )}
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
