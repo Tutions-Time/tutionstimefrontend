@@ -28,6 +28,7 @@ type BookingType = {
   note?: string;
   requestedBy?: "student" | "tutor";
   regularClassId?: string;
+  expiryReason?: "tutor-no-response" | "no-show" | string | null;
 
   demoFeedback?: {
     likedTutor: boolean;
@@ -92,6 +93,13 @@ export default function BookingCard({
     month: "short",
     year: "numeric",
   });
+
+  const expiryMessage =
+    booking.expiryReason === "tutor-no-response"
+      ? "Expired because the tutor did not accept the demo request within 5 hours."
+      : booking.status === "expired"
+      ? "This demo is no longer active."
+      : null;
 
   return (
     <>
@@ -199,6 +207,10 @@ export default function BookingCard({
           <p className="text-xs text-gray-400 italic">
             Meeting link will appear after tutor confirmation.
           </p>
+        )}
+
+        {expiryMessage && (
+          <p className="text-xs text-gray-500 italic">{expiryMessage}</p>
         )}
 
         {booking.type === "demo" &&

@@ -9,6 +9,7 @@ import {
   createSubscriptionOrder,
   verifyGenericPayment,
 } from "@/services/razorpayService";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 
 export default function DirectRegularBookingModal({
   open,
@@ -43,85 +44,43 @@ export default function DirectRegularBookingModal({
 
   if (!open) return null;
 
-  const loadRazorpayScript = () =>
-    new Promise((resolve) => {
-      const existing = document.getElementById("razorpay-js");
-      if (existing) existing.remove();
-      const script = document.createElement("script");
-      script.id = "razorpay-js";
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      document.body.appendChild(script);
-    });
-
   const finish = () => {
     onClose();
     router.push("/dashboard/student/my-classes");
   };
 
-  const openRazorpay = async (
+  const openCashfree = async (
     order: any,
     regularClassId: string,
-    classes: number
+  classes: number
   ) => {
-    if ((window as any).rzp_instance) {
-      (window as any).rzp_instance.close();
-      (window as any).rzp_instance = null;
-    }
-
-    delete (window as any).Razorpay;
-    await loadRazorpayScript();
-
-    if (!(window as any).Razorpay) {
-      toast.error("Unable to load Razorpay");
-      return;
-    }
-
-    const options = {
-      key: order.razorpayKey || order.key,
-      amount: order.amount,
-      currency: order.currency,
-      name: "TuitionsTime",
-      description: "Regular Class Payment",
-      order_id: order.orderId,
-      handler: async (response: any) => {
-        try {
-          const verifyRes = await verifyGenericPayment(
-            {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            },
-            {
-              planType: "regular",
-              billingType,
-              numberOfClasses: billingType === "hourly" ? classes : undefined,
-              regularClassId,
-            }
-          );
-
-          const isVerified =
-            Boolean(verifyRes?.success) ||
-            Boolean(verifyRes?.verified) ||
-            Boolean(verifyRes?.data?.success) ||
-            Boolean(verifyRes?.data?.verified);
-
-          if (isVerified) {
-            toast.success("Payment successful");
-            finish();
-          } else {
-            toast.error(verifyRes?.message || "Verification failed");
-          }
-        } catch (err: any) {
-          toast.error(err.message || "Verification failed");
+    await openCashfreeCheckout(order.paymentSessionId);
+    try {
+      const verifyRes = await verifyGenericPayment(
+        { orderId: order.orderId },
+        {
+          planType: "regular",
+          billingType,
+          numberOfClasses: billingType === "hourly" ? classes : undefined,
+          regularClassId,
         }
-      },
-      theme: { color: "#207EA9" },
-    };
+      );
 
-    const rzp = new (window as any).Razorpay(options);
-    (window as any).rzp_instance = rzp;
-    rzp.open();
+      const isVerified =
+        Boolean(verifyRes?.success) ||
+        Boolean(verifyRes?.verified) ||
+        Boolean(verifyRes?.data?.success) ||
+        Boolean(verifyRes?.data?.verified);
+
+      if (isVerified) {
+        toast.success("Payment successful");
+        finish();
+      } else {
+        toast.error(verifyRes?.message || "Verification failed");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Verification failed");
+    }
   };
 
   const handleSubmit = async () => {
@@ -164,7 +123,7 @@ export default function DirectRegularBookingModal({
         return;
       }
 
-      await openRazorpay(orderRes, regularClassId, classes);
+      await openCashfree(orderRes, regularClassId, classes);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {

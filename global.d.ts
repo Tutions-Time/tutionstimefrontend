@@ -3,6 +3,6 @@ export {};
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Cashfree?: (options: { mode: "sandbox" | "production" }) => any;
   }
 }

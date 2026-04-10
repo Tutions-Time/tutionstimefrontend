@@ -64,9 +64,9 @@ export default function RootLayout({
           {/* MAIN PAGE CONTENT */}
           {children}
 
-          {/* Razorpay */}
+          {/* Cashfree */}
           <Script
-            src="https://checkout.razorpay.com/v1/checkout.js"
+            src="https://sdk.cashfree.com/js/v3/cashfree.js"
             strategy="afterInteractive"
           />
 

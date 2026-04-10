@@ -27,6 +27,16 @@ export default function TutorDemoRequests() {
     [key: string]: 'confirmed' | 'cancelled' | null;
   }>({});
 
+  const getExpiryMessage = (booking: any) => {
+    if (booking?.expiryReason === "tutor-no-response") {
+      return "Expired because the tutor did not accept the request within 5 hours.";
+    }
+    if (booking?.status === "expired") {
+      return "This demo is no longer active.";
+    }
+    return null;
+  };
+
   // Load demo requests
   const loadBookings = useCallback(async () => {
     try {
@@ -210,10 +220,16 @@ export default function TutorDemoRequests() {
                   ) : 
                   (
                     <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                      Pendingg
+                      Pending
                     </Badge>
                   )}
                 </div>
+
+                {getExpiryMessage(b) && (
+                  <p className="mt-3 text-sm text-gray-500">
+                    {getExpiryMessage(b)}
+                  </p>
+                )}
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">

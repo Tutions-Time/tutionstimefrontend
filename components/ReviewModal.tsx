@@ -9,6 +9,7 @@ import { startRegularFromDemo } from "@/services/bookingService";
 import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 
 export default function ReviewModal() {
   const dispatch = useAppDispatch();
@@ -154,51 +155,31 @@ export default function ReviewModal() {
     </div>
   );
 
-  const openRazorpay = (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
-    if (!(window as any).Razorpay) {
-      toast.error("Razorpay SDK not loaded");
-      return;
-    }
-    const options = {
-      key: order.razorpayKey || order.key,
-      amount: order.amount,
-      currency: order.currency,
-      name: "TuitionsTime",
-      description: "Regular Class Payment",
-      order_id: order.orderId,
-      handler: async (response: any) => {
-        try {
-          const verifyRes = await verifyGenericPayment(
-            {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            },
-            {
-              billingType: meta.billingType,
-              numberOfClasses: meta.numberOfClasses,
-              regularClassId: meta.regularClassId,
-            }
-          );
-          const isVerified =
-            Boolean(verifyRes?.success) ||
-            Boolean(verifyRes?.verified) ||
-            Boolean(verifyRes?.data?.success) ||
-            Boolean(verifyRes?.data?.verified);
-          if (isVerified) {
-            toast.success("Payment successful and verified!");
-            completeRegularPaymentFlow();
-          } else {
-            toast.error(verifyRes?.message || "Verification failed");
-          }
-        } catch (e: any) {
-          toast.error(e.message || "Verification failed");
+  const openCashfree = async (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
+    await openCashfreeCheckout(order.paymentSessionId);
+    try {
+      const verifyRes = await verifyGenericPayment(
+        { orderId: order.orderId },
+        {
+          billingType: meta.billingType,
+          numberOfClasses: meta.numberOfClasses,
+          regularClassId: meta.regularClassId,
         }
-      },
-      theme: { color: "#207EA9" },
-    };
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
+      );
+      const isVerified =
+        Boolean(verifyRes?.success) ||
+        Boolean(verifyRes?.verified) ||
+        Boolean(verifyRes?.data?.success) ||
+        Boolean(verifyRes?.data?.verified);
+      if (isVerified) {
+        toast.success("Payment successful and verified!");
+        completeRegularPaymentFlow();
+      } else {
+        toast.error(verifyRes?.message || "Verification failed");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Verification failed");
+    }
   };
 
   const handlePaymentType = async (type: "hourly" | "monthly") => {
@@ -229,7 +210,7 @@ export default function ReviewModal() {
         toast.success("Payment successful via wallet!");
         completeRegularPaymentFlow();
       } else {
-        openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
+        await openCashfree(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
       }
     } catch (err: any) {
       toast.error(err.message || "Payment init failed");

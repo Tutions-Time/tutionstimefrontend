@@ -17,6 +17,10 @@ type TutorFiltersProps = {
   clearAllFilters: () => void;
   priceBuckets: BucketOption[];
   expBuckets: BucketOption[];
+  offlineRestriction?: {
+    active: boolean;
+    pincode: string;
+  };
 };
 
 export default function TutorFilters({
@@ -25,7 +29,10 @@ export default function TutorFilters({
   clearAllFilters,
   priceBuckets,
   expBuckets,
+  offlineRestriction,
 }: TutorFiltersProps) {
+  const isOfflineLocked = Boolean(offlineRestriction?.active);
+
   return (
     <aside
       className={clsx(
@@ -59,8 +66,15 @@ export default function TutorFilters({
           onChange={(e) =>
             setFilter((f) => ({ ...f, pincode: e.target.value, page: "1" }))
           }
+          disabled={isOfflineLocked}
           className="h-8 text-sm rounded-full"
         />
+        {isOfflineLocked && (
+          <p className="text-[11px] text-gray-500">
+            Offline-only profile: tutors are limited to offline tutors in pincode{" "}
+            {offlineRestriction?.pincode || "your area"}.
+          </p>
+        )}
         <Input
           placeholder="Subject"
           value={filter.subject || ""}
@@ -227,8 +241,10 @@ export default function TutorFilters({
                   page: "1",
                 }))
               }
+              disabled={isOfflineLocked && t !== "Offline"}
               className={clsx(
                 "px-3 py-1 rounded-full border transition-all",
+                isOfflineLocked && t !== "Offline" && "opacity-50 cursor-not-allowed hover:bg-transparent",
                 (filter.teachingMode || "") === (t === "Any" ? "" : t)
                   ? "bg-primary text-white border-primary"
                   : "border-gray-200 hover:bg-gray-100"

@@ -151,6 +151,10 @@ export default function SearchTutors() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [profileReady, setProfileReady] = useState(false);
+  const [offlineRestriction, setOfflineRestriction] = useState<{
+    active: boolean;
+    pincode: string;
+  }>({ active: false, pincode: "" });
 
   const hydrated = useUrlSync(filter, (next) => setFilter(next));
 
@@ -163,21 +167,39 @@ export default function SearchTutors() {
           return;
         }
         const up = await getUserProfile();
+        const learningMode = String(up?.profile?.learningMode || "");
+        const pincode = String(up?.profile?.pincode || "");
         const classLevel = up?.profile?.classLevel;
         const board = up?.profile?.board;
         const subjects = Array.isArray(up?.profile?.subjects) ? up.profile.subjects : [];
+        const isOfflineOnly = learningMode === "Offline";
         if (!alive) return;
+        setOfflineRestriction({
+          active: isOfflineOnly,
+          pincode: isOfflineOnly ? pincode : "",
+        });
         if (classLevel) {
           setFilter((f) => ({
             ...f,
             classLevel,
             board: board || "",
+            teachingMode: isOfflineOnly ? "Offline" : f.teachingMode || "",
+            pincode: isOfflineOnly ? pincode : f.pincode || "",
             page: "1",
           }));
         } else if (subjects.length) {
           setFilter((f) => ({
             ...f,
             subject: subjects[0],
+            teachingMode: isOfflineOnly ? "Offline" : f.teachingMode || "",
+            pincode: isOfflineOnly ? pincode : f.pincode || "",
+            page: "1",
+          }));
+        } else if (isOfflineOnly) {
+          setFilter((f) => ({
+            ...f,
+            teachingMode: "Offline",
+            pincode,
             page: "1",
           }));
         }
@@ -263,12 +285,12 @@ export default function SearchTutors() {
   const clearAllFilters = () => {
     setFilter({
       city: "",
-      pincode: "",
+      pincode: offlineRestriction.active ? offlineRestriction.pincode : "",
       subject: "",
       classLevel: "",
       board: "",
       gender: "",
-      teachingMode: "",
+      teachingMode: offlineRestriction.active ? "Offline" : "",
       tuitionType: "",
       priceBucket: "",
       expBucket: "",
@@ -281,6 +303,11 @@ export default function SearchTutors() {
 
   const handlePageChange = (n: number) =>
     setFilter((f) => ({ ...f, page: String(n) }));
+
+  const emptyMessage =
+    offlineRestriction.active && tutors.length === 0
+      ? `No tutor available on your pincode${offlineRestriction.pincode ? ` (${offlineRestriction.pincode})` : ""}.`
+      : "No tutors available for the selected filters.";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -309,6 +336,7 @@ export default function SearchTutors() {
               clearAllFilters={clearAllFilters}
               priceBuckets={PRICE_BUCKETS}
               expBuckets={EXP_BUCKETS}
+              offlineRestriction={offlineRestriction}
             />
 
             {/* Tutors Grid */}
@@ -323,6 +351,7 @@ export default function SearchTutors() {
               onPageChange={handlePageChange}
               sortOptions={SORT_OPTIONS}
               getImageUrl={getImageUrl}
+              emptyMessage={emptyMessage}
             />
           </div>
         </main>

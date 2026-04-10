@@ -25,6 +25,7 @@ import {
   createSubscriptionCheckout,
   verifySubscriptionPayment, 
 } from "@/services/razorpayService";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { getRegularPaymentByClass, requestRefund, previewRefund } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
@@ -220,10 +221,17 @@ export default function StudentSessions() {
     try {
       const { order } = await convertBookingToRegular(bookingId);
 
-      if (!order?.id) {
+      if (!order?.id || !order?.paymentSessionId) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
+
+      await openCashfreeCheckout(order.paymentSessionId);
+      await verifyBookingPayment(bookingId, { orderId: order.id });
+      toast({ title: "Regular class confirmed!" });
+      fetchAll();
+      router.push("/dashboard/student/demoBookings");
+      return;
 
       if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY) {
         toast({ title: "Razorpay key missing", variant: "destructive" });
@@ -285,6 +293,14 @@ export default function StudentSessions() {
         return;
       }
 
+      if (!res?.order?.paymentSessionId) {
+        toast({
+          title: res?.message || "Checkout failed",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY) {
         toast({ title: "Razorpay key missing", variant: "destructive" });
         return;
@@ -295,6 +311,22 @@ export default function StudentSessions() {
       }
 
       const { order, meta } = res;
+
+      await openCashfreeCheckout(order.paymentSessionId);
+      const verifyRes = await verifySubscriptionPayment(
+        { orderId: order.id },
+        meta,
+      );
+      if (verifyRes?.success) {
+        toast({ title: "Subscription active!" });
+        fetchAll();
+      } else {
+        toast({
+          title: verifyRes?.message || "Verification failed",
+          variant: "destructive",
+        });
+      }
+      return;
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,

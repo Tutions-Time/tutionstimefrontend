@@ -45,7 +45,7 @@ export const createGroupOrder = async (payload: { batchId: string; reservationId
   }
 };
 
-export const verifyGroupPayment = async (payload: { orderId: string; paymentId: string; signature: string; batchId: string }) => {
+export const verifyGroupPayment = async (payload: { orderId: string; batchId: string }) => {
   try {
     const res = await api.post(`/payments/group/verify`, payload);
     return res.data;

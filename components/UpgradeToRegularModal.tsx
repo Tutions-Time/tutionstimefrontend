@@ -2,226 +2,160 @@
 
 import { useState } from "react";
 import { startRegularFromDemo } from "@/services/bookingService";
-import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
+import {
+  verifyGenericPayment,
+  createSubscriptionOrder,
+} from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { openCashfreeCheckout } from "@/lib/cashfree";
 
 export default function UpgradeToRegularModal({
-    booking,
-    onClose,
+  booking,
+  onClose,
 }: {
-    booking: any;
-    onClose: () => void;
+  booking: any;
+  onClose: () => void;
 }) {
+  const [billingType, setBillingType] = useState<"hourly" | "monthly">(
+    "hourly",
+  );
+  const [numberOfClasses, setNumberOfClasses] = useState(4);
+  const [loading, setLoading] = useState(false);
 
-    const [billingType, setBillingType] = useState<"hourly" | "monthly">("hourly");
-    const [numberOfClasses, setNumberOfClasses] = useState(4);
-    const [loading, setLoading] = useState(false);
-    const [couponCode, setCouponCode] = useState("");
+  const router = useRouter();
+  const hourlyRate = booking?.tutorHourlyRate || 0;
+  const monthlyRate = booking?.tutorMonthlyRate || 0;
 
-    const router = useRouter();
+  const completeUpgradeFlow = () => {
+    onClose();
+    router.push(`/dashboard/student/demoBookings`);
+  };
 
-    const hourlyRate = booking?.tutorHourlyRate || 0;
-    const monthlyRate = booking?.tutorMonthlyRate || 0;
+  const openCashfree = async (order: any, regularClassId: string) => {
+    await openCashfreeCheckout(order.paymentSessionId);
 
-    const completeUpgradeFlow = () => {
-        onClose();
-        router.push(`/dashboard/student/demoBookings`);
-    };
-
-    /* -----------------------------------------
-     * Razorpay Script Loader (Fresh)
-     * --------------------------------------- */
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            // Remove existing script
-            const existing = document.getElementById("razorpay-js");
-            if (existing) existing.remove();
-
-            const script = document.createElement("script");
-            script.id = "razorpay-js";
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            document.body.appendChild(script);
-        });
-    };
-
-    /* -----------------------------------------
-     * FINAL FIXED Razorpay Handler
-     * --------------------------------------- */
-    const openRazorpay = async (order: any, regularClassId: string) => {
-        // 1️⃣ Remove any previous Razorpay instance
-        if ((window as any).rzp_instance) {
-            (window as any).rzp_instance.close();
-            (window as any).rzp_instance = null;
-        }
-
-        // 2️⃣ Remove Razorpay constructor from cache
-        delete (window as any).Razorpay;
-
-        // 3️⃣ Reload Razorpay fresh
-        await loadRazorpayScript();
-
-        if (!(window as any).Razorpay) {
-            toast.error("Unable to load Razorpay");
-            return;
-        }
-
-        // 4️⃣ Fresh options every time
-        const options = {
-            key: order.razorpayKey || order.key,
-            amount: order.amount,
-            currency: order.currency,
-            name: "TuitionsTime",
-            description: "Regular Class Payment",
-            order_id: order.orderId,
-            handler: async (response: any) => {
-                try {
-                    const verifyRes = await verifyGenericPayment(
-                        {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                        },
-                        {
-                            planType: "regular",
-                            billingType,
-                            numberOfClasses:
-                                billingType === "hourly"
-                                    ? Number(numberOfClasses)
-                                    : undefined,
-                            regularClassId,
-                        }
-                    );
-
-                    const isVerified =
-                        Boolean(verifyRes?.success) ||
-                        Boolean(verifyRes?.verified) ||
-                        Boolean(verifyRes?.data?.success) ||
-                        Boolean(verifyRes?.data?.verified);
-
-                    if (isVerified) {
-                        toast.success("Payment successful!");
-                        completeUpgradeFlow();
-                    } else {
-                        toast.error(verifyRes?.message || "Verification failed");
-                    }
-                } catch (err: any) {
-                    toast.error(err.message || "Verification failed");
-                }
-            },
-            theme: { color: "#207EA9" },
-        };
-
-        // 5️⃣ Create fresh instance
-        const rzp = new (window as any).Razorpay(options);
-        (window as any).rzp_instance = rzp;
-
-        rzp.open();
-
-        rzp.on("payment.failed", () => {
-            (window as any).rzp_instance = null;
-        });
-    };
-
-    /* -----------------------------------------
-     * SUBMIT → Create new order → openRazorpay
-     * --------------------------------------- */
-    const handleSubmit = async () => {
-        try {
-            setLoading(true);
-
-            const res = await startRegularFromDemo(booking._id, {
-                planType: "regular",
-                billingType,
-                numberOfClasses:
-                    billingType === "hourly" ? Number(numberOfClasses) : undefined,
-            });
-
-            if (!res.success) {
-                toast.error(res.message);
-                return;
-            }
-
-            const regularClassId = res?.data?.regularClassId;
-            const classes = billingType === "hourly" ? Number(numberOfClasses) : 1;
-            const orderRes = await createSubscriptionOrder({
-              regularClassId,
-              billingType,
-              numberOfClasses: classes,
-              // couponCode: couponCode.trim() || undefined,
-            });
-            if (orderRes?.walletPaid) {
-                toast.success("Payment successful via wallet");
-                completeUpgradeFlow();
-            } else {
-                openRazorpay(orderRes, regularClassId);
-            }
-
-        } catch (err: any) {
-            toast.error(err.message || "Something went wrong");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[2000]">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-                
-                {/* HEADER */}
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="font-semibold text-lg">Start Regular Classes</h2>
-                    <button onClick={onClose}>
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* RATES BOX */}
-                <div className="border rounded-lg p-3 bg-gray-50 mb-4">
-                    <p className="text-sm font-medium text-gray-700">💰 Tutor Rates</p>
-                    <div className="mt-1 text-sm text-gray-800 space-y-1">
-                        <p><span className="font-semibold">Hourly: </span>₹{hourlyRate} per class</p>
-                        <p><span className="font-semibold">Monthly: </span>₹{monthlyRate} per month</p>
-                    </div>
-                </div>
-
-                {/* BILLING TYPE */}
-                <label className="font-medium text-sm mt-2">Billing Type</label>
-                <select
-                    className="border p-2 rounded w-full mt-1"
-                    value={billingType}
-                    onChange={(e) => setBillingType(e.target.value as "hourly" | "monthly")}
-                >
-                    <option value="hourly">Hourly (per class)</option>
-                    <option value="monthly">Monthly (subscription)</option>
-                </select>
-
-                {/* NUMBER OF CLASSES */}
-                {billingType === "hourly" && (
-                    <>
-                        <label className="font-medium text-sm mt-4">Number of Classes</label>
-                        <input
-                            type="number"
-                            className="border p-2 rounded w-full mt-1"
-                            value={numberOfClasses}
-                            onChange={(e) => setNumberOfClasses(Number(e.target.value))}
-                        />
-                    </>
-                )}
-
-                {/* Coupon UI disabled */}
-
-                {/* BUTTON */}
-                <button
-                    disabled={loading}
-                    onClick={handleSubmit}
-                    className="bg-[#FFD54F] text-black mt-6 px-4 py-2 rounded w-full font-semibold hover:bg-[#f3c942]"
-                >
-                    {loading ? "Processing..." : "Proceed to Payment"}
-                </button>
-            </div>
-        </div>
+    const verifyRes = await verifyGenericPayment(
+      { orderId: order.orderId },
+      {
+        planType: "regular",
+        billingType,
+        numberOfClasses:
+          billingType === "hourly" ? Number(numberOfClasses) : undefined,
+        regularClassId,
+      },
     );
+
+    const isVerified =
+      Boolean(verifyRes?.success) ||
+      Boolean(verifyRes?.verified) ||
+      Boolean(verifyRes?.data?.success) ||
+      Boolean(verifyRes?.data?.verified);
+
+    if (!isVerified) {
+      throw new Error(verifyRes?.message || "Verification failed");
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+
+      const res = await startRegularFromDemo(booking._id, {
+        planType: "regular",
+        billingType,
+        numberOfClasses:
+          billingType === "hourly" ? Number(numberOfClasses) : undefined,
+      });
+
+      if (!res.success) {
+        toast.error(res.message);
+        return;
+      }
+
+      const regularClassId = res?.data?.regularClassId;
+      const classes = billingType === "hourly" ? Number(numberOfClasses) : 1;
+      const orderRes = await createSubscriptionOrder({
+        regularClassId,
+        billingType,
+        numberOfClasses: classes,
+      });
+
+      if (orderRes?.walletPaid) {
+        toast.success("Payment successful via wallet");
+        completeUpgradeFlow();
+        return;
+      }
+
+      await openCashfree(orderRes, regularClassId);
+      toast.success("Payment successful!");
+      completeUpgradeFlow();
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Start Regular Classes</h2>
+          <button onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mb-4 rounded-lg border bg-gray-50 p-3">
+          <p className="text-sm font-medium text-gray-700">Tutor Rates</p>
+          <div className="mt-1 space-y-1 text-sm text-gray-800">
+            <p>
+              <span className="font-semibold">Hourly: </span>Rs.{hourlyRate} per
+              class
+            </p>
+            <p>
+              <span className="font-semibold">Monthly: </span>Rs.{monthlyRate} per
+              month
+            </p>
+          </div>
+        </div>
+
+        <label className="mt-2 text-sm font-medium">Billing Type</label>
+        <select
+          className="mt-1 w-full rounded border p-2"
+          value={billingType}
+          onChange={(e) =>
+            setBillingType(e.target.value as "hourly" | "monthly")
+          }
+        >
+          <option value="hourly">Hourly (per class)</option>
+          <option value="monthly">Monthly (subscription)</option>
+        </select>
+
+        {billingType === "hourly" && (
+          <>
+            <label className="mt-4 block text-sm font-medium">
+              Number of Classes
+            </label>
+            <input
+              type="number"
+              className="mt-1 w-full rounded border p-2"
+              value={numberOfClasses}
+              onChange={(e) => setNumberOfClasses(Number(e.target.value))}
+            />
+          </>
+        )}
+
+        <button
+          disabled={loading}
+          onClick={handleSubmit}
+          className="mt-6 w-full rounded bg-[#FFD54F] px-4 py-2 font-semibold text-black hover:bg-[#f3c942] disabled:opacity-60"
+        >
+          {loading ? "Processing..." : "Proceed to Payment"}
+        </button>
+      </div>
+    </div>
+  );
 }
