@@ -157,7 +157,7 @@ export const getAllTutors = async (params?: {
   page?: number;
   limit?: number;
   q?: string;
-  kyc?: 'all' | 'pending' | 'approved' | 'rejected';
+  kyc?: 'all' | 'pending' | 'submitted' | 'approved' | 'rejected';
   status?: 'all' | 'active' | 'suspended';
   minRating?: number;
   sort?: 'joined_desc' | 'joined_asc' | 'rating_desc' | 'rating_asc' | 'name_asc' | 'name_desc';
@@ -182,9 +182,13 @@ export const getTutorJourney = async (
   }
 };
 
-export const updateTutorKyc = async (id: string, kyc: 'approved' | 'rejected' | 'pending') => {
+export const updateTutorKyc = async (
+  id: string,
+  kyc: 'approved' | 'rejected' | 'pending',
+  reason?: string
+) => {
   try {
-    const res = await api.put(`/admin/tutors/${id}/kyc`, { kyc });
+    const res = await api.put(`/admin/tutors/${id}/kyc`, { kyc, reason });
     return res.data.profile;
   } catch (error) {
     throw new Error(handleApiError(error));

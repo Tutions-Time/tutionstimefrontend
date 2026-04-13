@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useState } from 'react';
 import { Wallet as WalletIcon, Download, IndianRupee } from 'lucide-react';
@@ -30,7 +30,6 @@ export default function WalletPage() {
   const [ifsc, setIfsc] = useState('');
   const [savingPayoutMethod, setSavingPayoutMethod] = useState(false);
 
-  // ✅ Fetch wallet + transactions on load
   const fetchWalletData = useCallback(async () => {
     try {
       setLoading(true);
@@ -73,6 +72,31 @@ export default function WalletPage() {
 
   const balance = wallet?.balance ?? 0;
   const pendingBalance = wallet?.pendingBalance ?? 0;
+  const formatINR = (amount: number) => `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+  const isPayoutTransaction = (tx: any) => tx?.reference?.type === 'payout';
+  const isPendingPayoutRequest = (tx: any) =>
+    isPayoutTransaction(tx) && tx.status === 'pending';
+  const displayTransactionDescription = (tx: any) =>
+    isPendingPayoutRequest(tx)
+      ? 'Withdrawal request submitted'
+      : isPayoutTransaction(tx)
+        ? 'Credited to your bank account'
+        : tx.description || '—';
+  const displayTransactionType = (tx: any) =>
+    isPendingPayoutRequest(tx)
+      ? 'Pending'
+      : isPayoutTransaction(tx)
+        ? 'Credit'
+        : String(tx.type || '').replace(/^./, (c) => c.toUpperCase());
+  const isPositiveTransaction = (tx: any) => isPayoutTransaction(tx) || tx.type === 'credit';
+  const displayAmountPrefix = (tx: any) =>
+    isPendingPayoutRequest(tx) ? '' : isPositiveTransaction(tx) ? '+' : '-';
+  const displayAmountClass = (tx: any) =>
+    isPendingPayoutRequest(tx)
+      ? 'text-gray-700'
+      : isPositiveTransaction(tx)
+        ? 'text-green-600'
+        : 'text-red-600';
 
   async function refresh() {
     const walletRes = await getMyWallet();
@@ -103,7 +127,10 @@ export default function WalletPage() {
       setWithdrawing(true);
       const res = await requestPayout(amt);
       if (res?.success) {
-        toast({ title: 'Payout requested successfully' });
+        toast({
+          title: 'Withdrawal request submitted',
+          description: res?.message || 'Money will be transferred to your bank account soon.',
+        });
         setWithdrawAmount("");
         await refresh();
       } else {
@@ -148,7 +175,10 @@ export default function WalletPage() {
       }
       const res = await requestPayout(amt, details);
       if (res?.success) {
-        toast({ title: 'Payout requested successfully' });
+        toast({
+          title: 'Withdrawal request submitted',
+          description: res?.message || 'Money will be transferred to your bank account soon.',
+        });
         setShowPayoutModal(false);
         setUpiId('');
         setAccountHolderName('');
@@ -199,7 +229,7 @@ export default function WalletPage() {
               <div>
                 <div className="text-sm text-muted">Current Balance</div>
                 <div className="text-2xl font-bold">
-                  ₹{balance.toLocaleString('en-IN')}
+                  {formatINR(balance)}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   Role: {wallet?.role === 'tutor' ? 'Tutor' : 'Student'}
@@ -223,7 +253,7 @@ export default function WalletPage() {
                 </div>
                 <div className="flex">
                   <Button className="ml-auto" onClick={handleWithdraw} disabled={withdrawing}>
-                    {withdrawing ? 'Requesting…' : 'Withdraw'}
+                    {withdrawing ? 'Requesting...' : 'Withdraw'}
                   </Button>
                 </div>
               </div>
@@ -238,12 +268,12 @@ export default function WalletPage() {
                   <WalletIcon className="w-6 h-6 text-yellow-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted">Pending (Locked) Balance</div>
+                  <div className="text-sm text-muted">Pending Balance</div>
                   <div className="text-2xl font-bold text-yellow-700">
-                    ₹{pendingBalance.toLocaleString('en-IN')}
+                    {formatINR(pendingBalance)}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Auto-release occurs ~30 days after class period end
+                    Earnings waiting for admin payout
                   </div>
                 </div>
               </div>
@@ -281,18 +311,14 @@ export default function WalletPage() {
                         })}
                       </td>
                       <td className="px-4 py-3">
-                        {t.description || '—'}
+                        {displayTransactionDescription(t)}
                       </td>
                       <td className="px-4 py-3 capitalize text-gray-600">{t.reference?.type || '—'}</td>
-                      <td className="px-4 py-3 capitalize text-gray-600">{t.type}</td>
+                      <td className="px-4 py-3 text-gray-600">{displayTransactionType(t)}</td>
                       <td
-                        className={`px-4 py-3 font-medium ${
-                          t.type === 'credit'
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                        }`}
+                        className={`px-4 py-3 font-medium ${displayAmountClass(t)}`}
                       >
-                        {t.type === 'credit' ? '+' : '-'}₹
+                        {displayAmountPrefix(t)}₹
                         {Math.abs(t.amount).toLocaleString('en-IN')}
                       </td>
                       <td className="px-4 py-3">
@@ -359,7 +385,7 @@ export default function WalletPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPayoutModal(false)}>Cancel</Button>
             <Button onClick={submitPayoutDetails} disabled={savingPayoutMethod}>
-              {savingPayoutMethod ? 'Saving…' : 'Save & Continue'}
+              {savingPayoutMethod ? 'Saving...' : 'Save & Continue'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -367,4 +393,6 @@ export default function WalletPage() {
     </div>
   );
 }
+
+
 
