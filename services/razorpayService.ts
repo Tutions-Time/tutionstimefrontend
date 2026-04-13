@@ -112,6 +112,35 @@ export const getAdminPayouts = async (params?: {
   }
 };
 
+export const getAdminTutorPayables = async (params?: {
+  status?: "pending" | "paid";
+  from?: string;
+  to?: string;
+  q?: string;
+}) => {
+  try {
+    const res = await api.get(`/payments/admin/tutor-payables`, { params });
+    return {
+      data: res.data?.data || [],
+      totals: res.data?.totals || {},
+    };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const markTutorPayablePaid = async (
+  tutorId: string,
+  payload?: { sourcePaymentIds?: string[]; payoutId?: string; note?: string }
+) => {
+  try {
+    const res = await api.post(`/payments/admin/tutor-payables/${tutorId}/mark-paid`, payload || {});
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const settleAdminPayout = async (payoutId: string) => {
   try {
     const res = await api.patch(`/payments/admin/payouts/${payoutId}/settle`);
