@@ -25,7 +25,7 @@ import {
   createSubscriptionCheckout,
   verifySubscriptionPayment, 
 } from "@/services/razorpayService";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { getRegularPaymentByClass, requestRefund, previewRefund } from "@/services/studentService";
 import { getRegularClassSessions, joinSession } from "@/services/tutorService";
@@ -221,13 +221,15 @@ export default function StudentSessions() {
     try {
       const { order } = await convertBookingToRegular(bookingId);
 
-      if (!order?.id || !order?.paymentSessionId) {
+      if (!order?.id) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
 
-      await openCashfreeCheckout(order.paymentSessionId);
-      await verifyBookingPayment(bookingId, { orderId: order.id });
+      const paymentResponse = await openRazorpayCheckout(order, {
+        description: "Regular Class Payment",
+      });
+      await verifyBookingPayment(bookingId, paymentResponse);
       toast({ title: "Regular class confirmed!" });
       fetchAll();
       router.push("/dashboard/student/demoBookings");
@@ -293,28 +295,13 @@ export default function StudentSessions() {
         return;
       }
 
-      if (!res?.order?.paymentSessionId) {
-        toast({
-          title: res?.message || "Checkout failed",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY) {
-        toast({ title: "Razorpay key missing", variant: "destructive" });
-        return;
-      }
-      if (!(window as any).Razorpay) {
-        toast({ title: "Razorpay SDK not loaded", variant: "destructive" });
-        return;
-      }
-
       const { order, meta } = res;
 
-      await openCashfreeCheckout(order.paymentSessionId);
+      const paymentResponse = await openRazorpayCheckout(order, {
+        description: "Monthly Subscription",
+      });
       const verifyRes = await verifySubscriptionPayment(
-        { orderId: order.id },
+        paymentResponse,
         meta,
       );
       if (verifyRes?.success) {

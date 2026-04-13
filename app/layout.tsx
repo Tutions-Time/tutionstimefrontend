@@ -64,12 +64,6 @@ export default function RootLayout({
           {/* MAIN PAGE CONTENT */}
           {children}
 
-          {/* Cashfree */}
-          <Script
-            src="https://sdk.cashfree.com/js/v3/cashfree.js"
-            strategy="afterInteractive"
-          />
-
           {/* Google Analytics */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-3PFRYR2DR4"

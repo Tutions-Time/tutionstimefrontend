@@ -6,7 +6,7 @@ import {
   createGroupOrder,
   verifyGroupPayment,
 } from "@/services/groupBatchService";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 import { requestRefund, previewRefund, getStudentRefunds } from "@/services/studentService";
 import { getUserProfile } from "@/services/profileService";
 import api from "@/lib/api";
@@ -60,11 +60,13 @@ export default function StudentGroupBatches() {
   // --------------------------
   // Payment
   // --------------------------
-  const openCashfree = async (order: any, batchId: string) => {
-    await openCashfreeCheckout(order.paymentSessionId);
+  const openRazorpay = async (order: any, batchId: string) => {
+    const paymentResponse = await openRazorpayCheckout(order, {
+      description: "Group Batch Payment",
+    });
     try {
       const verifyRes = await verifyGroupPayment({
-        orderId: order.orderId,
+        ...paymentResponse,
         batchId,
       });
 
@@ -199,7 +201,7 @@ export default function StudentGroupBatches() {
         return;
       }
 
-      await openCashfree(order, batchId);
+      await openRazorpay(order, batchId);
       setEnrollModalOpen(false);
     } catch (e: any) {
       toast.error(e.message || "Join failed");
