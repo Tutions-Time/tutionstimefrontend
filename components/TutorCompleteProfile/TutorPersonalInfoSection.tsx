@@ -268,14 +268,14 @@ export default function TutorPersonalInfoSection({
             />
           </div>
 
-          {/* MOBILE NUMBER */}
+          {/* WHATSAPP NUMBER */}
           <div>
-            <label className="text-sm font-medium">Mobile Number</label>
+            <label className="text-sm font-medium">WhatsApp Number</label>
             <Input
               disabled={disabled}
               value={profile.altPhone || ""}
               onChange={(e) => handleAltPhoneChange(e.target.value)}
-              placeholder="10-digit mobile number"
+              placeholder="10-digit WhatsApp number"
               maxLength={10}
               inputMode="numeric"
             />

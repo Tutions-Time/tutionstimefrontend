@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 text-slate-700 space-y-3">
               <li>
                 We ask for certain information such as your username, birthrate,
-                address, phone number and e-mail address when you register for a
+                address, WhatsApp number and e-mail address when you register for a
                 TuitionsTime account. We use this information to operate,
                 maintain, and provide the features and functionality of the
                 Service.
@@ -64,7 +64,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 We collect personally identifiable information (email address,
-                name, phone number, credit/debit card or other payment
+                name, WhatsApp number, credit/debit card or other payment
                 instrument details, etc.) when you set up an account with us. We
                 do not share any details without registration. We may use your
                 contact information to send inquiries based on your previous

@@ -117,7 +117,8 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                     <Users className="h-4 w-4 text-gray-400" />
                     <span className="font-medium text-gray-900">Seats</span>
                     <span className="ml-auto text-gray-600">
-                      {batch.liveSeats}/{batch.seatCap}
+                      {batch.enrolledCount || 0}/{batch.seatCap} enrolled
+                      {typeof batch.liveSeats === "number" ? `, ${batch.liveSeats} available` : ""}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

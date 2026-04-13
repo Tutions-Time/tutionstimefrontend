@@ -1,7 +1,12 @@
 import api, { handleApiError } from "../lib/api";
 
-type CashfreeVerificationPayload = {
+type RazorpayVerificationPayload = {
   orderId: string;
+  paymentId?: string;
+  signature?: string;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
 };
 
 // ----- Regular Class (One-Time Payment) -----
@@ -16,7 +21,7 @@ export const convertBookingToRegular = async (bookingId: string) => {
 
 export const verifyBookingPayment = async (
   bookingId: string,
-  payload: CashfreeVerificationPayload,
+  payload: RazorpayVerificationPayload,
 ) => {
   try {
     const res = await api.post(`/bookings/${bookingId}/payment/verify`, payload);
@@ -42,7 +47,7 @@ export const createSubscriptionCheckout = async (payload: {
 };
 
 export const verifySubscriptionPayment = async (
-  paymentResponse: CashfreeVerificationPayload,
+  paymentResponse: RazorpayVerificationPayload,
   meta: {
     tutorId: string;
     planType: "monthly";
@@ -63,7 +68,7 @@ export const verifySubscriptionPayment = async (
 
 // ----- Generic Payment Verification -----
 export const verifyGenericPayment = async (
-  paymentResponse: CashfreeVerificationPayload,
+  paymentResponse: RazorpayVerificationPayload,
   meta?: {
     planType?: "regular" | "monthly" | "hourly" | string;
     billingType?: "hourly" | "monthly";
@@ -73,7 +78,7 @@ export const verifyGenericPayment = async (
 ) => {
   try {
     const res = await api.post(`/payments/verify`, {
-      orderId: paymentResponse.orderId,
+      ...paymentResponse,
       regularClassId: meta?.regularClassId,
       billingType: meta?.billingType,
       numberOfClasses: meta?.numberOfClasses,

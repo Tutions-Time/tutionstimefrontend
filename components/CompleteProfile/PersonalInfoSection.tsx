@@ -142,11 +142,11 @@ export default function PersonalInfoSection({
             />
           </div>
 
-          {/* Email & Phone */}
+          {/* Email & WhatsApp */}
           <div>
-            <Label>Mobile Number</Label>
+            <Label>WhatsApp Number</Label>
             <Input
-              placeholder="Mobile Number"
+              placeholder="WhatsApp Number"
               value={profile.altPhone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               maxLength={10}

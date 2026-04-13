@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 import {
   searchNotes,
@@ -79,14 +79,16 @@ export default function NotesPage() {
         return;
       }
 
-      if (!orderRes?.orderId || !orderRes?.paymentSessionId) {
+      if (!orderRes?.orderId) {
         toast({ title: "Payment init failed", variant: "destructive" });
         return;
       }
       paymentInProgress.current = true;
-      await openCashfreeCheckout(orderRes.paymentSessionId);
+      const paymentResponse = await openRazorpayCheckout(orderRes, {
+        description: "Note Purchase",
+      });
       const verify = await verifyNotePayment(
-        { orderId: orderRes.orderId },
+        paymentResponse,
         String(note._id)
       );
 

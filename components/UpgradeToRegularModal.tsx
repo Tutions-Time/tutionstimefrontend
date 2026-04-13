@@ -9,7 +9,7 @@ import {
 import { toast } from "react-hot-toast";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 export default function UpgradeToRegularModal({
   booking,
@@ -33,11 +33,13 @@ export default function UpgradeToRegularModal({
     router.push(`/dashboard/student/demoBookings`);
   };
 
-  const openCashfree = async (order: any, regularClassId: string) => {
-    await openCashfreeCheckout(order.paymentSessionId);
+  const openRazorpay = async (order: any, regularClassId: string) => {
+    const paymentResponse = await openRazorpayCheckout(order, {
+      description: "Regular Class Payment",
+    });
 
     const verifyRes = await verifyGenericPayment(
-      { orderId: order.orderId },
+      paymentResponse,
       {
         planType: "regular",
         billingType,
@@ -88,7 +90,7 @@ export default function UpgradeToRegularModal({
         return;
       }
 
-      await openCashfree(orderRes, regularClassId);
+      await openRazorpay(orderRes, regularClassId);
       toast.success("Payment successful!");
       completeUpgradeFlow();
     } catch (err: any) {

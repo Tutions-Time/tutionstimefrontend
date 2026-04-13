@@ -9,7 +9,7 @@ import {
   createSubscriptionOrder,
   verifyGenericPayment,
 } from "@/services/razorpayService";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 export default function DirectRegularBookingModal({
   open,
@@ -49,15 +49,17 @@ export default function DirectRegularBookingModal({
     router.push("/dashboard/student/my-classes");
   };
 
-  const openCashfree = async (
+  const openRazorpay = async (
     order: any,
     regularClassId: string,
   classes: number
   ) => {
-    await openCashfreeCheckout(order.paymentSessionId);
+    const paymentResponse = await openRazorpayCheckout(order, {
+      description: "Regular Class Payment",
+    });
     try {
       const verifyRes = await verifyGenericPayment(
-        { orderId: order.orderId },
+        paymentResponse,
         {
           planType: "regular",
           billingType,
@@ -123,7 +125,7 @@ export default function DirectRegularBookingModal({
         return;
       }
 
-      await openCashfree(orderRes, regularClassId, classes);
+      await openRazorpay(orderRes, regularClassId, classes);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {

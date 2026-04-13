@@ -73,12 +73,19 @@ export const createNoteOrder = async (noteId: string, couponCode?: string) => {
 };
 
 export const verifyNotePayment = async (
-  payload: { orderId: string },
+  payload: {
+    orderId: string;
+    paymentId?: string;
+    signature?: string;
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+  },
   noteId: string,
 ) => {
   try {
     const res = await api.post(`/payments/verify`, {
-      orderId: payload.orderId,
+      ...payload,
       noteId,
     });
     return res.data;

@@ -9,7 +9,7 @@ import { startRegularFromDemo } from "@/services/bookingService";
 import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorpayService";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { openCashfreeCheckout } from "@/lib/cashfree";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 
 export default function ReviewModal() {
   const dispatch = useAppDispatch();
@@ -155,11 +155,13 @@ export default function ReviewModal() {
     </div>
   );
 
-  const openCashfree = async (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
-    await openCashfreeCheckout(order.paymentSessionId);
+  const openRazorpay = async (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
+    const paymentResponse = await openRazorpayCheckout(order, {
+      description: "Regular Class Payment",
+    });
     try {
       const verifyRes = await verifyGenericPayment(
-        { orderId: order.orderId },
+        paymentResponse,
         {
           billingType: meta.billingType,
           numberOfClasses: meta.numberOfClasses,
@@ -210,7 +212,7 @@ export default function ReviewModal() {
         toast.success("Payment successful via wallet!");
         completeRegularPaymentFlow();
       } else {
-        await openCashfree(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
+        await openRazorpay(orderRes, { billingType: type, numberOfClasses: payload.numberOfClasses, regularClassId: rcId });
       }
     } catch (err: any) {
       toast.error(err.message || "Payment init failed");

@@ -352,7 +352,7 @@ export default function AdminTutorsPage() {
   }
 
   function downloadCSV(rows: any[], filename: string) {
-    const headers = ['Name','Email','Phone','KYC','Status','Profile Complete','Joined At'];
+    const headers = ['Name','Email','WhatsApp Number','KYC','Status','Profile Complete','Joined At'];
     const csvRows = rows.map((r) => [
       r.name || '',
       r.email || '',
@@ -456,7 +456,7 @@ export default function AdminTutorsPage() {
               <div className="relative md:col-span-2">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
                 <Input
-                  placeholder="Search name, email, phone"
+                  placeholder="Search name, email, WhatsApp number"
                   className="pl-9"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -618,7 +618,7 @@ export default function AdminTutorsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted">
-                    <div>Phone</div>
+                    <div>WhatsApp</div>
                     <div className="text-text">{t.phone || "-"}</div>
                     <div>Status</div>
                     <div className="text-text capitalize">{t.status}</div>
@@ -712,7 +712,7 @@ export default function AdminTutorsPage() {
                 <thead className="bg-gray-50">
                   <tr className="text-left text-xs uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Tutor</th>
-                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3">WhatsApp</th>
                     <th className="px-4 py-3">KYC</th>
                     <th className="px-4 py-3">Profile</th>
                     <th className="px-4 py-3">Status</th>
