@@ -116,7 +116,7 @@ export default function UserDetailPage() {
               <div>
                 <h2 className="text-2xl font-semibold">{user.name || 'N/A'}</h2>
                 <p className="text-muted">{user.email || 'No email provided'}</p>
-                <p className="text-sm text-muted mt-1">{user.phone || 'No phone'}</p>
+                <p className="text-sm text-muted mt-1">{user.phone || 'No WhatsApp number'}</p>
               </div>
             </div>
 

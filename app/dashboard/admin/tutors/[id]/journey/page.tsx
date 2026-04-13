@@ -336,7 +336,7 @@ export default function TutorJourneyPage() {
                     <div>
                       <div className="text-lg font-semibold text-text">{data.tutor.name}</div>
                       <div className="text-sm text-muted">{data.tutor.email || "No email"}</div>
-                      <div className="text-sm text-muted">{data.tutor.phone || "No phone"}</div>
+                      <div className="text-sm text-muted">{data.tutor.phone || "No WhatsApp number"}</div>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">

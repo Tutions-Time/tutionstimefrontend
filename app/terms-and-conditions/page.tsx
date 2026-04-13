@@ -85,7 +85,7 @@ export default function TermsAndConditionsPage() {
             <h2 className="font-semibold text-lg">4. User Verification</h2>
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
-                Users must provide valid mobile numbers, personal email IDs, and
+                Users must provide valid WhatsApp numbers, personal email IDs, and
                 required identification documents.
               </li>
               <li>

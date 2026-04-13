@@ -243,8 +243,8 @@ export default function StudentDetailPage() {
                       value={getField(student.gender, student.genderOther)}
                     />
                     {/* <Fact icon={Mail} label="Email" value={student.email || student.userId?.email} />
-                <Fact icon={Phone} label="Phone" value={student.userId?.phone} />
-                <Fact icon={Phone} label="Alt Phone" value={student.altPhone} /> */}
+                <Fact icon={Phone} label="WhatsApp" value={student.userId?.phone} />
+                <Fact icon={Phone} label="Alternate WhatsApp" value={student.altPhone} /> */}
                     <Separator />
                     <Fact
                       icon={MapPin}

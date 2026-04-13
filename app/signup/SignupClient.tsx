@@ -75,8 +75,8 @@ export default function SignupClient() {
     }
     if (!isValidPhone(mobile.trim())) {
       toast({
-        title: "Invalid Mobile",
-        description: "Please enter a 10-digit mobile number",
+        title: "Invalid WhatsApp Number",
+        description: "Please enter a 10-digit WhatsApp number",
         variant: "destructive",
       });
       return;
@@ -223,7 +223,7 @@ export default function SignupClient() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mobile">Mobile Number</Label>
+              <Label htmlFor="mobile">WhatsApp Number</Label>
               <div className="flex gap-2">
                 <div className="relative w-28">
                   <Input
@@ -244,7 +244,7 @@ export default function SignupClient() {
                   <Input
                     id="mobile"
                     type="tel"
-                    placeholder="mobile number"
+                    placeholder="WhatsApp number"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     className="pl-10"

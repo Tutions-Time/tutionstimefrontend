@@ -226,7 +226,7 @@ export default function AdminUsersPage() {
   }
 
   function downloadCSV(rows: any[], filename: string) {
-    const headers = ['Name','Email','Phone','Status','Profile Complete','Created At','Last Active'];
+    const headers = ['Name','Email','WhatsApp Number','Status','Profile Complete','Created At','Last Active'];
     const csvRows = rows.map((r) => [
       r.name || '',
       r.email || '',
@@ -352,7 +352,7 @@ export default function AdminUsersPage() {
               <div className="relative">
                 <SearchIcon className="w-4 h-4 absolute left-3 top-3 text-muted" />
                 <Input
-                  placeholder="Search name, email, or phone"
+                  placeholder="Search name, email, or WhatsApp number"
                   className="pl-9"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -432,7 +432,7 @@ export default function AdminUsersPage() {
                     </Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted">
-                    <div>Phone</div>
+                    <div>WhatsApp</div>
                     <div className="text-text">{u.profilePhone || u.phone || '—'}</div>
                     <div>Role</div>
                     <div className="text-text capitalize">{u.role}</div>
@@ -485,7 +485,7 @@ export default function AdminUsersPage() {
                 <thead className="bg-gray-50">
                   <tr className="text-left text-xs uppercase tracking-wider text-muted">
                     <th className="px-4 py-3">Student</th>
-                    <th className="px-4 py-3">Phone</th>
+                    <th className="px-4 py-3">WhatsApp</th>
                     <th className="px-4 py-3">Role</th>
                     <th className="px-4 py-3">Profile</th>
                     <th className="px-4 py-3">Status</th>
@@ -684,7 +684,7 @@ export default function AdminUsersPage() {
                     <div>{formatText(profileData?.email)}</div>
                   </div>
                   <div>
-                    <div className="text-muted">Mobile Number</div>
+                    <div className="text-muted">WhatsApp Number</div>
                     <div>{formatText(profileData?.altPhone)}</div>
                   </div>
                   <div>

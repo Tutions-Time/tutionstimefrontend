@@ -751,7 +751,8 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
               )}
               <div className="flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                Seats available: {b.liveSeats}/{b.seatCap}
+                Enrolled: {b.enrolledCount || 0}/{b.seatCap}
+                <span className="text-gray-400">({b.liveSeats || 0} available)</span>
               </div>
 
               <div className="flex items-center gap-1">
