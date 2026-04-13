@@ -48,7 +48,7 @@ import {
 import { hardDeleteUser } from "@/services/adminService";
 
 type Status = "active" | "suspended";
-type Kyc = "pending" | "approved" | "rejected";
+type Kyc = "pending" | "submitted" | "approved" | "rejected";
 
 type TutorRow = {
   id: string;
@@ -58,6 +58,13 @@ type TutorRow = {
   profilePhoto?: string | null;
   profileComplete?: boolean;
   kyc: Kyc;
+  payoutDetailsStatus?: Kyc;
+  kycDocumentsStatus?: Kyc;
+  kycRejectionReason?: string;
+  upiId?: string;
+  accountHolderName?: string;
+  bankAccountNumber?: string;
+  ifsc?: string;
   aadhaarUrls: string[];
   panUrl: string | null;
   status: Status;
@@ -122,6 +129,21 @@ export default function AdminTutorsPage() {
       .filter(Boolean);
     return parts.length ? parts.join(", ") : "-";
   };
+  const getKycBadgeClass = (value?: Kyc) =>
+    value === "approved"
+      ? "bg-green-100 text-green-700 border-green-300"
+      : value === "rejected"
+        ? "bg-red-100 text-red-700 border-red-300"
+        : value === "submitted"
+          ? "bg-amber-100 text-amber-700 border-amber-300"
+          : "bg-yellow-100 text-yellow-700 border-yellow-300";
+  const maskAccount = (value?: string | null) => {
+    const v = String(value || "");
+    if (v.length <= 4) return v || "-";
+    return `${"*".repeat(Math.max(0, v.length - 4))}${v.slice(-4)}`;
+  };
+  const isPdfUrl = (value?: string | null) =>
+    String(value || "").toLowerCase().includes(".pdf");
 
   const normalizeUserResponse = (res: any) => {
     if (!res) return { user: null, profile: null };
@@ -229,11 +251,35 @@ export default function AdminTutorsPage() {
   }, [page, limit, total]);
 
   // ✅ Approve/Reject KYC
-  async function setKycStatus(id: string, newStatus: Kyc) {
+  async function setKycStatus(id: string, newStatus: Kyc, reason?: string) {
     try {
-      await updateTutorKyc(id, newStatus);
+      await updateTutorKyc(id, newStatus as "approved" | "rejected" | "pending", reason);
       setRows((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, kyc: newStatus } : r)),
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                kyc: newStatus,
+                payoutDetailsStatus: newStatus,
+                kycDocumentsStatus: newStatus,
+                kycRejectionReason: newStatus === "rejected" ? reason || "" : "",
+              }
+            : r,
+        ),
+      );
+      setKycModal((prev) =>
+        prev.row?.id === id
+          ? {
+              ...prev,
+              row: {
+                ...prev.row,
+                kyc: newStatus,
+                payoutDetailsStatus: newStatus,
+                kycDocumentsStatus: newStatus,
+                kycRejectionReason: newStatus === "rejected" ? reason || "" : "",
+              },
+            }
+          : prev,
       );
       toast({
         title: `KYC ${newStatus} successfully ✅`,
@@ -424,6 +470,7 @@ export default function AdminTutorsPage() {
               >
                 <option value="all">All KYC</option>
                 <option value="pending">Pending</option>
+                <option value="submitted">Submitted</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
               </select>
@@ -563,11 +610,7 @@ export default function AdminTutorsPage() {
                     <Badge
                       className={cn(
                         "border capitalize",
-                        t.kyc === "approved"
-                          ? "bg-green-100 text-green-700 border-green-300"
-                          : t.kyc === "pending"
-                            ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                            : "bg-red-100 text-red-700 border-red-300",
+                        getKycBadgeClass(t.kyc),
                       )}
                     >
                       {t.kyc}
@@ -709,11 +752,7 @@ export default function AdminTutorsPage() {
                         <Badge
                           className={cn(
                             "border capitalize",
-                            t.kyc === "approved"
-                              ? "bg-green-100 text-green-700 border-green-300"
-                              : t.kyc === "pending"
-                                ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-                                : "bg-red-100 text-red-700 border-red-300",
+                            getKycBadgeClass(t.kyc),
                           )}
                         >
                           {t.kyc}
@@ -1055,7 +1094,7 @@ export default function AdminTutorsPage() {
       </Dialog>
       {kycModal.open && kycModal.row && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Card className="p-6 rounded-2xl bg-white shadow-lg w-[90vw] max-w-2xl">
+          <Card className="p-6 rounded-2xl bg-white shadow-lg w-[92vw] max-w-4xl max-h-[88vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div className="font-semibold">
                 KYC Documents — {kycModal.row.name}
@@ -1068,6 +1107,75 @@ export default function AdminTutorsPage() {
                 Close
               </Button>
             </div>
+            <div className="mb-5 flex flex-wrap gap-2">
+              <Badge className={cn("border capitalize", getKycBadgeClass(kycModal.row.kyc))}>
+                Overall: {kycModal.row.kyc}
+              </Badge>
+              <Badge className={cn("border capitalize", getKycBadgeClass(kycModal.row.payoutDetailsStatus))}>
+                Payment: {kycModal.row.payoutDetailsStatus || "pending"}
+              </Badge>
+              <Badge className={cn("border capitalize", getKycBadgeClass(kycModal.row.kycDocumentsStatus))}>
+                Documents: {kycModal.row.kycDocumentsStatus || "pending"}
+              </Badge>
+            </div>
+            <div className="mb-5 grid md:grid-cols-2 gap-4">
+              <div className="rounded-lg border bg-slate-50 p-4">
+                <div className="text-sm font-semibold mb-3">UPI and bank details</div>
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div>
+                    <div className="text-muted">UPI ID</div>
+                    <div className="font-medium break-words">{formatText(kycModal.row.upiId)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Account holder name</div>
+                    <div className="font-medium">{formatText(kycModal.row.accountHolderName)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Bank account number</div>
+                    <div className="font-medium">{maskAccount(kycModal.row.bankAccountNumber)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">IFSC</div>
+                    <div className="font-medium">{formatText(kycModal.row.ifsc)}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-lg border bg-white p-4">
+                <div className="text-sm font-semibold mb-3">Review checklist</div>
+                <div className="space-y-2 text-sm text-slate-700">
+                  <div className="flex items-center gap-2">
+                    {kycModal.row.upiId ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-red-600" />}
+                    UPI ID submitted
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {kycModal.row.accountHolderName && kycModal.row.bankAccountNumber && kycModal.row.ifsc ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-600" />
+                    )}
+                    Bank details submitted
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(kycModal.row.aadhaarUrls || []).length ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-600" />
+                    )}
+                    Aadhaar uploaded
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {kycModal.row.panUrl ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-red-600" />}
+                    PAN uploaded
+                  </div>
+                </div>
+                {kycModal.row.kycRejectionReason && (
+                  <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Last decline reason: {kycModal.row.kycRejectionReason}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-sm font-semibold mb-3">Identity documents</div>
             <div className="grid md:grid-cols-3 gap-4">
               {(kycModal.row.aadhaarUrls || []).length === 0 &&
               !kycModal.row.panUrl ? (
@@ -1077,19 +1185,45 @@ export default function AdminTutorsPage() {
               ) : (
                 <>
                   {(kycModal.row.aadhaarUrls || []).map((src, i) => (
-                    <img
+                    <a
                       key={i}
-                      src={getProperImageUrl(src)}
-                      alt={`aadhaar-${i}`}
-                      className="w-full h-32 rounded object-cover border"
-                    />
+                      href={getProperImageUrl(src)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      {isPdfUrl(src) ? (
+                        <div className="flex h-32 items-center justify-center rounded border bg-slate-50 text-sm text-primary">
+                          View Aadhaar {i + 1}
+                        </div>
+                      ) : (
+                        <img
+                          src={getProperImageUrl(src)}
+                          alt={`aadhaar-${i}`}
+                          className="w-full h-32 rounded object-cover border"
+                        />
+                      )}
+                    </a>
                   ))}
                   {kycModal.row.panUrl && (
-                    <img
-                      src={getProperImageUrl(kycModal.row.panUrl)}
-                      alt="PAN"
-                      className="w-full h-32 rounded object-cover border"
-                    />
+                    <a
+                      href={getProperImageUrl(kycModal.row.panUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      {isPdfUrl(kycModal.row.panUrl) ? (
+                        <div className="flex h-32 items-center justify-center rounded border bg-slate-50 text-sm text-primary">
+                          View PAN
+                        </div>
+                      ) : (
+                        <img
+                          src={getProperImageUrl(kycModal.row.panUrl)}
+                          alt="PAN"
+                          className="w-full h-32 rounded object-cover border"
+                        />
+                      )}
+                    </a>
                   )}
                 </>
               )}
@@ -1116,7 +1250,7 @@ export default function AdminTutorsPage() {
                       `Reject KYC for ${kycModal.row?.name}. Enter reason:`,
                     );
                     if (reason !== null)
-                      setKycStatus(kycModal.row!.id, "rejected");
+                      setKycStatus(kycModal.row!.id, "rejected", reason);
                   }}
                 >
                   <XCircle className="w-4 h-4 mr-2" /> Reject
