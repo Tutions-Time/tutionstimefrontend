@@ -11,6 +11,13 @@ import { bookStudentDemo } from "@/services/bookingService";
 
 const EMPTY_ARRAY: any[] = [];
 
+const resolveStudentUserId = (student: any) => {
+  const userId = student?.userId;
+  if (!userId) return "";
+  if (typeof userId === "string") return userId;
+  return String(userId.id || userId._id || "");
+};
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -22,7 +29,7 @@ export default function BookStudentDemoModal({
   onClose,
   student,
 }: Props) {
-  const userId = student?.userId;
+  const userId = resolveStudentUserId(student);
   const subjects = Array.isArray(student?.subjects)
     ? student.subjects
     : EMPTY_ARRAY;
