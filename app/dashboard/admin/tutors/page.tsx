@@ -287,8 +287,8 @@ export default function AdminTutorsPage() {
     } catch (err: any) {
       if (err.response?.data?.message === "Tutor profile not found") {
         toast({
-          title: "Tutor has not submitted KYC yet",
-          description: "Cannot verify until tutor uploads documents.",
+          title: "Tutor profile not found",
+          description: "Create or complete the tutor profile before updating verification.",
           variant: "destructive",
         });
       } else {
@@ -1093,20 +1093,26 @@ export default function AdminTutorsPage() {
         </DialogContent>
       </Dialog>
       {kycModal.open && kycModal.row && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <Card className="p-6 rounded-2xl bg-white shadow-lg w-[92vw] max-w-4xl max-h-[88vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-semibold">
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4">
+          <div
+            className="absolute inset-0"
+            onClick={() => setKycModal({ open: false })}
+          />
+          <Card className="relative z-10 flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border-0 bg-white shadow-2xl sm:h-auto sm:max-h-[92dvh] sm:w-[min(960px,calc(100vw-2rem))] sm:rounded-lg sm:border">
+            <div className="sticky top-0 z-20 flex shrink-0 items-center justify-between gap-3 border-b bg-white px-4 py-3 sm:px-6 sm:py-4">
+              <div className="min-w-0 truncate font-semibold">
                 KYC Documents — {kycModal.row.name}
               </div>
               <Button
                 variant="outline"
                 size="sm"
+                className="shrink-0"
                 onClick={() => setKycModal({ open: false })}
               >
                 Close
               </Button>
             </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
             <div className="mb-5 flex flex-wrap gap-2">
               <Badge className={cn("border capitalize", getKycBadgeClass(kycModal.row.kyc))}>
                 Overall: {kycModal.row.kyc}
@@ -1228,7 +1234,8 @@ export default function AdminTutorsPage() {
                 </>
               )}
             </div>
-            <div className="mt-6 flex flex-wrap justify-end gap-2">
+            </div>
+            <div className="sticky bottom-0 z-20 flex shrink-0 flex-wrap justify-end gap-2 border-t bg-white px-4 py-3 sm:px-6">
               {kycModal.row.kyc !== "approved" && (
                 <Button
                   variant="outline"
