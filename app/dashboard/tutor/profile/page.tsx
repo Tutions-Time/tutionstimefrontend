@@ -22,7 +22,6 @@ import TutorAcademicSection from "@/components/TutorCompleteProfile/TutorAcademi
 import TutorSubjectsSection from "@/components/TutorCompleteProfile/TutorSubjectsSection";
 import TutorRatesAvailabilitySection from "@/components/TutorCompleteProfile/TutorRatesAvailabilitySection";
 import TutorAboutSection from "@/components/TutorCompleteProfile/TutorAboutSection";
-import TutorDemoVideoSection from "@/components/TutorCompleteProfile/TutorDemoVideoSection";
 import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSection";
 
 export default function TutorProfilePage() {
@@ -34,10 +33,8 @@ export default function TutorProfilePage() {
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
-  const [demoVideoUrl, setDemoVideoUrl] = useState<string | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -52,13 +49,6 @@ export default function TutorProfilePage() {
     bankAccountNumber: "",
     ifsc: "",
   });
-
-  const payoutDetailsMissing =
-    isProfileComplete &&
-    (!profile.upiId ||
-      !profile.accountHolderName ||
-      !profile.bankAccountNumber ||
-      !profile.ifsc);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -75,18 +65,7 @@ export default function TutorProfilePage() {
             bankAccountNumber: String(tutor?.bankAccountNumber || ""),
             ifsc: String(tutor?.ifsc || ""),
           });
-          if (
-            Boolean(res?.data?.user?.isProfileComplete) &&
-            (!tutor?.upiId ||
-              !tutor?.accountHolderName ||
-              !tutor?.bankAccountNumber ||
-              !tutor?.ifsc)
-          ) {
-            setShowPayoutModal(true);
-          }
-
           setPhotoPreview(getImageUrl(tutor.photoUrl));
-          setDemoVideoUrl(getImageUrl(tutor.demoVideoUrl));
           setResumeUrl(getImageUrl(tutor.resumeUrl));
         } else {
           toast({
@@ -107,12 +86,6 @@ export default function TutorProfilePage() {
     fetchProfile();
   }, [dispatch]);
 
-  useEffect(() => {
-    if (payoutDetailsMissing) {
-      setShowPayoutModal(true);
-    }
-  }, [payoutDetailsMissing]);
-
   // Validation trigger on blur
 
   const handleSave = async () => {
@@ -131,7 +104,18 @@ export default function TutorProfilePage() {
 
       const fd = new FormData();
       Object.entries(profile || {}).forEach(([k, v]) => {
-        if (["photo", "resume", "demoVideo", "photoUrl", "resumeUrl", "demoVideoUrl"].includes(k))
+        if (
+          [
+            "photo",
+            "resume",
+            "demoVideo",
+            "photoUrl",
+            "resumeUrl",
+            "demoVideoUrl",
+            "achievements",
+            "addressLine2",
+          ].includes(k)
+        )
           return;
 
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
@@ -139,7 +123,6 @@ export default function TutorProfilePage() {
       });
 
       if (photoFile) fd.append("photo", photoFile);
-      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
       if (resumeFile) fd.append("resume", resumeFile);
 
       const res = await updateTutorProfile(fd);
@@ -309,13 +292,6 @@ export default function TutorProfilePage() {
           <TutorRatesAvailabilitySection disabled={!editMode} />
           <TutorAboutSection disabled={!editMode} />
 
-          <TutorDemoVideoSection
-            demoVideoFile={demoVideoFile}
-            setDemoVideoFile={setDemoVideoFile}
-            demoVideoUrl={demoVideoUrl}
-            disabled={!editMode}
-          />
-
           <TutorResumeSection
             resumeFile={resumeFile}
             setResumeFile={setResumeFile}
@@ -416,16 +392,14 @@ export default function TutorProfilePage() {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              {!payoutDetailsMissing && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPayoutModal(false)}
-                  disabled={payoutSaving}
-                >
-                  Cancel
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowPayoutModal(false)}
+                disabled={payoutSaving}
+              >
+                Cancel
+              </Button>
               <Button
                 type="button"
                 onClick={handleSavePayoutDetails}

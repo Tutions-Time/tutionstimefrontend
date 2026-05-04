@@ -8,7 +8,6 @@ import {
   Star,
   BookOpen,
   GraduationCap,
-  Video,
   Clock,
   ShieldCheck,
   User2,
@@ -388,20 +387,6 @@ export default function TutorDetailPage() {
                           </p>
                         </div>
                       </div>
-
-                      {tutor.demoVideoUrl && (
-                        <div>
-                          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                            <Video className="w-4 h-4 text-[--primary]" />
-                            Demo Video
-                          </h2>
-                          <video
-                            controls
-                            className="rounded-lg mt-1 w-full max-h-[300px] border border-gray-200"
-                            src={buildUrl(tutor.demoVideoUrl)}
-                          />
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 )}

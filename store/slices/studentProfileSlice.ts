@@ -62,6 +62,7 @@ export interface StudentProfileState {
   availability: string[];
   preferredTimes: string[];
 
+  budget: string;
   goals: string;
   photoUrl?: string;
   upiId: string;
@@ -122,6 +123,7 @@ const initialState: StudentProfileState = {
   availability: [],
   preferredTimes: [],
 
+  budget: '',
   goals: '',
   photoUrl: undefined,
   upiId: '',

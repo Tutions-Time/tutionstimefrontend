@@ -2,9 +2,19 @@
 
 import { Wallet } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/tutorProfileSlice";
+import {
+  HOURLY_RATE_OPTIONS,
+  MONTHLY_RATE_OPTIONS,
+} from "@/utils/rateOptions";
 
 export default function TutorRatesAvailabilitySection({
   disabled = false,
@@ -27,29 +37,47 @@ export default function TutorRatesAvailabilitySection({
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <Label>Hourly Rate/per student </Label>
-          <Input
+          <Label>Hourly Rate/per student</Label>
+          <Select
             disabled={disabled}
             value={profile.hourlyRate}
-            onChange={(e) =>
-              dispatch(setField({ key: "hourlyRate", value: e.target.value }))
+            onValueChange={(value) =>
+              dispatch(setField({ key: "hourlyRate", value }))
             }
-            placeholder="e.g., 500"
-            className="h-10"
-          />
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Select hourly rate" />
+            </SelectTrigger>
+            <SelectContent>
+              {HOURLY_RATE_OPTIONS.map((rate) => (
+                <SelectItem key={rate} value={String(rate)}>
+                  Rs.{rate}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <Label>Monthly Rate/per student </Label>
-          <Input
+          <Label>Monthly Rate/per student</Label>
+          <Select
             disabled={disabled}
             value={profile.monthlyRate}
-            onChange={(e) =>
-              dispatch(setField({ key: "monthlyRate", value: e.target.value }))
+            onValueChange={(value) =>
+              dispatch(setField({ key: "monthlyRate", value }))
             }
-            placeholder="e.g., 12000"
-            className="h-10"
-          />
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Select monthly rate" />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHLY_RATE_OPTIONS.map((rate) => (
+                <SelectItem key={rate} value={String(rate)}>
+                  Rs.{rate}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </section>

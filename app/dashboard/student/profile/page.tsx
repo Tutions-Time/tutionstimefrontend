@@ -117,6 +117,7 @@ export default function StudentProfilePage() {
 
       const fd = new FormData();
       Object.entries(profile || {}).forEach(([k, v]) => {
+        if (k === "addressLine2") return;
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else if (v !== undefined && v !== null) fd.append(k, v);
       });

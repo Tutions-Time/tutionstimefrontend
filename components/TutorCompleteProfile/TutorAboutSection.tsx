@@ -21,7 +21,7 @@ export default function TutorAboutSection({
     >
       <div className="flex items-center gap-3 mb-6">
         <Target className="text-primary w-5 h-5" />
-        <h2 className="text-xl font-semibold">About & Highlights</h2>
+        <h2 className="text-xl font-semibold">About</h2>
       </div>
 
       <div className="space-y-4">
@@ -38,18 +38,6 @@ export default function TutorAboutSection({
           />
         </div>
 
-        <div>
-          <Label>Teaching Highlights / Achievements</Label>
-          <Textarea
-            disabled={disabled}
-            className="min-h-[80px]"
-            value={profile.achievements || ""}
-            onChange={(e) =>
-              dispatch(setField({ key: "achievements", value: e.target.value }))
-            }
-            placeholder="Awards, certifications, competition results, etc."
-          />
-        </div>
       </div>
     </section>
   );
