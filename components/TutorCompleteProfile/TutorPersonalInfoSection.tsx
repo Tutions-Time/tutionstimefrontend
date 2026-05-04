@@ -183,18 +183,6 @@ export default function TutorPersonalInfoSection({
             />
           </div>
 
-          {/* ADDRESS LINE 2 */}
-          <div>
-            <Input
-              disabled={disabled}
-              value={profile.addressLine2 || ""}
-              onChange={(e) =>
-                dispatch(setField({ key: "addressLine2", value: e.target.value }))
-              }
-              placeholder="Address Line 2 (optional)"
-            />
-          </div>
-
           {/* CITY / STATE / DISTRICT / PINCODE */}
           <div className="grid md:grid-cols-3 gap-4">
             {/* CITY */}

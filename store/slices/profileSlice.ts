@@ -9,6 +9,7 @@ export interface StudentProfile {
   gender: string;
   classLevel: string;
   subjects: string[];
+  budget?: string;
   goals: string;
   pincode: string;
   photoUrl?: string;
@@ -30,10 +31,8 @@ export interface TutorProfile {
   monthlyRate?: number;
   availableDays: string[];
   bio: string;
-  achievements?: string;
   photoUrl?: string;
   certificateUrl?: string;
-  demoVideoUrl?: string;
 }
 
 interface ProfileState {

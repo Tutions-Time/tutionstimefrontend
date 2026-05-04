@@ -41,11 +41,9 @@ export interface TutorProfileState {
 
   // ----- About -----
   bio: string;
-  achievements: string;
 
   // ----- Uploads -----
   resumeUrl: string;
-  demoVideoUrl: string;
   certificateUrl: string;
   upiId: string;
   accountHolderName: string;
@@ -102,11 +100,9 @@ export const initialState: TutorProfileState = {
 
   // About
   bio: "",
-  achievements: "",
 
   // Uploads
   resumeUrl: "",
-  demoVideoUrl: "",
   certificateUrl: "",
   upiId: "",
   accountHolderName: "",

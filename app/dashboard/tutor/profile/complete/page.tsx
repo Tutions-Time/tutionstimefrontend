@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import Image from "next/image";
+import { ShieldCheck, Trash2, Upload } from "lucide-react";
 import PrimaryButton from "@/components/PrimaryButton";
 import SecondaryButton from "@/components/SecondaryButton";
 
@@ -12,7 +13,6 @@ import TutorAcademicSection from "@/components/TutorCompleteProfile/TutorAcademi
 import TutorSubjectsSection from "@/components/TutorCompleteProfile/TutorSubjectsSection";
 import TutorRatesAvailabilitySection from "@/components/TutorCompleteProfile/TutorRatesAvailabilitySection";
 import TutorAboutSection from "@/components/TutorCompleteProfile/TutorAboutSection";
-import TutorDemoVideoSection from "@/components/TutorCompleteProfile/TutorDemoVideoSection";
 import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSection";
 import { toast } from "@/hooks/use-toast";
 import TutorAgeConfirmationSection from
@@ -41,8 +41,9 @@ export default function TutorProfileCompletePage() {
   // ---------- FILE STATES ----------
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [demoVideoFile, setDemoVideoFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [govProofType, setGovProofType] = useState<"aadhaar" | "pan">("aadhaar");
+  const [govProofFile, setGovProofFile] = useState<File | null>(null);
 
   // Load saved data
   useEffect(() => {
@@ -112,6 +113,8 @@ export default function TutorProfileCompletePage() {
 
     const hasPhoto = Boolean(photoFile || profile.photoUrl);
     if (!hasPhoto) e.photoUrl = "Profile photo is required";
+    if (!govProofFile)
+      e.govProof = "Upload Aadhaar or PAN card as government proof";
     if (!profile.isAgeConfirmed)
       e.isAgeConfirmed = "You must confirm that you are 18+";
 
@@ -137,8 +140,8 @@ export default function TutorProfileCompletePage() {
     // Clear file states
     setPhotoFile(null);
     setPhotoPreview(null);
-    setDemoVideoFile(null);
     setResumeFile(null);
+    setGovProofFile(null);
 
     // Clear local storage cache
     localStorage.removeItem("tt_tutor_prefill");
@@ -151,7 +154,6 @@ export default function TutorProfileCompletePage() {
         gender: "",
         altPhone: "",
         addressLine1: "",
-        addressLine2: "",
         city: "",
         state: "",
         pincode: "",
@@ -170,7 +172,6 @@ export default function TutorProfileCompletePage() {
         monthlyRate: "",
         availableDays: [],
         bio: "",
-        achievements: "",
         upiId: "",
         accountHolderName: "",
         bankAccountNumber: "",
@@ -202,7 +203,6 @@ export default function TutorProfileCompletePage() {
         email: profile.email,
         gender: profile.gender,
         addressLine1: profile.addressLine1,
-        addressLine2: profile.addressLine2,
         city: profile.city,
         state: profile.state,
         pincode: profile.pincode,
@@ -226,7 +226,6 @@ export default function TutorProfileCompletePage() {
         monthlyRate: profile.monthlyRate,
         availableDays: profile.availableDays || [],
         bio: profile.bio,
-        achievements: profile.achievements,
         phone: profile.phone || "",
         altPhone: profile.altPhone || "",
         isAgeConfirmed: profile.isAgeConfirmed,
@@ -241,7 +240,7 @@ export default function TutorProfileCompletePage() {
       // Append files
       if (photoFile) fd.append("photo", photoFile);
       if (resumeFile) fd.append("resume", resumeFile);
-      if (demoVideoFile) fd.append("demoVideo", demoVideoFile);
+      if (govProofFile) fd.append(govProofType, govProofFile);
 
       // Call your existing API (single endpoint)
       await updateTutorProfile(fd);
@@ -299,7 +298,7 @@ export default function TutorProfileCompletePage() {
       <section className="bg-gradient-to-br from-primaryWeak to-white py-10 border-b text-center">
         <h1 className="text-3xl font-bold mb-2">Complete Your Tutor Profile</h1>
         <p className="text-gray-600">
-          Add your details, rates, and demo video to get started.
+          Add your details and rates to get started.
         </p>
       </section>
 
@@ -317,15 +316,110 @@ export default function TutorProfileCompletePage() {
           <TutorRatesAvailabilitySection />
           <TutorAboutSection />
 
-          <TutorDemoVideoSection
-            demoVideoFile={demoVideoFile}
-            setDemoVideoFile={setDemoVideoFile}
-          />
-
         <TutorResumeSection
           resumeFile={resumeFile}
           setResumeFile={setResumeFile}
         />
+
+        <section className="bg-white rounded-2xl shadow p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <ShieldCheck className="text-primary w-5 h-5" />
+            <h2 className="text-xl font-semibold">Government Proof</h2>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-4">
+            Upload any one government proof: Aadhaar card or PAN card.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3 mb-4">
+            <label
+              className={`rounded-lg border px-4 py-3 text-sm cursor-pointer ${
+                govProofType === "aadhaar"
+                  ? "border-primary bg-primaryWeak"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="govProofType"
+                value="aadhaar"
+                checked={govProofType === "aadhaar"}
+                onChange={() => {
+                  setGovProofType("aadhaar");
+                  setGovProofFile(null);
+                }}
+                className="mr-2"
+              />
+              Aadhaar Card
+            </label>
+            <label
+              className={`rounded-lg border px-4 py-3 text-sm cursor-pointer ${
+                govProofType === "pan"
+                  ? "border-primary bg-primaryWeak"
+                  : "border-gray-200 bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="govProofType"
+                value="pan"
+                checked={govProofType === "pan"}
+                onChange={() => {
+                  setGovProofType("pan");
+                  setGovProofFile(null);
+                }}
+                className="mr-2"
+              />
+              PAN Card
+            </label>
+          </div>
+
+          <div
+            className="flex items-center gap-3 border border-dashed rounded-lg px-4 py-6 cursor-pointer hover:bg-gray-50"
+            onClick={() => document.getElementById("govProofUpload")?.click()}
+          >
+            <Upload className="text-primary w-5 h-5" />
+            <span className="text-sm text-gray-700">
+              {govProofFile
+                ? govProofFile.name
+                : `Click to upload ${govProofType === "aadhaar" ? "Aadhaar card" : "PAN card"}`}
+            </span>
+          </div>
+
+          <input
+            id="govProofUpload"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.pdf"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const sizeMB = file.size / (1024 * 1024);
+              if (sizeMB > 10) {
+                toast({
+                  title: "File too large",
+                  description: "Government proof must be 10MB or less",
+                  variant: "destructive",
+                });
+                return;
+              }
+              setGovProofFile(file);
+            }}
+          />
+
+          {govProofFile && (
+            <div className="mt-4 flex items-center justify-between p-3 rounded-lg border">
+              <span className="text-sm">{govProofFile.name}</span>
+              <button
+                type="button"
+                onClick={() => setGovProofFile(null)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </section>
 
         <TutorAgeConfirmationSection />
 

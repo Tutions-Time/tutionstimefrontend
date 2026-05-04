@@ -1,4 +1,8 @@
 // utils/validators.ts
+import {
+  isAllowedHourlyRate,
+  isAllowedMonthlyRate,
+} from "@/utils/rateOptions";
 
 /* -------------------------------------------------------
    SHARED TYPES (do NOT remove ANY fields)
@@ -31,7 +35,6 @@ export interface TutorProfileErrors {
   bio?: string;
   photoUrl?: string;
   resumeUrl?: string;
-  demoVideo?: string;
 }
 
 export interface StudentProfileErrors {
@@ -70,6 +73,7 @@ export interface StudentProfileErrors {
   tutorGenderPref?: string;
   tutorGenderOther?: string;
   preferredTimes?: string;
+  budget?: string;
   availability?: string;
   goals?: string;
   photoUrl?: string;
@@ -114,10 +118,6 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.addressLine1))
     errors.addressLine1 = "Address Line 1 is required";
-  if (isEmpty(data.addressLine2))
-    errors.addressLine2 = "Address Line 2 is required";
-  if (isEmpty(data.addressLine2))
-    errors.addressLine2 = "Address Line 2 is required";
 
   if (isEmpty(data.city)) errors.city = "City is required";
 
@@ -152,13 +152,13 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.hourlyRate))
     errors.hourlyRate = "Hourly rate is required";
-  else if (Number(data.hourlyRate) <= 0)
-    errors.hourlyRate = "Hourly rate must be greater than 0";
+  else if (!isAllowedHourlyRate(data.hourlyRate))
+    errors.hourlyRate = "Select an hourly rate from Rs.400 to Rs.2000";
 
   if (isEmpty(data.monthlyRate))
     errors.monthlyRate = "Monthly rate is required";
-  else if (Number(data.monthlyRate) <= 0)
-    errors.monthlyRate = "Monthly rate must be greater than 0";
+  else if (!isAllowedMonthlyRate(data.monthlyRate))
+    errors.monthlyRate = "Select a monthly rate from Rs.3500 to Rs.10000";
 
   if (isEmpty(data.bio)) errors.bio = "Bio is required";
 
@@ -191,8 +191,6 @@ export function validateStudentProfileFields(
     errors.genderOther = "Please specify gender";
   if (isEmpty(data.addressLine1))
     errors.addressLine1 = "Address Line 1 is required";
-  if (isEmpty(data.addressLine2))
-    errors.addressLine2 = "Address Line 2 is required";
 
   if (isEmpty(data.city)) errors.city = "City is required";
   if (isEmpty(data.state)) errors.state = "State is required";

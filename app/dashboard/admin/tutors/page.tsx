@@ -55,7 +55,33 @@ type TutorRow = {
   name: string;
   email: string;
   phone?: string;
+  gender?: string;
+  isAgeConfirmed?: boolean;
+  qualification?: string;
+  specialization?: string;
+  experience?: number | string;
+  teachingMode?: string;
+  tuitionType?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  subjects?: string[];
+  classLevels?: string[];
+  boards?: string[];
+  exams?: string[];
+  studentTypes?: string[];
+  groupSize?: string;
+  groupSizes?: string[];
+  hourlyRate?: number | string;
+  monthlyRate?: number | string;
+  availability?: string[];
+  bio?: string;
+  achievements?: string;
   profilePhoto?: string | null;
+  resumeUrl?: string | null;
+  demoVideoUrl?: string | null;
   profileComplete?: boolean;
   kyc: Kyc;
   payoutDetailsStatus?: Kyc;
@@ -67,6 +93,12 @@ type TutorRow = {
   ifsc?: string;
   aadhaarUrls: string[];
   panUrl: string | null;
+  isVerified?: boolean;
+  isFeatured?: boolean;
+  rating?: number;
+  ratingCount?: number;
+  classes30d?: number;
+  earnings30d?: number;
   status: Status;
   joinedAt: string;
 };
@@ -93,12 +125,15 @@ export default function AdminTutorsPage() {
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [selectedTutor, setSelectedTutor] = useState<TutorRow | null>(null);
-  const incompleteTutorEmails = useMemo(
+  const incompleteTutorContacts = useMemo(
     () =>
       rows
         .filter((t) => t.profileComplete === false)
-        .map((t) => t.email)
-        .filter(Boolean) as string[],
+        .map((t) => ({
+          email: t.email || "",
+          phone: t.phone || "",
+        }))
+        .filter((t) => t.email || t.phone),
     [rows],
   );
 
@@ -351,19 +386,119 @@ export default function AdminTutorsPage() {
     }
   }
 
+  function csvValue(value: any) {
+    if (Array.isArray(value)) return value.filter(Boolean).join(" | ");
+    if (value === undefined || value === null) return "";
+    return String(value);
+  }
+
   function downloadCSV(rows: any[], filename: string) {
-    const headers = ['Name','Email','WhatsApp Number','KYC','Status','Profile Complete','Joined At'];
+    const headers = [
+      "Tutor ID",
+      "Name",
+      "Email",
+      "WhatsApp Number",
+      "Status",
+      "Profile Complete",
+      "KYC",
+      "Payout Details Status",
+      "KYC Documents Status",
+      "KYC Rejection Reason",
+      "Verified",
+      "Featured",
+      "Gender",
+      "Age Confirmed",
+      "Qualification",
+      "Specialization",
+      "Experience",
+      "Teaching Mode",
+      "Tuition Type",
+      "Subjects",
+      "Class Levels",
+      "Boards",
+      "Exams",
+      "Student Types",
+      "Group Size",
+      "Group Sizes",
+      "Hourly Rate",
+      "Monthly Rate",
+      "Availability",
+      "Bio",
+      "Achievements",
+      "Address Line 1",
+      "Address Line 2",
+      "City",
+      "State",
+      "Pincode",
+      "UPI ID",
+      "Account Holder Name",
+      "Bank Account Number",
+      "IFSC",
+      "Aadhaar Documents Count",
+      "PAN Document",
+      "Profile Photo",
+      "Resume",
+      "Demo Video",
+      "Rating",
+      "Rating Count",
+      "Classes Last 30 Days",
+      "Earnings Last 30 Days",
+      "Joined At",
+    ];
     const csvRows = rows.map((r) => [
+      r.id || '',
       r.name || '',
       r.email || '',
       r.phone || '',
-      r.kyc || '',
       r.status || '',
       r.profileComplete ? 'Yes' : 'No',
+      r.kyc || '',
+      r.payoutDetailsStatus || '',
+      r.kycDocumentsStatus || '',
+      r.kycRejectionReason || '',
+      r.isVerified ? 'Yes' : 'No',
+      r.isFeatured ? 'Yes' : 'No',
+      r.gender || '',
+      r.isAgeConfirmed ? 'Yes' : 'No',
+      r.qualification || '',
+      r.specialization || '',
+      r.experience ?? '',
+      r.teachingMode || '',
+      r.tuitionType || '',
+      csvValue(r.subjects),
+      csvValue(r.classLevels),
+      csvValue(r.boards),
+      csvValue(r.exams),
+      csvValue(r.studentTypes),
+      r.groupSize || '',
+      csvValue(r.groupSizes),
+      r.hourlyRate ?? '',
+      r.monthlyRate ?? '',
+      csvValue(r.availability),
+      r.bio || '',
+      r.achievements || '',
+      r.addressLine1 || '',
+      r.addressLine2 || '',
+      r.city || '',
+      r.state || '',
+      r.pincode || '',
+      r.upiId || '',
+      r.accountHolderName || '',
+      r.bankAccountNumber || '',
+      r.ifsc || '',
+      Array.isArray(r.aadhaarUrls) ? r.aadhaarUrls.length : 0,
+      r.panUrl || '',
+      r.profilePhoto || '',
+      r.resumeUrl || '',
+      r.demoVideoUrl || '',
+      r.rating ?? '',
+      r.ratingCount ?? '',
+      r.classes30d ?? '',
+      r.earnings30d ?? '',
       r.joinedAt ? new Date(r.joinedAt).toISOString() : '',
     ]);
     const all = [headers, ...csvRows].map((arr) =>
-      arr.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')
+      arr.map((v) => `"${csvValue(v).replace(/"/g, '""')}"`).join(',')
     ).join('\n');
     const blob = new Blob([all], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -397,13 +532,8 @@ export default function AdminTutorsPage() {
           return true;
         });
         out.push(...filtered.map((t: any) => ({
-          name: t.name,
-          email: t.email,
+          ...t,
           phone: t.phone ?? "",
-          kyc: t.kyc,
-          status: t.status,
-          profileComplete: t.profileComplete,
-          joinedAt: t.joinedAt,
         })));
         if (data.length < pageSize) break;
         p += 1;
@@ -535,11 +665,11 @@ export default function AdminTutorsPage() {
             </div>
           </Card>
 
-          {incompleteTutorEmails.length > 0 && (
+          {incompleteTutorContacts.length > 0 && (
             <Card className="p-4 rounded-2xl bg-white shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium">
-                  Incomplete tutor profiles: {incompleteTutorEmails.length}
+                  Incomplete tutor profiles: {incompleteTutorContacts.length}
                 </div>
                 <Button
                   variant="outline"
@@ -547,9 +677,11 @@ export default function AdminTutorsPage() {
                   onClick={async () => {
                     try {
                       await navigator.clipboard.writeText(
-                        incompleteTutorEmails.join(", "),
+                        incompleteTutorContacts
+                          .map((t) => `${t.email || "No email"} - ${t.phone || "No mobile number"}`)
+                          .join("\n"),
                       );
-                      toast({ title: "Emails copied to clipboard" });
+                      toast({ title: "Contacts copied to clipboard" });
                     } catch {
                       toast({
                         title: "Copy failed",
@@ -559,11 +691,15 @@ export default function AdminTutorsPage() {
                     }
                   }}
                 >
-                  Copy emails
+                  Copy contacts
                 </Button>
               </div>
-              <div className="text-xs text-muted break-words">
-                {incompleteTutorEmails.join(", ")}
+              <div className="text-xs text-muted break-words space-y-1">
+                {incompleteTutorContacts.map((t, index) => (
+                  <div key={`${t.email || t.phone}-${index}`}>
+                    {t.email || "No email"} - {t.phone || "No mobile number"}
+                  </div>
+                ))}
               </div>
             </Card>
           )}
@@ -1057,22 +1193,6 @@ export default function AdminTutorsPage() {
                   </div>
                 </div>
               </div>
-
-              <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Demo Video</div>
-                {profileData?.demoVideoUrl ? (
-                  <video
-                    controls
-                    className="w-full max-h-[360px] rounded-lg border"
-                    src={getProperImageUrl(profileData?.demoVideoUrl)}
-                  />
-                ) : (
-                  <div className="text-sm text-muted">
-                    No demo video uploaded.
-                  </div>
-                )}
-              </div>
-
               <div className="border-t pt-4">
                 <div className="text-base font-semibold mb-3">Resume</div>
                 {profileData?.resumeUrl ? (

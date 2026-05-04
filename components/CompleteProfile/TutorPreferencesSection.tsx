@@ -10,6 +10,7 @@ import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
 import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
 
 const TUTOR_GENDER = ["No Preference", "Male", "Female", "Other"] as const;
 
@@ -178,6 +179,19 @@ export default function TutorPreferencesSection({
               ))}
             </div>
           )}
+        </div>
+
+        <div className="md:col-span-2">
+          <Label className="mb-2 block">What is your budget?</Label>
+          <Input
+            placeholder="e.g. Rs.500 per hour or Rs.6000 per month"
+            value={profile.budget || ""}
+            onChange={(e) =>
+              dispatch(setField({ key: "budget", value: e.target.value }))
+            }
+            disabled={disabled}
+            className="h-10"
+          />
         </div>
 
         <div className="md:col-span-2">

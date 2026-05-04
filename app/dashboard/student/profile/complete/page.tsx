@@ -136,7 +136,6 @@ export default function StudentProfileCompletePage() {
 
       // ---------- ADDRESS ----------
       appendIf("addressLine1", profile.addressLine1);
-      appendIf("addressLine2", profile.addressLine2);
       appendIf("city", profile.city);
       appendIf("state", profile.state);
       appendIf("pincode", profile.pincode);
@@ -174,6 +173,7 @@ export default function StudentProfileCompletePage() {
         appendIf("tutorGenderOther", profile.tutorGenderOther);
       }
       appendIf("preferredTimes", profile.preferredTimes);
+      appendIf("budget", profile.budget);
       appendIf("goals", profile.goals);
 
       // ---------- PHOTO ----------

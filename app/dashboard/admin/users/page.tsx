@@ -40,6 +40,32 @@ type UserRow = {
   email?: string;
   phone?: string;
   profilePhone?: string | null;
+  gender?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  learningMode?: string | null;
+  track?: string | null;
+  board?: string | string[] | null;
+  classLevel?: string | string[] | null;
+  stream?: string | null;
+  program?: string | null;
+  discipline?: string | null;
+  yearSem?: string | null;
+  exam?: string | string[] | null;
+  targetYear?: string | null;
+  subjects?: string[];
+  tutorGenderPref?: string | null;
+  preferredTimes?: string[];
+  budget?: string | null;
+  goals?: string | null;
+  availability?: string[];
+  upiId?: string | null;
+  accountHolderName?: string | null;
+  bankAccountNumber?: string | null;
+  ifsc?: string | null;
   role: Role;
   status: Status;
   isProfileComplete?: boolean;
@@ -76,12 +102,15 @@ export default function AdminUsersPage() {
   const [profileData, setProfileData] = useState<any>(null);
   const [profileReferralCode, setProfileReferralCode] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
-  const incompleteEmails = useMemo(
+  const incompleteContacts = useMemo(
     () =>
       rows
         .filter((u) => u.isProfileComplete === false)
-        .map((u) => u.email)
-        .filter(Boolean) as string[],
+        .map((u) => ({
+          email: u.email || '',
+          phone: u.profilePhone || u.phone || '',
+        }))
+        .filter((u) => u.email || u.phone),
     [rows],
   );
 
@@ -225,19 +254,99 @@ export default function AdminUsersPage() {
     }
   }
 
+  function csvValue(value: any) {
+    if (Array.isArray(value)) return value.filter(Boolean).join(' | ');
+    if (value === undefined || value === null) return '';
+    return String(value);
+  }
+
   function downloadCSV(rows: any[], filename: string) {
-    const headers = ['Name','Email','WhatsApp Number','Status','Profile Complete','Created At','Last Active'];
+    const headers = [
+      'User ID',
+      'Name',
+      'Email',
+      'WhatsApp Number',
+      'Role',
+      'Status',
+      'Profile Complete',
+      'Gender',
+      'Learning Mode',
+      'Track',
+      'Board',
+      'Class Level',
+      'Stream',
+      'Program',
+      'Discipline',
+      'Year/Sem',
+      'Exam',
+      'Target Year',
+      'Subjects',
+      'Tutor Gender Preference',
+      'Preferred Times',
+      'Budget',
+      'Goals',
+      'Availability',
+      'Address Line 1',
+      'Address Line 2',
+      'City',
+      'State',
+      'Pincode',
+      'UPI ID',
+      'Account Holder Name',
+      'Bank Account Number',
+      'IFSC',
+      'Referral Code',
+      'Referral Code Used',
+      'Referrer Name',
+      'Referrer Role',
+      'Profile Photo',
+      'Created At',
+      'Last Active',
+    ];
     const csvRows = rows.map((r) => [
+      r._id || '',
       r.name || '',
       r.email || '',
       r.profilePhone || r.phone || '',
+      r.role || '',
       r.status || '',
       r.isProfileComplete ? 'Yes' : 'No',
+      r.gender || '',
+      r.learningMode || '',
+      r.track || '',
+      csvValue(r.board),
+      csvValue(r.classLevel),
+      r.stream || '',
+      r.program || '',
+      r.discipline || '',
+      r.yearSem || '',
+      csvValue(r.exam),
+      r.targetYear || '',
+      csvValue(r.subjects),
+      r.tutorGenderPref || '',
+      csvValue(r.preferredTimes),
+      r.budget || '',
+      r.goals || '',
+      csvValue(r.availability),
+      r.addressLine1 || '',
+      r.addressLine2 || '',
+      r.city || '',
+      r.state || '',
+      r.pincode || '',
+      r.upiId || '',
+      r.accountHolderName || '',
+      r.bankAccountNumber || '',
+      r.ifsc || '',
+      r.referralCode || '',
+      r.referralCodeUsed || '',
+      r.referrerName || '',
+      r.referrerRole || '',
+      r.profilePhoto || '',
       r.createdAt ? new Date(r.createdAt).toISOString() : '',
       r.lastLogin ? new Date(r.lastLogin).toISOString() : '',
     ]);
     const all = [headers, ...csvRows].map((arr) =>
-      arr.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')
+      arr.map((v) => `"${csvValue(v).replace(/"/g, '""')}"`).join(',')
     ).join('\n');
     const blob = new Blob([all], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -308,19 +417,23 @@ export default function AdminUsersPage() {
         />
 
         {/* Incomplete profiles quick list */}
-        {incompleteEmails.length > 0 && (
+        {incompleteContacts.length > 0 && (
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <div className="font-medium">
-                Incomplete profiles: {incompleteEmails.length}
+                Incomplete profiles: {incompleteContacts.length}
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(incompleteEmails.join(', '));
-                    toast({ title: 'Emails copied to clipboard' });
+                    await navigator.clipboard.writeText(
+                      incompleteContacts
+                        .map((u) => `${u.email || 'No email'} - ${u.phone || 'No mobile number'}`)
+                        .join('\n'),
+                    );
+                    toast({ title: 'Contacts copied to clipboard' });
                   } catch {
                     toast({
                       title: 'Copy failed',
@@ -330,11 +443,15 @@ export default function AdminUsersPage() {
                   }
                 }}
               >
-                Copy emails
+                Copy contacts
               </Button>
             </div>
-            <div className="text-xs text-muted break-words">
-              {incompleteEmails.join(', ')}
+            <div className="text-xs text-muted break-words space-y-1">
+              {incompleteContacts.map((u, index) => (
+                <div key={`${u.email || u.phone}-${index}`}>
+                  {u.email || 'No email'} - {u.phone || 'No mobile number'}
+                </div>
+              ))}
             </div>
           </Card>
         )}
