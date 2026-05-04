@@ -264,3 +264,44 @@ export const updateRefundStatus = async (
     throw new Error(handleApiError(error));
   }
 };
+
+export const getAdminBlogs = async (params?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  status?: 'all' | 'draft' | 'published' | 'archived';
+}) => {
+  try {
+    const res = await api.get('/admin/blogs', { params });
+    return res.data?.data || { blogs: [], pagination: {} };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const createAdminBlog = async (payload: FormData) => {
+  try {
+    const res = await api.post('/admin/blogs', payload);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const updateAdminBlog = async (id: string, payload: FormData) => {
+  try {
+    const res = await api.put(`/admin/blogs/${id}`, payload);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteAdminBlog = async (id: string) => {
+  try {
+    const res = await api.delete(`/admin/blogs/${id}`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};

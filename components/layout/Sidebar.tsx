@@ -20,6 +20,7 @@ import {
   Layers,
   Bell,
   IndianRupee,
+  Newspaper,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -71,6 +72,7 @@ const adminLinks: NavLink[] = [
   // { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },
   { href: '/dashboard/admin/revenue', label: 'Revenue', icon: Wallet },
   { href: '/dashboard/admin/payouts', label: 'Tutor Payouts', icon: IndianRupee },
+  { href: '/dashboard/admin/blogs', label: 'Blogs', icon: Newspaper },
   // { href: '/dashboard/admin/categories', label: 'Categories', icon: Layers },
   // { href: '/dashboard/admin/transactions', label: 'Transactions', icon: ClipboardList },
   { href: '/dashboard/admin/refunds', label: 'Refunds', icon: ClipboardList },

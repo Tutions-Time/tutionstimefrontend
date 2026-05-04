@@ -42,10 +42,22 @@ export default function Footer() {
               Your Learning Journey Begins Here — With TuitionsTime
             </p>
             <Link
+              href="/about-us"
+              className="block hover:text-text text-sm font-medium"
+            >
+              About Us
+            </Link>
+            <Link
               href="/how-it-works"
-              className="hover:text-text text-sm font-medium"
+              className="mt-2 block hover:text-text text-sm font-medium"
             >
               How it works
+            </Link>
+            <Link
+              href="/blogs"
+              className="mt-2 block hover:text-text text-sm font-medium"
+            >
+              Blogs
             </Link>
           </div>
 
@@ -90,6 +102,16 @@ export default function Footer() {
               <li>
                 <Link href="/contact" className="hover:text-text">
                   Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/about-us" className="hover:text-text">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/blogs" className="hover:text-text">
+                  Blogs
                 </Link>
               </li>
               <li>
