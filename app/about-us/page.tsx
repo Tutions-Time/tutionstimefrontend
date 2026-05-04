@@ -468,26 +468,7 @@ export default function AboutUsPage() {
 
         <section className="bg-slate-50 py-14">
           <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-2xl font-bold text-slate-900">
-                Testimonials
-              </h2>
-              <blockquote className="mt-5 border-l-4 border-primary pl-4 text-sm leading-6 text-slate-700">
-                &quot;TuitionsTime transformed my learning experience. The
-                tutors are incredibly knowledgeable, and the platform is very
-                easy to use.&quot;
-              </blockquote>
-              <p className="mt-3 text-sm font-semibold text-slate-900">
-                John Doe, Computer Science Student
-              </p>
-              <blockquote className="mt-6 border-l-4 border-primary pl-4 text-sm leading-6 text-slate-700">
-                &quot;Teaching on TuitionsTime has been amazing. The flexibility
-                and tools help me deliver better results to my students.&quot;
-              </blockquote>
-              <p className="mt-3 text-sm font-semibold text-slate-900">
-                Anita Kumari, Maths Tutor
-              </p>
-            </div>
+          
 
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-2xl font-bold text-slate-900">Our Values</h2>
