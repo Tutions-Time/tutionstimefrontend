@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
 import { BlogPost, fetchPublishedBlogs, getImageSrc } from "@/services/blogService";
 
 export const metadata: Metadata = {
@@ -27,35 +26,58 @@ function formatDate(value?: string) {
 
 function BlogCard({ blog }: { blog: BlogPost }) {
   const image = getImageSrc(blog.coverImage);
+  const publishedDate = formatDate(blog.publishedAt);
 
   return (
     <article className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
       {image ? (
-        <Link href={`/blogs/${blog.slug}`} className="block aspect-[16/9] bg-slate-100">
+        <Link
+          href={`/blogs/${blog.slug}`}
+          className="group relative block aspect-[16/10] overflow-hidden bg-slate-100"
+        >
           <img
             src={image}
             alt={blog.coverImageAlt || blog.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-4 text-white backdrop-blur-[2px]">
+            <h2 className="line-clamp-2 text-xl font-bold leading-7">
+              {blog.title}
+            </h2>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-md bg-white/18 px-2.5 py-1 text-xs font-semibold ring-1 ring-white/20">
+                {blog.category || "Education"}
+              </span>
+              {publishedDate ? (
+                <span className="rounded-md bg-white/18 px-2.5 py-1 text-xs font-semibold ring-1 ring-white/20">
+                  {publishedDate}
+                </span>
+              ) : null}
+            </div>
+          </div>
         </Link>
-      ) : null}
-      <div className="p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Badge className="bg-primary/15 text-slate-900 border-primary/20">
-            {blog.category || "Education"}
-          </Badge>
-          {blog.publishedAt ? (
-            <span className="text-xs text-slate-500">
-              {formatDate(blog.publishedAt)}
+      ) : (
+        <div className="bg-slate-950 p-5 text-white">
+          <h2 className="text-xl font-bold leading-7">
+            <Link href={`/blogs/${blog.slug}`} className="hover:text-primary">
+              {blog.title}
+            </Link>
+          </h2>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="rounded-md bg-white/15 px-2.5 py-1 text-xs font-semibold">
+              {blog.category || "Education"}
             </span>
-          ) : null}
+            {publishedDate ? (
+              <span className="rounded-md bg-white/15 px-2.5 py-1 text-xs font-semibold">
+                {publishedDate}
+              </span>
+            ) : null}
+          </div>
         </div>
-        <h2 className="text-xl font-bold leading-7 text-slate-900">
-          <Link href={`/blogs/${blog.slug}`} className="hover:text-primary">
-            {blog.title}
-          </Link>
-        </h2>
-        <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+      )}
+      <div className="p-5">
+        <p className="line-clamp-3 text-sm leading-6 text-slate-600">
           {blog.excerpt}
         </p>
         <Link

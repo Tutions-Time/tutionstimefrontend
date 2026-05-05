@@ -378,68 +378,93 @@ export default async function BlogDetailPage({ params }: Props) {
       <Navbar />
       <main>
         <article className="overflow-hidden">
-          <section className="border-b border-slate-200 bg-white">
-            <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-              <Link
-                href="/blogs"
-                className="inline-flex items-center text-sm font-semibold text-slate-600 hover:text-slate-950"
-              >
-                &larr; Back to blogs
-              </Link>
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <Badge className="bg-primary/15 text-slate-900 border-primary/20">
-                  {blog.category || "Education"}
-                </Badge>
-                <span className="text-sm font-medium text-slate-500">
-                  {formatDate(blog.publishedAt || blog.createdAt)}
-                </span>
-                <span className="h-1 w-1 rounded-full bg-slate-300" />
-                <span className="text-sm font-medium text-slate-500">
-                  {readTime} min read
-                </span>
-              </div>
-              <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight text-slate-950 sm:text-5xl">
-                {blog.title}
-              </h1>
-              <p className="mt-5 max-w-3xl text-xl leading-8 text-slate-600">
-                {blog.excerpt}
-              </p>
-              <p className="mt-6 text-sm font-semibold text-slate-700">
-                By <span className="text-slate-950">{blog.authorName || "TuitionsTime Team"}</span>
-              </p>
-            </div>
-          </section>
-
           {image ? (
-            <div className="bg-white">
-              <figure className="mx-auto max-w-4xl px-4 pb-8 sm:px-6 lg:px-8">
-                <div className="flex max-h-[430px] items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-soft">
+            <section className="bg-white">
+              <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+                <Link
+                  href="/blogs"
+                  className="mb-5 inline-flex items-center text-sm font-semibold text-slate-600 hover:text-slate-950"
+                >
+                  &larr; Back to blogs
+                </Link>
+                <figure className="relative overflow-hidden rounded-lg bg-slate-950 shadow-soft">
                   <img
                     src={image}
                     alt={blog.coverImageAlt || blog.title}
-                    className="max-h-[430px] w-full object-contain"
+                    className="h-[330px] w-full object-cover sm:h-[420px] lg:h-[480px]"
                   />
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 px-5 pb-6 pt-16 text-white backdrop-blur-[2px] sm:px-8 sm:pb-8 lg:px-10">
+                    <h1 className="mx-auto max-w-4xl text-center text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
+                      {blog.title}
+                    </h1>
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                      <span className="rounded-md bg-white/18 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/20">
+                        {blog.category || "Education"}
+                      </span>
+                      <span className="rounded-md bg-white/18 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/20">
+                        {formatDate(blog.publishedAt || blog.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                </figure>
                 {blog.coverImageAlt ? (
                   <figcaption className="mt-3 text-center text-sm leading-6 text-slate-500">
                     {blog.coverImageAlt}
                   </figcaption>
                 ) : null}
-              </figure>
-            </div>
-          ) : null}
+              </div>
+            </section>
+          ) : (
+            <section className="border-b border-slate-200 bg-white">
+              <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+                <Link
+                  href="/blogs"
+                  className="inline-flex items-center text-sm font-semibold text-slate-600 hover:text-slate-950"
+                >
+                  &larr; Back to blogs
+                </Link>
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <Badge className="bg-primary/15 text-slate-900 border-primary/20">
+                    {blog.category || "Education"}
+                  </Badge>
+                  <span className="text-sm font-medium text-slate-500">
+                    {formatDate(blog.publishedAt || blog.createdAt)}
+                  </span>
+                  <span className="h-1 w-1 rounded-full bg-slate-300" />
+                  <span className="text-sm font-medium text-slate-500">
+                    {readTime} min read
+                  </span>
+                </div>
+                <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight text-slate-950 sm:text-5xl">
+                  {blog.title}
+                </h1>
+              </div>
+            </section>
+          )}
 
-          <section className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_260px] lg:px-8 lg:py-16">
-            <div className="min-w-0 rounded-lg border border-slate-200 bg-white px-5 py-8 shadow-sm sm:px-8 lg:px-10">
+          <section className="border-b border-slate-200 bg-white">
+            <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+              <p className="max-w-4xl text-xl leading-8 text-slate-600">
+                {blog.excerpt}
+              </p>
+              <p className="mt-5 text-sm font-semibold text-slate-700">
+                By <span className="text-slate-950">{blog.authorName || "TuitionsTime Team"}</span>
+              </p>
+            </div>
+          </section>
+
+          <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+            <div className="rounded-lg border border-slate-200 bg-white px-5 py-8 shadow-sm sm:px-8 lg:px-10">
               <ArticleContent content={blog.content} />
             </div>
 
-            <aside className="space-y-5 lg:sticky lg:top-24 lg:h-fit">
-              <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <aside className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <div>
+                <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Article
                 </p>
-                <dl className="mt-4 space-y-4 text-sm">
+                <dl className="mt-4 grid gap-4 text-center text-sm sm:grid-cols-3">
                   <div>
                     <dt className="font-medium text-slate-500">Author</dt>
                     <dd className="mt-1 font-semibold text-slate-950">
@@ -462,11 +487,11 @@ export default async function BlogDetailPage({ params }: Props) {
               </div>
 
               {blog.tags && blog.tags.length > 0 ? (
-                <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="mt-6 border-t border-slate-200 pt-5">
+                  <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Topics
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
                     {blog.tags.map((tag) => (
                       <Badge key={tag} variant="outline" className="border-slate-200 text-slate-600">
                         {tag}
