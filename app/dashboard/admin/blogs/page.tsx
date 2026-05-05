@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Edit3, Eye, FileText, ImagePlus, Plus, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -16,6 +16,7 @@ import { toast } from "@/hooks/use-toast";
 import {
   createAdminBlog,
   deleteAdminBlog,
+  getAdminBlogById,
   getAdminBlogs,
   updateAdminBlog,
 } from "@/services/adminService";
@@ -51,12 +52,14 @@ function AdminBlogsContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | BlogStatus>("all");
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
   const loadBlogs = async () => {
     try {
@@ -102,7 +105,7 @@ function AdminBlogsContent() {
     setImageFile(null);
   };
 
-  const startEdit = (blog: BlogPost) => {
+  const fillEditForm = (blog: BlogPost) => {
     setEditing(blog);
     setImageFile(null);
     setForm({
@@ -118,6 +121,32 @@ function AdminBlogsContent() {
       authorName: blog.authorName || "TuitionsTime Team",
       coverImageAlt: blog.coverImageAlt || blog.title || "",
     });
+  };
+
+  const startEdit = async (blog: BlogPost) => {
+    const id = blog._id;
+    if (!id) {
+      fillEditForm(blog);
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    try {
+      setLoadingEdit(true);
+      const freshBlog = await getAdminBlogById(id);
+      fillEditForm(freshBlog || blog);
+      setTimeout(() => {
+        editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    } catch (error: any) {
+      toast({
+        title: "Could not open blog for editing",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingEdit(false);
+    }
   };
 
   const updateForm = (key: keyof typeof form, value: string) => {
@@ -330,14 +359,21 @@ function AdminBlogsContent() {
             </Card>
           </div>
 
-          <Card className="h-fit rounded-2xl bg-white p-5 shadow-sm">
+          <Card ref={editorRef} className="h-fit rounded-2xl bg-white p-5 shadow-sm">
             <div className="mb-5">
-              <h2 className="text-lg font-semibold text-text">
-                {editing ? "Edit Blog" : "Create Blog"}
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Published posts appear on `/blogs` and can rank as SEO pages.
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-text">
+                    {editing ? "Edit Blog" : "Create Blog"}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted">
+                    {editing
+                      ? `Editing: ${editing.title}`
+                      : "Published posts appear on `/blogs` and can rank as SEO pages."}
+                  </p>
+                </div>
+                {loadingEdit ? <Badge>Opening</Badge> : null}
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -396,9 +432,15 @@ function AdminBlogsContent() {
                 <Textarea
                   value={form.content}
                   onChange={(e) => updateForm("content", e.target.value)}
-                  placeholder={"Write the blog content. Use blank lines between paragraphs and ## for section headings."}
+                  placeholder={
+                    "Write the blog content.\n\nUse ## headings, ### subheadings, - bullet lists, 1. numbered lists, > quotes, **bold**, [links](https://example.com), and ![image alt](/uploads/image.jpg \"Optional caption\")."
+                  }
                   className="min-h-[260px]"
                 />
+                <p className="mt-2 text-xs leading-5 text-muted">
+                  Supported formatting: headings, lists, quotes, links, bold text,
+                  inline code, and image lines with optional captions.
+                </p>
               </div>
 
               <div>
@@ -472,7 +514,7 @@ function AdminBlogsContent() {
               <div className="flex gap-3">
                 <Button
                   onClick={submit}
-                  disabled={saving}
+                  disabled={saving || loadingEdit}
                   className="flex-1 bg-primary text-text hover:bg-primary/90"
                 >
                   {saving ? "Saving..." : editing ? "Update Blog" : "Create Blog"}

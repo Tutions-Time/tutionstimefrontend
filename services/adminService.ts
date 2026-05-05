@@ -279,6 +279,15 @@ export const getAdminBlogs = async (params?: {
   }
 };
 
+export const getAdminBlogById = async (id: string) => {
+  try {
+    const res = await api.get(`/admin/blogs/${id}`);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const createAdminBlog = async (payload: FormData) => {
   try {
     const res = await api.post('/admin/blogs', payload);
