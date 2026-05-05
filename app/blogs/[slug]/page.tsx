@@ -408,11 +408,6 @@ export default async function BlogDetailPage({ params }: Props) {
                     </div>
                   </div>
                 </figure>
-                {blog.coverImageAlt ? (
-                  <figcaption className="mt-3 text-center text-sm leading-6 text-slate-500">
-                    {blog.coverImageAlt}
-                  </figcaption>
-                ) : null}
               </div>
             </section>
           ) : (
