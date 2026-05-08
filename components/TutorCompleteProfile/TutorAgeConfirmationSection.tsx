@@ -32,7 +32,8 @@ export default function TutorAgeConfirmationSection() {
           className="text-sm text-gray-700 cursor-pointer"
         >
           I confirm that I am{" "}
-          <span className="font-semibold">18 years or older</span>
+          <span className="font-semibold">18 years or older</span>, and I am
+          uploading my own documents with my consent for profile verification.
         </label>
       </div>
 

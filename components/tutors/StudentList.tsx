@@ -95,7 +95,7 @@ export default function StudentList({
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {students.map((student) => (
               <StudentCard
-                key={student._id}
+                key={student.leadId || student._id}
                 student={student}
                 getImageUrl={getImageUrl}
               />

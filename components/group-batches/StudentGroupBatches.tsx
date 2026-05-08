@@ -8,7 +8,7 @@ import {
 } from "@/services/groupBatchService";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { requestRefund, previewRefund, getStudentRefunds } from "@/services/studentService";
-import { getUserProfile } from "@/services/profileService";
+import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,33 @@ import {
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+
+const emptyRefundDetails = {
+  upiId: "",
+  accountHolderName: "",
+  bankAccountNumber: "",
+  ifsc: "",
+};
+
+const normalizeRefundDetails = (details: typeof emptyRefundDetails) => ({
+  upiId: details.upiId.trim(),
+  accountHolderName: details.accountHolderName.trim(),
+  bankAccountNumber: details.bankAccountNumber.trim(),
+  ifsc: details.ifsc.trim().toUpperCase(),
+});
+
+const validateRefundDetails = (details: typeof emptyRefundDetails) => {
+  const normalized = normalizeRefundDetails(details);
+  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+  const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  const bankRegex = /^[0-9]{9,18}$/;
+
+  if (!upiRegex.test(normalized.upiId)) return "Enter a valid UPI ID";
+  if (!normalized.accountHolderName) return "Account holder name is required";
+  if (!bankRegex.test(normalized.bankAccountNumber)) return "Enter a valid bank account number";
+  if (!ifscRegex.test(normalized.ifsc)) return "Enter a valid IFSC";
+  return null;
+};
 
 export default function StudentGroupBatches() {
   const formatTime = (time?: string) => {
@@ -49,7 +76,7 @@ export default function StudentGroupBatches() {
   const [enrollMonthsInput, setEnrollMonthsInput] = useState("1");
   const [maxEnrollMonths, setMaxEnrollMonths] = useState<number | null>(null);
   const [refundModal, setRefundModal] = useState<any>({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
-  const [studentPayoutReady, setStudentPayoutReady] = useState(true);
+  const [refundDetails, setRefundDetails] = useState(emptyRefundDetails);
   const [refunds, setRefunds] = useState<any[]>([]);
   const refundsByPaymentId = refunds.reduce((acc: Record<string, any>, refund: any) => {
     const paymentId = refund?.paymentId?._id || refund?.paymentId;
@@ -263,7 +290,13 @@ export default function StudentGroupBatches() {
 
   const submitRefund = async () => {
     try {
+      const detailsError = validateRefundDetails(refundDetails);
+      if (detailsError) {
+        toast.error(detailsError);
+        return;
+      }
       setRefundModal({ ...refundModal, submitting: true });
+      await updateStudentPayoutDetails(normalizeRefundDetails(refundDetails));
       const res = await requestRefund({
         paymentId: refundModal.paymentId,
         reasonCode: refundModal.reasonCode,
@@ -272,6 +305,7 @@ export default function StudentGroupBatches() {
       if (res.success) {
         toast.success("Refund requested");
         setRefundModal({ open: false, paymentId: null, reasonCode: "", reasonText: "", submitting: false, preview: null });
+        setRefundDetails(emptyRefundDetails);
       } else {
         toast.error(res.message || "Failed");
       }
@@ -462,20 +496,16 @@ export default function StudentGroupBatches() {
                           variant="outline"
                           className="flex-1 h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50"
                           onClick={async () => {
-                            let payoutReady = false;
                             try {
                               const profileRes = await getUserProfile();
                               const sp = profileRes?.data?.profile;
-                              payoutReady = Boolean(
-                                sp?.upiId &&
-                                sp?.accountHolderName &&
-                                sp?.bankAccountNumber &&
-                                sp?.ifsc
-                              );
-                            } catch {
-                              payoutReady = false;
-                            }
-                            setStudentPayoutReady(payoutReady);
+                              setRefundDetails({
+                                upiId: String(sp?.upiId || ""),
+                                accountHolderName: String(sp?.accountHolderName || ""),
+                                bankAccountNumber: String(sp?.bankAccountNumber || ""),
+                                ifsc: String(sp?.ifsc || ""),
+                              });
+                            } catch {}
                             setRefundModal({ open: true, paymentId: b.myPaymentId, reasonCode: "", reasonText: "", submitting: false, preview: null });
                           }}
                         >
@@ -611,22 +641,6 @@ export default function StudentGroupBatches() {
               />
             </div>
 
-            {!studentPayoutReady && (
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
-                <div>Add UPI and bank details in your profile before requesting a refund.</div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setRefundModal({ ...refundModal, open: false });
-                    window.location.href = "/dashboard/student/profile";
-                  }}
-                >
-                  Complete Bank Details
-                </Button>
-              </div>
-            )}
-
             {refundModal.preview && (
               <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded space-y-1">
                 <div className="flex justify-between"><span>Completion:</span> <span>{Math.round((refundModal.preview.completionPercentage || 0) * 100)}%</span></div>
@@ -636,6 +650,37 @@ export default function StudentGroupBatches() {
                 <div className="text-xs text-gray-500">Method: {refundModal.preview.suggestedRefundMethod}</div>
               </div>
             )}
+
+            <div className="space-y-3 rounded-md border bg-gray-50 p-3">
+              <div>
+                <div className="text-sm font-medium">Refund Details</div>
+                <div className="text-xs text-gray-500">Required only for this refund request.</div>
+              </div>
+              <input
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={refundDetails.upiId}
+                onChange={(e) => setRefundDetails((prev) => ({ ...prev, upiId: e.target.value }))}
+                placeholder="UPI ID (example@upi)"
+              />
+              <input
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={refundDetails.accountHolderName}
+                onChange={(e) => setRefundDetails((prev) => ({ ...prev, accountHolderName: e.target.value }))}
+                placeholder="Account Holder Name"
+              />
+              <input
+                className="w-full border rounded px-3 py-2 text-sm"
+                value={refundDetails.bankAccountNumber}
+                onChange={(e) => setRefundDetails((prev) => ({ ...prev, bankAccountNumber: e.target.value }))}
+                placeholder="Bank Account Number"
+              />
+              <input
+                className="w-full border rounded px-3 py-2 text-sm uppercase"
+                value={refundDetails.ifsc}
+                onChange={(e) => setRefundDetails((prev) => ({ ...prev, ifsc: e.target.value.toUpperCase() }))}
+                placeholder="IFSC (example: HDFC0001234)"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRefundModal({ ...refundModal, open: false })}>Cancel</Button>
@@ -644,7 +689,6 @@ export default function StudentGroupBatches() {
               disabled={
                 refundModal.submitting ||
                 !refundModal.reasonCode ||
-                !studentPayoutReady ||
                 !String(refundModal.reasonText || "").trim()
               }
               className="bg-red-600 hover:bg-red-700 text-white"

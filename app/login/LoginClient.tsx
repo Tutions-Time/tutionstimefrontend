@@ -12,6 +12,7 @@ import { OTPInput } from "@/components/auth/OTPInput";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getRoleDefaultPath } from "@/lib/roleRoutes";
 
 export default function LoginClient() {
   const [email, setEmail] = useState("");
@@ -36,7 +37,12 @@ export default function LoginClient() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      router.replace(`/dashboard/${user.role}`);
+      if (!user.isProfileComplete && (user.role === "student" || user.role === "tutor")) {
+        router.replace(`/dashboard/${user.role}/profile/complete`);
+        return;
+      }
+
+      router.replace(getRoleDefaultPath(user.role));
     }
   }, [isAuthenticated, user, router]);
 

@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getRoleDefaultPath } from '@/lib/roleRoutes';
 import { useEffect, useRef } from 'react';
 
 type Role = 'admin' | 'tutor' | 'student' | undefined | null;
@@ -29,15 +30,15 @@ function getItems(role: Role): Item[] {
   }
   if (role === 'tutor') {
     return [
-      { href: '/dashboard/tutor', label: 'Home', icon: LayoutDashboard },
-      { href: '/dashboard/tutor/search', label: 'Find', icon: Search },
+      { href: getRoleDefaultPath('tutor'), label: 'Find', icon: Search },
       { href: '/dashboard/tutor/classes', label: 'Classes', icon: Calendar },
       { href: '/dashboard/tutor/group-batches', label: 'Batches', icon: Calendar },
+      { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
     ];
   }
   return [
-    { href: '/dashboard/student', label: 'Home', icon: LayoutDashboard },
-    { href: '/dashboard/student/search', label: 'Find', icon: Search },
+    { href: getRoleDefaultPath('student'), label: 'Find', icon: Search },
+    { href: '/dashboard/student/demoBookings', label: 'Classes', icon: Calendar },
     { href: '/dashboard/student/group-batches', label: 'Batches', icon: Calendar },
     { href: '/wallet', label: 'Wallet', icon: Wallet },
   ];
