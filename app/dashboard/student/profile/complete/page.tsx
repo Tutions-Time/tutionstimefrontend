@@ -21,6 +21,7 @@ import { validateStudentProfileFields } from "@/utils/validators";
 import { toast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { setUser } from "@/store/slices/authSlice";
+import { getRoleDefaultPath } from "@/lib/roleRoutes";
 
 
 export default function StudentProfileCompletePage() {
@@ -198,7 +199,7 @@ export default function StudentProfileCompletePage() {
 
       // ✅ ALWAYS redirect on success
       console.log("REDIRECTING NOW");
-      router.replace("/dashboard/student");
+      router.replace(getRoleDefaultPath("student"));
     } catch (err) {
       console.error(err);
       dispatch(stopSubmitting());

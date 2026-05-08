@@ -29,6 +29,7 @@ import { updateTutorProfile } from "@/services/profileService";
 import { validateTutorProfile } from "@/utils/validators";
 import api from "@/lib/api";
 import { setUser } from "@/store/slices/authSlice";
+import { getRoleDefaultPath } from "@/lib/roleRoutes";
 
 export default function TutorProfileCompletePage() {
   const router = useRouter();
@@ -116,7 +117,8 @@ export default function TutorProfileCompletePage() {
     if (!govProofFile)
       e.govProof = "Upload Aadhaar or PAN card as government proof";
     if (!profile.isAgeConfirmed)
-      e.isAgeConfirmed = "You must confirm that you are 18+";
+      e.isAgeConfirmed =
+        "You must confirm that you are 18+ and uploading your documents with consent";
 
     const msgs = Object.values(e).filter(Boolean) as string[];
 
@@ -260,7 +262,7 @@ export default function TutorProfileCompletePage() {
       // âœ… CLEAR ALL FIELDS + FILES + LOCAL STORAGE BEFORE REDIRECT (SUCCESS)
       clearAllStateAndCache();
       dispatch(stopSubmitting());
-      router.push("/dashboard/tutor");
+      router.push(getRoleDefaultPath("tutor"));
     } catch (err) {
       dispatch(stopSubmitting());
       const message =

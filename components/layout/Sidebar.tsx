@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
   Search,
   BookOpen,
   Calendar,
@@ -45,7 +44,6 @@ const studentLinks: NavLink[] = [
   { href: '/dashboard/student/demoBookings', label: 'My Classes', icon: ClipboardList },
   { href: '/dashboard/student/group-batches', label: 'Group Batches', icon: Calendar },
   { href: '/dashboard/student/notes', label: 'Notes', icon: FileText },
-  { href: '/dashboard/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/student/progress', label: 'Progress', icon: FileText },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
@@ -58,8 +56,7 @@ const tutorLinks: NavLink[] = [
   { href: '/dashboard/tutor/group-batches', label: 'Group Batches', icon: Calendar },
   { href: '/dashboard/tutor/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/tutor/analytics/tutor', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/tutor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/tutor/kyc', label: 'Verification', icon: User },
+  { href: '/dashboard/tutor/kyc', label: 'Bank Verification', icon: User },
   { href: '/wallet', label: 'Earnings', icon: Wallet },
   // { href: '/notifications', label: 'Notifications', icon: Bell },
 ];

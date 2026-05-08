@@ -6,16 +6,39 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setField } from "@/store/slices/studentProfileSlice";
 import { Label } from "@/components/ui/label";
 import OtherInline from "@/components/forms/OtherInline";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import type { Dayjs } from "dayjs";
 import { Textarea } from "../ui/textarea";
-import { Input } from "../ui/input";
+import {
+  HOURLY_RATE_OPTIONS,
+  MONTHLY_RATE_OPTIONS,
+} from "@/utils/rateOptions";
 
 const TUTOR_GENDER = ["No Preference", "Male", "Female", "Other"] as const;
 
 const toOptions = (arr: readonly string[]) =>
   arr.map((v) => ({ value: v, label: v }));
+
+const parseBudget = (budget?: string) => {
+  const hourly = budget?.match(/Hourly:\s*Rs\.(\d+)/i)?.[1] || "";
+  const monthly = budget?.match(/Monthly:\s*Rs\.(\d+)/i)?.[1] || "";
+  return { hourly, monthly };
+};
+
+const buildBudget = (hourly: string, monthly: string) => {
+  const parts = [];
+  if (hourly) parts.push(`Hourly: Rs.${hourly}`);
+  if (monthly) parts.push(`Monthly: Rs.${monthly}`);
+  return parts.join("; ");
+};
 
 export default function TutorPreferencesSection({
   disabled = false,
@@ -28,6 +51,13 @@ export default function TutorPreferencesSection({
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
   const [timeError, setTimeError] = useState("");
+  const budget = parseBudget(profile.budget);
+
+  const updateBudget = (next: Partial<typeof budget>) => {
+    const hourly = next.hourly ?? budget.hourly;
+    const monthly = next.monthly ?? budget.monthly;
+    dispatch(setField({ key: "budget", value: buildBudget(hourly, monthly) }));
+  };
 
   const onOtherChange =
     (baseKey: string, otherKey: string, options: readonly string[]) =>
@@ -183,15 +213,41 @@ export default function TutorPreferencesSection({
 
         <div className="md:col-span-2">
           <Label className="mb-2 block">What is your budget?</Label>
-          <Input
-            placeholder="e.g. Rs.500 per hour or Rs.6000 per month"
-            value={profile.budget || ""}
-            onChange={(e) =>
-              dispatch(setField({ key: "budget", value: e.target.value }))
-            }
-            disabled={disabled}
-            className="h-10"
-          />
+          <div className="grid md:grid-cols-2 gap-4">
+            <Select
+              disabled={disabled}
+              value={budget.hourly}
+              onValueChange={(value) => updateBudget({ hourly: value })}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select hourly budget" />
+              </SelectTrigger>
+              <SelectContent>
+                {HOURLY_RATE_OPTIONS.map((rate) => (
+                  <SelectItem key={rate} value={String(rate)}>
+                    Rs.{rate}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              disabled={disabled}
+              value={budget.monthly}
+              onValueChange={(value) => updateBudget({ monthly: value })}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select monthly budget" />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHLY_RATE_OPTIONS.map((rate) => (
+                  <SelectItem key={rate} value={String(rate)}>
+                    Rs.{rate}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="md:col-span-2">

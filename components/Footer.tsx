@@ -54,6 +54,12 @@ export default function Footer() {
               How it works
             </Link>
             <Link
+              href="/services"
+              className="mt-2 block hover:text-text text-sm font-medium"
+            >
+              Services
+            </Link>
+            <Link
               href="/blogs"
               className="mt-2 block hover:text-text text-sm font-medium"
             >
@@ -107,6 +113,11 @@ export default function Footer() {
               <li>
                 <Link href="/about-us" className="hover:text-text">
                   About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/services" className="hover:text-text">
+                  Services
                 </Link>
               </li>
               <li>

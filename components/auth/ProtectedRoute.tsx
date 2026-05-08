@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getRoleDefaultPath } from '@/lib/roleRoutes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -33,19 +34,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
     // If logged in but not allowed for this route
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      switch (user.role) {
-        case 'student':
-          router.push('/dashboard/student');
-          break;
-        case 'tutor':
-          router.push('/dashboard/tutor');
-          break;
-        case 'admin':
-          router.push('/dashboard/admin');
-          break;
-        default:
-          router.push('/login');
-      }
+      router.push(getRoleDefaultPath(user.role) || '/login');
     }
 
     if (

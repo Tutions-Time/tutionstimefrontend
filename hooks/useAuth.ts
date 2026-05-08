@@ -15,6 +15,7 @@ import {
 import { resetProfile } from "../store/slices/studentProfileSlice";
 import { resetTutorProfile } from "../store/slices/tutorProfileSlice";
 import api from "../lib/api";
+import { getRoleDefaultPath } from "../lib/roleRoutes";
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -102,14 +103,7 @@ export const useAuth = () => {
             router.push("/dashboard/tutor/profile/complete");
           }
         } else {
-          // Redirect to role-specific dashboard
-          if (user.role === "student") {
-            router.push("/dashboard/student");
-          } else if (user.role === "tutor") {
-            router.push("/dashboard/tutor");
-          } else if (user.role === "admin") {
-            router.push("/dashboard/admin");
-          }
+          router.push(getRoleDefaultPath(user.role));
         }
 
         try {

@@ -42,18 +42,18 @@ export default function QuickActionsSection() {
         </Link>
       </Card>
 
-      {/* KYC */}
+      {/* Bank verification */}
       <Card className="p-5 sm:p-6 rounded-2xl shadow-soft bg-white hover:shadow-lg transition-base">
         <Users className="w-8 h-8 sm:w-10 sm:h-10 text-success mb-3 sm:mb-4" />
         <h3 className="font-semibold text-text mb-1 sm:mb-2">
-          Verify KYC
+          Bank Verification
         </h3>
         <p className="text-sm text-muted mb-3 sm:mb-4">
-          Complete your verification to get more bookings
+          Submit bank details for tutor payouts
         </p>
         <Link href="/dashboard/tutor/kyc">
           <Button variant="outline" className="w-full">
-            Start Verification
+            Add Bank Details
           </Button>
         </Link>
       </Card>

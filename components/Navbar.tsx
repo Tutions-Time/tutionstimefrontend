@@ -3,22 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ChevronDown, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { fadeInUp as fadeIn, floatHover as scaleHover } from "./animations";
 import { useAppSelector } from "@/store/store";
+import { getRoleDefaultPath } from "@/lib/roleRoutes";
+
+const landingLinks = [
+  { label: "Blogs", href: "/blogs" },
+  { label: "Services", href: "/services" },
+  { label: "How it works", href: "/how-it-works" },
+];
 
 export default function Navbar() {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   // Role-based dashboard path
-  const dashboardPath =
-    user?.role === "student"
-      ? "/dashboard/student"
-      : user?.role === "tutor"
-        ? "/dashboard/tutor"
-        : user?.role === "admin"
-          ? "/dashboard/admin"
-          : "/";
+  const dashboardPath = getRoleDefaultPath(user?.role);
 
   return (
     <motion.nav
@@ -44,7 +51,30 @@ export default function Navbar() {
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open page links"
+                  className="h-10 w-10 rounded-xl"
+                >
+                  <span className="relative flex h-5 w-5 items-center justify-center">
+                    <Menu className="h-5 w-5" />
+                    <ChevronDown className="absolute -bottom-1 -right-2 h-3 w-3" />
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                {landingLinks.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href}>{item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {!isAuthenticated ? (
               <>
                 {/* LOGIN */}

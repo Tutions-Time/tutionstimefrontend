@@ -14,6 +14,7 @@ import {
 import { getImageUrl } from "@/utils/getImageUrl";
 import { validateTutorProfile } from "@/utils/validators";
 import { useRouter } from "next/navigation";
+import { getRoleDefaultPath } from "@/lib/roleRoutes";
 
 
 // Tutor Sections
@@ -132,7 +133,7 @@ export default function TutorProfilePage() {
           title: "Tutor profile updated",
         });
         setEditMode(false);
-        router.push("/dashboard/tutor");
+        router.push(getRoleDefaultPath("tutor"));
       } else {
         toast({
           title: "Update failed",

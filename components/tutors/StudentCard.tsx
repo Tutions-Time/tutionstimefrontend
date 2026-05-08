@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { CalendarDays, MapPin, User2, BookOpen } from "lucide-react";
+import { Clock, MapPin, User2, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -27,7 +27,8 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
     board,
     classLevel,
     subjects = [],
-    availability = [],
+    preferredTimeSlot,
+    preferredTimes = [],
     photoUrl,
   } = student || {};
 
@@ -38,6 +39,11 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
     : [];
 
   const location = [city, state].filter(Boolean).join(", ");
+  const displayedPreferredTime =
+    preferredTimeSlot ||
+    (Array.isArray(preferredTimes) && preferredTimes.length
+      ? preferredTimes[0]
+      : "");
 
   return (
     <>
@@ -112,17 +118,14 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
           </div>
         )}
 
-        {/* AVAILABILITY */}
+        {/* PREFERRED TIME */}
         <div className="flex items-center gap-1 text-[11px] text-gray-600 mb-3">
-          <CalendarDays className="w-3 h-3" />
+          <Clock className="w-3 h-3" />
 
-          {availability.length > 0 ? (
-            <span className="truncate">
-              {availability.slice(0, 2).join(", ")}
-              {availability.length > 2 && ` +${availability.length - 2} more`}
-            </span>
+          {displayedPreferredTime ? (
+            <span className="truncate">Preferred Time: {displayedPreferredTime}</span>
           ) : (
-            <span>Available all days (except Sunday)</span>
+            <span>Preferred time not provided</span>
           )}
         </div>
 

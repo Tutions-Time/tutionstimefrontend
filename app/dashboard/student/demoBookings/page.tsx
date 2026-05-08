@@ -18,7 +18,34 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { submitSessionFeedback } from "@/services/progressService";
 import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
-import { getUserProfile } from "@/services/profileService";
+import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
+
+const emptyRefundDetails = {
+  upiId: "",
+  accountHolderName: "",
+  bankAccountNumber: "",
+  ifsc: "",
+};
+
+const normalizeRefundDetails = (details: typeof emptyRefundDetails) => ({
+  upiId: details.upiId.trim(),
+  accountHolderName: details.accountHolderName.trim(),
+  bankAccountNumber: details.bankAccountNumber.trim(),
+  ifsc: details.ifsc.trim().toUpperCase(),
+});
+
+const validateRefundDetails = (details: typeof emptyRefundDetails) => {
+  const normalized = normalizeRefundDetails(details);
+  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+  const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  const bankRegex = /^[0-9]{9,18}$/;
+
+  if (!upiRegex.test(normalized.upiId)) return "Enter a valid UPI ID";
+  if (!normalized.accountHolderName) return "Account holder name is required";
+  if (!bankRegex.test(normalized.bankAccountNumber)) return "Enter a valid bank account number";
+  if (!ifscRegex.test(normalized.ifsc)) return "Enter a valid IFSC";
+  return null;
+};
 
 export default function StudentBookingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,7 +71,8 @@ export default function StudentBookingsPage() {
   });
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [refundForm, setRefundForm] = useState<{ regularClassId?: string; paymentId?: string; reasonCode?: string; reasonText?: string; preview?: any }>({});
-  const [studentPayoutReady, setStudentPayoutReady] = useState(true);
+  const [refundDetails, setRefundDetails] = useState(emptyRefundDetails);
+  const [refundSubmitting, setRefundSubmitting] = useState(false);
 
   const themePrimary = "#FFD54F";
 
@@ -351,20 +379,16 @@ export default function StudentBookingsPage() {
                                   alert("No payment found for this class");
                                   return;
                                 }
-                                let payoutReady = false;
                                 try {
                                   const profileRes = await getUserProfile();
                                   const sp = profileRes?.data?.profile;
-                                  payoutReady = Boolean(
-                                    sp?.upiId &&
-                                      sp?.accountHolderName &&
-                                      sp?.bankAccountNumber &&
-                                      sp?.ifsc
-                                  );
-                                } catch {
-                                  payoutReady = false;
-                                }
-                                setStudentPayoutReady(payoutReady);
+                                  setRefundDetails({
+                                    upiId: String(sp?.upiId || ""),
+                                    accountHolderName: String(sp?.accountHolderName || ""),
+                                    bankAccountNumber: String(sp?.bankAccountNumber || ""),
+                                    ifsc: String(sp?.ifsc || ""),
+                                  });
+                                } catch {}
                                 setRefundForm({ regularClassId: rc.regularClassId, paymentId: p._id });
                                 setRefundModalOpen(true);
                               } catch {
@@ -647,23 +671,6 @@ export default function StudentBookingsPage() {
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              {!studentPayoutReady && (
-                <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
-                  <div>
-                    Add UPI and bank details in your profile before requesting a refund.
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setRefundModalOpen(false);
-                      window.location.href = "/dashboard/student/profile";
-                    }}
-                  >
-                    Complete Bank Details
-                  </Button>
-                </div>
-              )}
               <div>
                 <label className="block text-sm text-gray-600">Description</label>
                 <textarea
@@ -693,6 +700,36 @@ export default function StudentBookingsPage() {
                   </div>
                 )}
               </div>
+              <div className="space-y-3 rounded-lg border bg-gray-50 p-3">
+                <div>
+                  <div className="text-sm font-medium text-gray-900">Refund Details</div>
+                  <div className="text-xs text-gray-500">Required only for this refund request.</div>
+                </div>
+                <input
+                  value={refundDetails.upiId}
+                  onChange={(e) => setRefundDetails((prev) => ({ ...prev, upiId: e.target.value }))}
+                  placeholder="UPI ID (example@upi)"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+                <input
+                  value={refundDetails.accountHolderName}
+                  onChange={(e) => setRefundDetails((prev) => ({ ...prev, accountHolderName: e.target.value }))}
+                  placeholder="Account Holder Name"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+                <input
+                  value={refundDetails.bankAccountNumber}
+                  onChange={(e) => setRefundDetails((prev) => ({ ...prev, bankAccountNumber: e.target.value }))}
+                  placeholder="Bank Account Number"
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+                <input
+                  value={refundDetails.ifsc}
+                  onChange={(e) => setRefundDetails((prev) => ({ ...prev, ifsc: e.target.value.toUpperCase() }))}
+                  placeholder="IFSC (example: HDFC0001234)"
+                  className="w-full border rounded px-3 py-2 text-sm uppercase"
+                />
+              </div>
               <div className="flex gap-3 justify-end">
                 <Button
                   className="bg-white text-gray-700 border rounded-full px-5"
@@ -704,7 +741,14 @@ export default function StudentBookingsPage() {
                   className="bg-[#FFD54F] text-black font-semibold rounded-full px-5"
                   onClick={async () => {
                     try {
-                      if (!refundForm.paymentId || !refundForm.reasonCode || !studentPayoutReady) return;
+                      if (!refundForm.paymentId || !refundForm.reasonCode) return;
+                      const detailsError = validateRefundDetails(refundDetails);
+                      if (detailsError) {
+                        alert(detailsError);
+                        return;
+                      }
+                      setRefundSubmitting(true);
+                      await updateStudentPayoutDetails(normalizeRefundDetails(refundDetails));
                       const res = await requestRefund({
                         paymentId: String(refundForm.paymentId),
                         reasonCode: String(refundForm.reasonCode),
@@ -717,21 +761,24 @@ export default function StudentBookingsPage() {
                         } catch {}
                         setRefundModalOpen(false);
                         setRefundForm({});
+                        setRefundDetails(emptyRefundDetails);
                       } else {
                         alert(res?.message || "Refund request failed");
                       }
                     } catch {
                       alert("Refund request failed");
+                    } finally {
+                      setRefundSubmitting(false);
                     }
                   }}
                   disabled={
+                    refundSubmitting ||
                     !refundForm.paymentId ||
                     !refundForm.reasonCode ||
-                    !studentPayoutReady ||
                     !(refundForm.reasonText || "").trim()
                   }
                 >
-                  Submit
+                  {refundSubmitting ? "Submitting..." : "Submit"}
                 </Button>
               </div>
             </div>
