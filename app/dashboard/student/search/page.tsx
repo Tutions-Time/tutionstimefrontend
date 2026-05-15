@@ -57,6 +57,40 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 type QueryMap = Record<string, string>;
+type StudentAccess = {
+  learningMode: string;
+  pincode: string;
+};
+
+const normalizeMode = (value?: string | null) =>
+  String(value || "").trim().toLowerCase();
+
+const normalizePincode = (value?: string | number | null) =>
+  String(value || "").trim();
+
+const isOfflineOnlyTutor = (tutor: any) => {
+  const mode = normalizeMode(tutor?.teachingMode);
+  return mode === "offline" || mode === "offline only";
+};
+
+const studentCanSeeOfflineTutor = (
+  tutor: any,
+  studentAccess: StudentAccess
+) => {
+  if (!isOfflineOnlyTutor(tutor)) return true;
+
+  const studentMode = normalizeMode(studentAccess.learningMode);
+  const studentSupportsOffline =
+    studentMode === "offline" ||
+    studentMode === "both" ||
+    studentMode === "online and offline";
+
+  return (
+    studentSupportsOffline &&
+    Boolean(studentAccess.pincode) &&
+    normalizePincode(tutor?.pincode) === studentAccess.pincode
+  );
+};
 
 function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
   const router = useRouter();
@@ -155,6 +189,10 @@ export default function SearchTutors() {
     active: boolean;
     pincode: string;
   }>({ active: false, pincode: "" });
+  const [studentAccess, setStudentAccess] = useState<StudentAccess>({
+    learningMode: "",
+    pincode: "",
+  });
 
   const hydrated = useUrlSync(filter, (next) => setFilter(next));
 
@@ -162,22 +200,30 @@ export default function SearchTutors() {
     let alive = true;
     (async () => {
       try {
-        if (filter.classLevel || filter.subject || filter.board) {
-          if (alive) setProfileReady(true);
-          return;
-        }
         const up = await getUserProfile();
         const learningMode = String(up?.profile?.learningMode || "");
-        const pincode = String(up?.profile?.pincode || "");
+        const pincode = normalizePincode(up?.profile?.pincode || "");
         const classLevel = up?.profile?.classLevel;
         const board = up?.profile?.board;
         const subjects = Array.isArray(up?.profile?.subjects) ? up.profile.subjects : [];
         const isOfflineOnly = learningMode === "Offline";
         if (!alive) return;
+        setStudentAccess({ learningMode, pincode });
         setOfflineRestriction({
           active: isOfflineOnly,
           pincode: isOfflineOnly ? pincode : "",
         });
+        if (filter.classLevel || filter.subject || filter.board) {
+          if (isOfflineOnly) {
+            setFilter((f) => ({
+              ...f,
+              teachingMode: "Offline",
+              pincode,
+              page: "1",
+            }));
+          }
+          return;
+        }
         if (classLevel) {
           setFilter((f) => ({
             ...f,
@@ -254,7 +300,7 @@ export default function SearchTutors() {
           (t && (t.status || t.user?.status || (t as any).accountStatus || (t as any).userStatus)) ||
             "",
         ).toLowerCase();
-        return status !== "suspended";
+        return status !== "suspended" && studentCanSeeOfflineTutor(t, studentAccess);
       });
       // Client-side safety: ensure tutors match selected classLevel if provided
       const classLevel = (filter.classLevel || "").trim();

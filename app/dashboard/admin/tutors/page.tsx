@@ -63,7 +63,6 @@ type TutorRow = {
   teachingMode?: string;
   tuitionType?: string;
   addressLine1?: string;
-  addressLine2?: string;
   city?: string;
   state?: string;
   pincode?: string;
@@ -426,7 +425,6 @@ export default function AdminTutorsPage() {
       "Bio",
       "Achievements",
       "Address Line 1",
-      "Address Line 2",
       "City",
       "State",
       "Pincode",
@@ -478,7 +476,6 @@ export default function AdminTutorsPage() {
       r.bio || '',
       r.achievements || '',
       r.addressLine1 || '',
-      r.addressLine2 || '',
       r.city || '',
       r.state || '',
       r.pincode || '',
@@ -1080,10 +1077,6 @@ export default function AdminTutorsPage() {
                   <div>
                     <div className="text-muted">Address Line 1</div>
                     <div>{formatText(profileData?.addressLine1)}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted">Address Line 2</div>
-                    <div>{formatText(profileData?.addressLine2)}</div>
                   </div>
                   <div>
                     <div className="text-muted">State</div>

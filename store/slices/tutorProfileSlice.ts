@@ -11,7 +11,6 @@ export interface TutorProfileState {
   altPhone: string;
   gender: string;
   addressLine1: string;
-  addressLine2: string;
   city: string;
   state: string;
   pincode: string;
@@ -70,7 +69,6 @@ export const initialState: TutorProfileState = {
   altPhone: "",
   gender: "",
   addressLine1: "",
-  addressLine2: "",
   city: "",
   state: "",
   pincode: "",

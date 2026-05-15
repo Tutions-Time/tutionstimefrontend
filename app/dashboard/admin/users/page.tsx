@@ -41,23 +41,33 @@ type UserRow = {
   phone?: string;
   profilePhone?: string | null;
   gender?: string | null;
+  genderOther?: string | null;
   addressLine1?: string | null;
-  addressLine2?: string | null;
   city?: string | null;
   state?: string | null;
   pincode?: string | null;
   learningMode?: string | null;
   track?: string | null;
   board?: string | string[] | null;
+  boardOther?: string | null;
   classLevel?: string | string[] | null;
+  classLevelOther?: string | null;
   stream?: string | null;
+  streamOther?: string | null;
   program?: string | null;
+  programOther?: string | null;
   discipline?: string | null;
+  disciplineOther?: string | null;
   yearSem?: string | null;
+  yearSemOther?: string | null;
   exam?: string | string[] | null;
+  examOther?: string | null;
   targetYear?: string | null;
+  targetYearOther?: string | null;
   subjects?: string[];
+  subjectOther?: string | null;
   tutorGenderPref?: string | null;
+  tutorGenderOther?: string | null;
   preferredTimes?: string[];
   budget?: string | null;
   goals?: string | null;
@@ -260,6 +270,10 @@ export default function AdminUsersPage() {
     return String(value);
   }
 
+  function csvOtherValue(value: any, other: any) {
+    return String(value || '') === 'Other' && other ? other : value;
+  }
+
   function downloadCSV(rows: any[], filename: string) {
     const headers = [
       'User ID',
@@ -287,7 +301,6 @@ export default function AdminUsersPage() {
       'Goals',
       'Availability',
       'Address Line 1',
-      'Address Line 2',
       'City',
       'State',
       'Pincode',
@@ -311,25 +324,24 @@ export default function AdminUsersPage() {
       r.role || '',
       r.status || '',
       r.isProfileComplete ? 'Yes' : 'No',
-      r.gender || '',
+      csvOtherValue(r.gender, r.genderOther),
       r.learningMode || '',
       r.track || '',
-      csvValue(r.board),
-      csvValue(r.classLevel),
-      r.stream || '',
-      r.program || '',
-      r.discipline || '',
-      r.yearSem || '',
-      csvValue(r.exam),
-      r.targetYear || '',
-      csvValue(r.subjects),
-      r.tutorGenderPref || '',
+      csvValue(csvOtherValue(r.board, r.boardOther)),
+      csvValue(csvOtherValue(r.classLevel, r.classLevelOther)),
+      csvOtherValue(r.stream, r.streamOther),
+      csvOtherValue(r.program, r.programOther),
+      csvOtherValue(r.discipline, r.disciplineOther),
+      csvOtherValue(r.yearSem, r.yearSemOther),
+      csvValue(csvOtherValue(r.exam, r.examOther)),
+      csvOtherValue(r.targetYear, r.targetYearOther),
+      csvValue([...(Array.isArray(r.subjects) ? r.subjects : []), r.subjectOther].filter(Boolean)),
+      csvOtherValue(r.tutorGenderPref, r.tutorGenderOther),
       csvValue(r.preferredTimes),
       r.budget || '',
       r.goals || '',
       csvValue(r.availability),
       r.addressLine1 || '',
-      r.addressLine2 || '',
       r.city || '',
       r.state || '',
       r.pincode || '',
@@ -807,10 +819,6 @@ export default function AdminUsersPage() {
                   <div>
                     <div className="text-muted">Address Line 1</div>
                     <div>{formatText(profileData?.addressLine1)}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted">Address Line 2</div>
-                    <div>{formatText(profileData?.addressLine2)}</div>
                   </div>
                   <div>
                     <div className="text-muted">State</div>

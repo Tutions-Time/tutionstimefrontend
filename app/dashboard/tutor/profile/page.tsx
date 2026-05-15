@@ -114,7 +114,6 @@ export default function TutorProfilePage() {
             "resumeUrl",
             "demoVideoUrl",
             "achievements",
-            "addressLine2",
           ].includes(k)
         )
           return;

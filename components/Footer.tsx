@@ -41,56 +41,47 @@ export default function Footer() {
             <p className="text-sm text-muted pb-2">
               Your Learning Journey Begins Here — With TuitionsTime
             </p>
-            <Link
-              href="/about-us"
-              className="block hover:text-text text-sm font-medium"
-            >
-              About Us
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="mt-2 block hover:text-text text-sm font-medium"
-            >
-              How it works
-            </Link>
-            <Link
-              href="/services"
-              className="mt-2 block hover:text-text text-sm font-medium"
-            >
-              Services
-            </Link>
-            <Link
-              href="/blogs"
-              className="mt-2 block hover:text-text text-sm font-medium"
-            >
-              Blogs
-            </Link>
           </div>
 
-          {/* Students */}
+          {/* Company */}
           <div>
-            <h4 className="font-semibold text-text mb-4">For Students</h4>
+            <h4 className="font-semibold text-text mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-muted">
               <li>
-                <Link href="signup?role=student" className="hover:text-text">
-                  Find Tutors
+                <Link href="/about-us" className="hover:text-text">
+                  About Us
                 </Link>
               </li>
               <li>
-                <Link href="/signup" className="hover:text-text">
-                  Sign Up
+                <Link href="/how-it-works" className="hover:text-text">
+                  How it works
+                </Link>
+              </li>
+              <li>
+                <Link href="/services" className="hover:text-text">
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link href="/blogs" className="hover:text-text">
+                  Blogs
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Tutors */}
+          {/* Account */}
           <div>
-            <h4 className="font-semibold text-text mb-4">For Tutors</h4>
+            <h4 className="font-semibold text-text mb-4">Account</h4>
             <ul className="space-y-2 text-sm text-muted">
               <li>
+                <Link href="/signup?role=student" className="hover:text-text">
+                  Find Tutors
+                </Link>
+              </li>
+              <li>
                 <Link href="/signup?role=tutor" className="hover:text-text">
-                  Become a Tutor
+                  Join as Tutor
                 </Link>
               </li>
               <li>
@@ -108,21 +99,6 @@ export default function Footer() {
               <li>
                 <Link href="/contact" className="hover:text-text">
                   Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/about-us" className="hover:text-text">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/services" className="hover:text-text">
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/blogs" className="hover:text-text">
-                  Blogs
                 </Link>
               </li>
               <li>

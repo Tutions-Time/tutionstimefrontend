@@ -128,7 +128,6 @@ export default function StudentDetailPage() {
   // Address construction
   const addressParts = [
     student.addressLine1,
-    student.addressLine2,
     student.city,
     student.state,
     student.pincode,

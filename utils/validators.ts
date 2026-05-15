@@ -5,7 +5,7 @@ import {
 } from "@/utils/rateOptions";
 
 /* -------------------------------------------------------
-   SHARED TYPES (do NOT remove ANY fields)
+   SHARED TYPES
 -------------------------------------------------------- */
 
 export interface TutorProfileErrors {
@@ -15,7 +15,6 @@ export interface TutorProfileErrors {
   gender?: string;
   teachingMode?: string;
   addressLine1?: string;
-  addressLine2?: string;
   city?: string;
   state?: string;
   pincode?: string;
@@ -45,7 +44,6 @@ export interface StudentProfileErrors {
   genderOther?: string;
   altPhone?: string;
   addressLine1?: string;
-  addressLine2?: string;
   city?: string;
   state?: string;
   pincode?: string;
