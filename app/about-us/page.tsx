@@ -516,7 +516,7 @@ export default function AboutUsPage() {
                 </Link>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-950/20 px-5 py-3 text-sm font-semibold transition hover:bg-white/30"
+                  className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
                 >
                   Contact Us
                 </Link>
