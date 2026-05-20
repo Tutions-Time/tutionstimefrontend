@@ -14,6 +14,7 @@ import {
 } from "../store/slices/authSlice";
 import { resetProfile } from "../store/slices/studentProfileSlice";
 import { resetTutorProfile } from "../store/slices/tutorProfileSlice";
+import { clearProfile } from "../store/slices/profileSlice";
 import api from "../lib/api";
 import { getRoleDefaultPath } from "../lib/roleRoutes";
 
@@ -88,6 +89,7 @@ export const useAuth = () => {
         } catch {}
 
         // Reset any existing profile data
+        dispatch(clearProfile());
         if (user.role === "student") {
           dispatch(resetProfile());
         } else if (user.role === "tutor") {
@@ -133,6 +135,7 @@ export const useAuth = () => {
       name?: string,
       phone?: string
     ) => {
+      dispatch(clearProfile());
       if (role === "student") {
         dispatch(resetProfile());
       } else {
@@ -189,6 +192,7 @@ export const useAuth = () => {
         } catch {}
 
         // ✅ Persist user state (Redux Persist handles tokens automatically)
+        dispatch(clearProfile());
         dispatch(setUser(user));
 
         // ✅ Redirect to admin dashboard
@@ -204,6 +208,9 @@ export const useAuth = () => {
   // Logout
   const handleLogout = useCallback(async () => {
     await dispatch(logoutAsync());
+    dispatch(clearProfile());
+    dispatch(resetProfile());
+    dispatch(resetTutorProfile());
     // Clear auth cookie for middleware
     try {
       document.cookie = "auth=; Max-Age=0; path=/";
