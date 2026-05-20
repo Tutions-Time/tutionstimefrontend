@@ -49,7 +49,21 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { studentProfile, tutorProfile } = useAppSelector((s) => s.profile);
+  const { studentProfile, tutorProfile, loading: profileLoading } = useAppSelector((s) => s.profile);
+  const userId = user?.id ? String(user.id) : "";
+  const profileUserId = (profile: any) => {
+    const raw = profile?.userId;
+    if (!raw) return "";
+    return typeof raw === "object" && raw._id ? String(raw._id) : String(raw);
+  };
+  const activeStudentProfile =
+    user?.role === "student" && profileUserId(studentProfile) === userId
+      ? studentProfile
+      : null;
+  const activeTutorProfile =
+    user?.role === "tutor" && profileUserId(tutorProfile) === userId
+      ? tutorProfile
+      : null;
   const storeUnread = useAppSelector((s) => s.notification?.unreadCount ?? 0);
   const effectiveUnread = storeUnread;
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -59,24 +73,24 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
 
   // ---------------- FETCH USER PROFILE IF LOGGED IN ----------------
   useEffect(() => {
-    if (!user?.role) return;
+    if (!user?.role || profileLoading) return;
 
-    const needsStudentProfile = user.role === 'student' && !studentProfile;
-    const needsTutorProfile = user.role === 'tutor' && !tutorProfile;
+    const needsStudentProfile = user.role === 'student' && !activeStudentProfile;
+    const needsTutorProfile = user.role === 'tutor' && !activeTutorProfile;
 
     if (needsStudentProfile || needsTutorProfile) {
       dispatch(fetchUserProfile());
     }
-  }, [user?.role, studentProfile, tutorProfile, dispatch]);
+  }, [user?.role, userId, activeStudentProfile, activeTutorProfile, profileLoading, dispatch]);
 
 
   // ---------------- RESOLVE NAME PROPERLY ----------------
   const resolvedName =
     userName ?? (
       user?.role === 'student'
-        ? studentProfile?.name || 'Student'
+        ? activeStudentProfile?.name || 'Student'
         : user?.role === 'tutor'
-        ? tutorProfile?.name || 'Tutor'
+        ? activeTutorProfile?.name || 'Tutor'
         : user?.role === 'admin'
         ? 'Admin'
         : 'User'
