@@ -113,7 +113,7 @@ export default function TutorGroupBatchesPage() {
     if (!classStartTime || !classEndTime)
       errors.push("Start and end times are required");
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
-    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
+    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per student monthly must be greater than 0");
     return errors;
   };
 
@@ -387,18 +387,18 @@ export default function TutorGroupBatchesPage() {
 
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-gray-700">
-                      Price Per Month
+                      Price Per Student Monthly
                     </label>
                     <input
                       type="number"
                       className="border p-2 rounded w-full"
-                      placeholder="Enter monthly price for this batch"
+                      placeholder="Enter monthly price per student"
                       value={form.pricePerMonth}
                       onChange={(e) =>
                         setForm({ ...form, pricePerMonth: e.target.value })
                       }
                     />
-                    <p className="text-xs text-gray-500">Set the monthly price for this batch.</p>
+                    <p className="text-xs text-gray-500">Set the monthly price each student pays for this batch.</p>
                   </div>
 
                   <textarea

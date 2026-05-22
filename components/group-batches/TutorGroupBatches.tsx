@@ -202,7 +202,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       errors.push("Class end time must be after start time");
     }
     if (form.seatCap === "" || Number(form.seatCap) < 2) errors.push("Seat capacity must be at least 2");
-    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per month must be greater than 0");
+    if (form.pricePerMonth === "" || Number(form.pricePerMonth) <= 0) errors.push("Price per student monthly must be greater than 0");
     if (errors.length) {
       toast({
         title: "Please fix the errors",
@@ -641,11 +641,11 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
               <input type="number" className="border p-2 rounded w-full" placeholder="Enter total seats " value={form.seatCap} onChange={(e) => setForm({ ...form, seatCap: e.target.value })} disabled={loadingOptions || creating} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Price Per Month</label>
+              <label className="text-sm font-medium text-gray-700">Price Per Student Monthly</label>
               <input
                 type="number"
                 className="border p-2 rounded w-full"
-                placeholder="Enter monthly price for this batch"
+                placeholder="Enter monthly price per student"
                 value={form.pricePerMonth}
                 onChange={(e) => setForm({ ...form, pricePerMonth: e.target.value })}
                 disabled={loadingOptions || creating}
