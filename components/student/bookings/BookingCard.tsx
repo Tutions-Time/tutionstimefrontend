@@ -28,7 +28,7 @@ type BookingType = {
   note?: string;
   requestedBy?: "student" | "tutor";
   regularClassId?: string;
-  expiryReason?: "tutor-no-response" | "no-show" | string | null;
+  expiryReason?: "tutor-no-response" | "student-no-response" | "no-show" | string | null;
 
   demoFeedback?: {
     likedTutor: boolean;
@@ -96,7 +96,9 @@ export default function BookingCard({
 
   const expiryMessage =
     booking.expiryReason === "tutor-no-response"
-      ? "Expired because the tutor did not accept the demo request within 5 hours."
+      ? "Expired because the tutor did not accept the demo request within 5 hours. Please Book Again."
+      : booking.expiryReason === "student-no-response"
+      ? "Expired because the student did not accept the demo request within 5 hours. Please Book Again."
       : booking.status === "expired"
       ? "This demo is no longer active."
       : null;

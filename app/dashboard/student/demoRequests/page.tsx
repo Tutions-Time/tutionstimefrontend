@@ -29,7 +29,10 @@ export default function StudentDemoRequests() {
 
   const getExpiryMessage = (booking: any) => {
     if (booking?.expiryReason === "tutor-no-response") {
-      return "Expired because the tutor did not accept the request within 5 hours.";
+      return "Expired because the tutor did not accept the request within 5 hours. Please Book Again.";
+    }
+    if (booking?.expiryReason === "student-no-response") {
+      return "Expired because the student did not accept the request within 5 hours. Please Book Again.";
     }
     if (booking?.status === "expired") {
       return "This demo is no longer active.";
