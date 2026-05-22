@@ -131,9 +131,6 @@ export default function TutorDemoRequests() {
         />
 
         <main className="p-4 lg:p-6 space-y-6">
-          {/* Demo Insights */}
-          <DemoInsights />
-
           {/* Loading */}
           {loading && (
             <div className="text-center text-muted py-10 animate-pulse">
@@ -302,6 +299,9 @@ export default function TutorDemoRequests() {
                 </div>
               </Card>
             ))}
+
+          {/* Demo Insights */}
+          <DemoInsights />
         </main>
       </div>
     </div>
