@@ -28,7 +28,6 @@ export default function StudentProfilePage() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
-  const [referralCode, setReferralCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -42,7 +41,6 @@ export default function StudentProfilePage() {
         const res = await getUserProfile();
         if (res.success && res.data.profile) {
           dispatch(setBulk(res.data.profile));
-          setReferralCode(res.data?.referralCode || "");
         } else toast({
             title: "Profile not found",
             variant: "destructive",
@@ -156,21 +154,6 @@ export default function StudentProfilePage() {
 
       {/* Main */}
       <main className="flex-grow">
-        <div className="max-w-5xl mx-auto px-4 pt-6">
-          <div className="rounded-2xl bg-white shadow-sm p-6 flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted">Your Referral Code</div>
-              <div className="text-2xl font-bold">{referralCode }</div>
-            </div>
-            <button
-              className="px-4 py-2 rounded-full border bg-gray-50 hover:bg-gray-100"
-              onClick={() => referralCode && navigator.clipboard.writeText(referralCode)}
-            >
-              Copy
-            </button>
-          </div>
-        </div>
-
         <form className="max-w-5xl mx-auto px-4 py-10 space-y-10">
 
           {/* PERSONAL INFO */}

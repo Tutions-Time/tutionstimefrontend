@@ -5,9 +5,9 @@ import Footer from "@/components/Footer";
 import { BlogPost, fetchPublishedBlogs, getImageSrc } from "@/services/blogService";
 
 export const metadata: Metadata = {
-  title: "TuitionsTime Blog - Learning Tips, Tutor Guides & Education Insights",
+  title: "tuitionstime Blog - Learning Tips, Tutor Guides & Education Insights",
   description:
-    "Read TuitionsTime blogs for study tips, tutoring advice, parent guides, exam preparation support, and education insights.",
+    "Read tuitionstime blogs for study tips, tutoring advice, parent guides, exam preparation support, and education insights.",
   alternates: {
     canonical: "https://tuitionstime.com/blogs",
   },
@@ -102,7 +102,7 @@ export default async function BlogsPage() {
         <section className="bg-slate-50">
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
-              TuitionsTime Blog
+              tuitionstime Blog
             </p>
             <h1 className="max-w-3xl text-4xl font-bold leading-tight text-slate-900">
               Learning Tips, Tutor Guides, and Education Insights

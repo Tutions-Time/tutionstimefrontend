@@ -262,6 +262,10 @@ export default function TutorProfileCompletePage() {
       // âœ… CLEAR ALL FIELDS + FILES + LOCAL STORAGE BEFORE REDIRECT (SUCCESS)
       clearAllStateAndCache();
       dispatch(stopSubmitting());
+      toast({
+        title: "Profile created",
+        description: "Your profile is ready. Welcome to your dashboard.",
+      });
       router.push(getRoleDefaultPath("tutor"));
     } catch (err) {
       dispatch(stopSubmitting());
@@ -283,7 +287,7 @@ export default function TutorProfileCompletePage() {
           <div className="flex items-center gap-2">
             <Image
               src="/images/logo.png"
-              alt="Tuitions Time"
+              alt="tuitionstime"
               width={200}
               height={32}
               className="object-contain"

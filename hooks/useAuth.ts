@@ -131,7 +131,6 @@ export const useAuth = () => {
       otp: string,
       requestId: string,
       role: "student" | "tutor",
-      referralCode?: string,
       name?: string,
       phone?: string
     ) => {
@@ -144,7 +143,7 @@ export const useAuth = () => {
 
       const normalizedEmail = email.trim().toLowerCase();
       const result = await dispatch(
-        signupAsync({ email: normalizedEmail, otp, requestId, role, referralCode, name: String(name || ""), phone: String(phone || "") })
+        signupAsync({ email: normalizedEmail, otp, requestId, role, name: String(name || ""), phone: String(phone || "") })
       );
 
       if (signupAsync.fulfilled.match(result)) {

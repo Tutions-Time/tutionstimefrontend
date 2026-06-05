@@ -282,7 +282,7 @@ export default function StudentSessions() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "TuitionsTime",
+        name: "tuitionstime",
         description: "Regular Class Payment",
         order_id: order.id,
         handler: async (response: any) => {
@@ -353,7 +353,7 @@ export default function StudentSessions() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
-        name: "TuitionTime",
+        name: "tuitionstime",
         description: "Monthly Subscription",
         order_id: order.id,
         handler: async (response: any) => {

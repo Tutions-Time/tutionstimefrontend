@@ -30,7 +30,7 @@ export default function Footer() {
               
                   <Image
                     src="/images/logo.png"
-                    alt="Tuitions Time"
+                    alt="tuitionstime"
                     width={160}
                     height={22}
                     className="object-contain"
@@ -39,7 +39,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-sm text-muted pb-2">
-              Your Learning Journey Begins Here — With TuitionsTime
+              Your Learning Journey Begins Here — With tuitionstime
             </p>
           </div>
 
@@ -133,7 +133,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
           <p>
-            &copy; 2026 Tuitions time (Choudhary Enterprise). All rights
+            &copy; 2026 tuitionstime (Choudhary Enterprise). All rights
             reserved.
           </p>
           <div className="mt-6 flex flex-col items-center gap-4">
@@ -170,7 +170,7 @@ export default function Footer() {
                 <Facebook className="h-4 w-4 text-blue-600" />
               </Link>
               <Link
-                href="https://x.com/TuitionsTime"
+                href="https://x.com/tuitionstime"
                 target="_blank"
                 className="hover:text-text"
               >

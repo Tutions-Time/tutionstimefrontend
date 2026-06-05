@@ -54,8 +54,8 @@ export default function TutorPreferencesSection({
   const budget = parseBudget(profile.budget);
 
   const updateBudget = (next: Partial<typeof budget>) => {
-    const hourly = next.hourly ?? budget.hourly;
-    const monthly = next.monthly ?? budget.monthly;
+    const hourly = next.hourly !== undefined ? next.hourly : next.monthly !== undefined ? "" : budget.hourly;
+    const monthly = next.monthly !== undefined ? next.monthly : next.hourly !== undefined ? "" : budget.monthly;
     dispatch(setField({ key: "budget", value: buildBudget(hourly, monthly) }));
   };
 

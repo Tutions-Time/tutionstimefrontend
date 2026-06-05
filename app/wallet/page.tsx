@@ -55,7 +55,6 @@ export default function WalletPage() {
     return (
       title.includes("payment") ||
       title.includes("refund") ||
-      title.includes("referral") ||
       title.includes("payout") ||
       Boolean(meta.paymentId) ||
       Boolean(meta.refundRequestId)

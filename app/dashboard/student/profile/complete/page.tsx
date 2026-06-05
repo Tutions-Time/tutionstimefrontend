@@ -198,7 +198,10 @@ export default function StudentProfileCompletePage() {
       // dispatch(stopSubmitting());
 
       // ✅ ALWAYS redirect on success
-      console.log("REDIRECTING NOW");
+      toast({
+        title: "Profile created",
+        description: "Your profile is ready. Welcome to your dashboard.",
+      });
       router.replace(getRoleDefaultPath("student"));
     } catch (err) {
       console.error(err);

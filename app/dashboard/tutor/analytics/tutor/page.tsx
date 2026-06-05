@@ -129,12 +129,11 @@ export default function TutorAnalyticsPage() {
                     <div className="flex items-center justify-between"><span className="text-sm text-muted">Bookings</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.booking || 0).toLocaleString('en-IN')}</span></div>
                     <div className="flex items-center justify-between"><span className="text-sm text-muted">Notes</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.note || 0).toLocaleString('en-IN')}</span></div>
                     <div className="flex items-center justify-between"><span className="text-sm text-muted">Groups</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.group || 0).toLocaleString('en-IN')}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-sm text-muted">Referral</span><span className="text-sm font-semibold">₹{Number(earnings.bySource?.referral || 0).toLocaleString('en-IN')}</span></div>
                   </div>
                 </div>
                 <div className="p-4 border rounded-xl">
                   <div className="text-sm text-muted mb-2">Notes</div>
-                  <div className="text-xs text-muted">Referral shows rewards credited to your wallet for students you referred.</div>
+                  <div className="text-xs text-muted">Paid notes earnings are credited to your wallet after successful purchases.</div>
                 </div>
               </div>
             </Card>

@@ -39,14 +39,14 @@ async function main() {
       {
         properties: {},
         children: [
-          heading("Tuitionstime Platform — Project Completion Summary"),
+          heading("tuitionstime Platform — Project Completion Summary"),
           para(
-            "This document provides a client-facing summary of the Tuitionstime platform as delivered. It focuses on user journeys, features, reliability, and operational aspects without exposing code-level details."
+            "This document provides a client-facing summary of the tuitionstime platform as delivered. It focuses on user journeys, features, reliability, and operational aspects without exposing code-level details."
           ),
 
           subheading("Overview"),
           para(
-            "Tuitionstime is a two-sided education marketplace connecting students and verified tutors. The platform supports discovery, bookings, payments, group classes, regular sessions, analytics, notifications, and administrative oversight."
+            "tuitionstime is a two-sided education marketplace connecting students and verified tutors. The platform supports discovery, bookings, payments, group classes, regular sessions, analytics, notifications, and administrative oversight."
           ),
 
           subheading("Core Capabilities"),
@@ -109,7 +109,7 @@ async function main() {
 
   const buffer = await Packer.toBuffer(doc);
   const outDir = path.resolve(process.cwd(), "..", "docs");
-  const outPath = path.join(outDir, "Tuitionstime-Project-Summary.docx");
+  const outPath = path.join(outDir, "tuitionstime-Project-Summary.docx");
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(outPath, buffer);
   console.log("Summary generated:", outPath);

@@ -16,6 +16,7 @@ import {
   Mail,
   Phone,
   School,
+  IndianRupee,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchStudentById } from "@/services/tutorService";
@@ -437,6 +438,15 @@ export default function StudentDetailPage() {
                           student.learningMode,
                           student.learningModeOther,
                         ) || "N/A"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                        <IndianRupee className="w-4 h-4" /> Budget
+                      </h3>
+                      <p className="text-sm text-gray-800 font-medium">
+                        {student.budget || "Not provided"}
                       </p>
                     </div>
                   </CardContent>

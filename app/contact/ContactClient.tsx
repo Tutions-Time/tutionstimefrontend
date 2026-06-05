@@ -120,7 +120,7 @@ export default function ContactClient() {
                 </Link>
 
                 <Link
-                  href="https://x.com/TuitionsTime"
+                  href="https://x.com/tuitionstime"
                   target="_blank"
                   className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 hover:bg-slate-50"
                 >
@@ -133,7 +133,7 @@ export default function ContactClient() {
 
           {/* Footer */}
           <div className="mt-12 pt-6 border-t border-slate-200 text-sm text-slate-500">
-            2026 Tuitions time (Choudhary Enterprise). All rights reserved.
+            2026 tuitionstime (Choudhary Enterprise). All rights reserved.
           </div>
         </div>
       </section>

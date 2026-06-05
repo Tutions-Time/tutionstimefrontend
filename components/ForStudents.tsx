@@ -23,7 +23,7 @@ export default function ForStudents() {
       stars: 5,
       course: "Computer Science Student",
       review:
-        "TuitionsTime transformed my learning experience. The tutors are incredibly knowledgeable and the platform is so easy to use!",
+        "tuitionstime transformed my learning experience. The tutors are incredibly knowledgeable and the platform is so easy to use!",
     },
     {
       initials: "SP",

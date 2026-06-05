@@ -29,7 +29,6 @@ export default function SignupClient() {
   const [otp, setOTP] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [requestId, setRequestId] = useState("");
-  const [referralCode, setReferralCode] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
@@ -121,7 +120,6 @@ export default function SignupClient() {
         otpValue.trim(),
         requestId,
         role,
-        role === "student" ? referralCode.trim() || undefined : undefined,
         fullName.trim(),
         mobile.trim()
       );
@@ -154,7 +152,7 @@ export default function SignupClient() {
             <div className="h-10 flex items-center">
               <Image
                 src="/images/logo.png"
-                alt="TuitionsTime logo"
+                alt="tuitionstime logo"
                 width={160}
                 height={22}
                 className="object-contain"
@@ -255,21 +253,6 @@ export default function SignupClient() {
                 </div>
               </div>
             </div>
-
-            
-
-            {role === "student" && (
-              <div className="space-y-2">
-                <Label htmlFor="referral">Referral Code (optional)</Label>
-                <Input
-                  id="referral"
-                  type="text"
-                  placeholder="Enter referral code if you have one"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value)}
-                />
-              </div>
-            )}
 
             <Button
               type="submit"

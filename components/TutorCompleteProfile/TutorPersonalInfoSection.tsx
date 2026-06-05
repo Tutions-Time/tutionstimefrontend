@@ -179,7 +179,7 @@ export default function TutorPersonalInfoSection({
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine1", value: e.target.value }))
               }
-              placeholder="Address Line 1"
+              placeholder="address"
             />
           </div>
 

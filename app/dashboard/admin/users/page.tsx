@@ -82,11 +82,6 @@ type UserRow = {
   createdAt: string;
   lastLogin: string;
   profilePhoto?: string;
-  referralCode?: string | null;
-  referralCodeUsed?: string | null;
-  referrerUserId?: string | null;
-  referrerName?: string | null;
-  referrerRole?: Role | null;
 };
 
 export default function AdminUsersPage() {
@@ -110,7 +105,6 @@ export default function AdminUsersPage() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
-  const [profileReferralCode, setProfileReferralCode] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const incompleteContacts = useMemo(
     () =>
@@ -199,7 +193,6 @@ export default function AdminUsersPage() {
       const normalized = normalizeUserResponse(res);
       setProfileUser(normalized.user);
       setProfileData(normalized.profile);
-      setProfileReferralCode(res?.referralCode || null);
     } catch (error: any) {
       toast({
         title: 'Failed to load student profile',
@@ -217,7 +210,6 @@ export default function AdminUsersPage() {
       setSelectedUser(null);
       setProfileUser(null);
       setProfileData(null);
-      setProfileReferralCode(null);
       setProfileLoading(false);
     }
   };
@@ -308,10 +300,6 @@ export default function AdminUsersPage() {
       'Account Holder Name',
       'Bank Account Number',
       'IFSC',
-      'Referral Code',
-      'Referral Code Used',
-      'Referrer Name',
-      'Referrer Role',
       'Profile Photo',
       'Created At',
       'Last Active',
@@ -349,10 +337,6 @@ export default function AdminUsersPage() {
       r.accountHolderName || '',
       r.bankAccountNumber || '',
       r.ifsc || '',
-      r.referralCode || '',
-      r.referralCodeUsed || '',
-      r.referrerName || '',
-      r.referrerRole || '',
       r.profilePhoto || '',
       r.createdAt ? new Date(r.createdAt).toISOString() : '',
       r.lastLogin ? new Date(r.lastLogin).toISOString() : '',
@@ -779,24 +763,6 @@ export default function AdminUsersPage() {
                   </div>
                   <div className="text-sm text-muted">
                     {formatText(profileData?.email || profileUser?.email || selectedUser?.email)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Referral</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted">Referral Code</div>
-                    <div>{formatText(profileReferralCode || selectedUser?.referralCode)}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted">Referral Used</div>
-                    <div>{formatText(selectedUser?.referralCodeUsed)}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted">Referrer</div>
-                    <div>{formatText(selectedUser?.referrerName ? `${selectedUser?.referrerName} (${selectedUser?.referrerRole})` : null)}</div>
                   </div>
                 </div>
               </div>
