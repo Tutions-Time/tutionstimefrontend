@@ -12,24 +12,24 @@ export async function generateMetadata({
 
   if (role === "student") {
     return {
-      title: "Student Signup – Learn Smarter with Expert Tutors | TuitionsTime",
+      title: "Student Signup – Learn Smarter with Expert Tutors | tuitionstime",
       description:
-        "Join TuitionsTime as a student and connect with verified tutors. Book free demo classes, choose flexible timings, and get personalized learning support.",
+        "Join tuitionstime as a student and connect with verified tutors. Book free demo classes, choose flexible timings, and get personalized learning support.",
     };
   }
 
   if (role === "tutor") {
     return {
-      title: "Become a Tutor – Teach Online & Earn Flexibly | TuitionsTime",
+      title: "Become a Tutor – Teach Online & Earn Flexibly | tuitionstime",
       description:
-        "Register as a tutor on TuitionsTime and start teaching students across India. Set your own schedule, earn securely, and grow your teaching career.",
+        "Register as a tutor on tuitionstime and start teaching students across India. Set your own schedule, earn securely, and grow your teaching career.",
     };
   }
 
   return {
-    title: "Sign Up on TuitionsTime – Start Learning or Teaching Today",
+    title: "Sign Up on tuitionstime – Start Learning or Teaching Today",
     description:
-      "Create your free TuitionsTime account to learn from expert tutors or start teaching students across India. Flexible schedules, free demo classes, and secure payments.",
+      "Create your free tuitionstime account to learn from expert tutors or start teaching students across India. Flexible schedules, free demo classes, and secure payments.",
   };
 }
 

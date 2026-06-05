@@ -115,6 +115,7 @@ export default function TutorDetailPage() {
 
   const userIdFromQuery = searchParams.get("userId");
   const [tutor, setTutor] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"about" | "reviews">("about");
   const [showModal, setShowModal] = useState(false);
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
@@ -125,6 +126,7 @@ export default function TutorDetailPage() {
 
   useEffect(() => {
     if (!routeTutorId) return;
+    setLoading(true);
     fetchTutorById(routeTutorId)
       .then((data) => {
         const status = String(
@@ -136,7 +138,11 @@ export default function TutorDetailPage() {
           setTutor(data);
         }
       })
-      .catch((err) => console.error("Error loading tutor:", err));
+      .catch((err) => {
+        console.error("Error loading tutor:", err);
+        setTutor(null);
+      })
+      .finally(() => setLoading(false));
   }, [routeTutorId]);
 
   const imgUrl = useMemo(() => {
@@ -156,6 +162,13 @@ export default function TutorDetailPage() {
   const upcomingAvailability = Array.isArray(tutor?.availability)
     ? tutor.availability.filter((d: string) => d >= todayStr)
     : [];
+
+  if (loading)
+    return (
+      <div className="p-10 text-center text-gray-500 text-sm sm:text-base">
+        Loading tutor profile...
+      </div>
+    );
 
   if (!tutor)
     return (

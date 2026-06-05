@@ -20,7 +20,7 @@ export default function CTASection() {
           Ready to Get Started?
         </h2>
         <p className="text-lg  mb-8">
-          Join thousands of students and tutors already using Tuitions time.
+          Join thousands of students and tutors already using tuitionstime.
         </p>
         <Link href="/signup">
           <motion.div whileHover={scaleHover} whileTap={{ scale: 0.95 }}>

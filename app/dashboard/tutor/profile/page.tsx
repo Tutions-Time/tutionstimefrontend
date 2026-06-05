@@ -30,8 +30,6 @@ export default function TutorProfilePage() {
   const profile = useAppSelector((s) => s.tutorProfile);
   const router = useRouter();
 
-  const [referralCode, setReferralCode] = useState<string>("");
-
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -58,7 +56,6 @@ export default function TutorProfilePage() {
         if (res.success && res.data.profile) {
           const tutor = res.data.profile;
           dispatch(setBulk(tutor));
-          setReferralCode(res.data?.referralCode || "");
           setIsProfileComplete(Boolean(res?.data?.user?.isProfileComplete));
           setPayoutForm({
             upiId: String(tutor?.upiId || ""),

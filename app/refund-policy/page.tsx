@@ -28,7 +28,7 @@ export default function RefundPolicyPage() {
           </h1>
 
           <p className="text-slate-600 leading-7">
-            At TuitionsTime.com, we strive to provide high-quality educational
+            At tuitionstime.com, we strive to provide high-quality educational
             services to meet your learning needs. However, we understand that
             there may be situations where you are not completely satisfied. This
             Refund Policy outlines the terms and conditions under which refunds
@@ -119,7 +119,7 @@ export default function RefundPolicyPage() {
               Policy Modifications
             </h2>
             <p className="text-slate-700 leading-7">
-              TuitionsTime.com reserves the right to modify this Refund Policy at
+              tuitionstime.com reserves the right to modify this Refund Policy at
               any time. Any changes or clarifications will take effect
               immediately upon being posted on the website. It is your
               responsibility to review this policy periodically.

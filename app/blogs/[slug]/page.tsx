@@ -317,11 +317,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!blog) {
     return {
-      title: "Blog Not Found - TuitionsTime",
+      title: "Blog Not Found - tuitionstime",
     };
   }
 
-  const title = blog.metaTitle || `${blog.title} - TuitionsTime Blog`;
+  const title = blog.metaTitle || `${blog.title} - tuitionstime Blog`;
   const description = blog.metaDescription || blog.excerpt;
   const image = getImageSrc(blog.coverImage);
 
@@ -335,7 +335,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `https://tuitionstime.com/blogs/${blog.slug}`,
-      siteName: "TuitionsTime",
+      siteName: "tuitionstime",
       type: "article",
       images: image ? [{ url: image, alt: blog.coverImageAlt || blog.title }] : undefined,
     },
@@ -358,11 +358,11 @@ export default async function BlogDetailPage({ params }: Props) {
     dateModified: blog.updatedAt,
     author: {
       "@type": "Organization",
-      name: blog.authorName || "TuitionsTime Team",
+      name: blog.authorName || "tuitionstime Team",
     },
     publisher: {
       "@type": "Organization",
-      name: "TuitionsTime",
+      name: "tuitionstime",
       url: "https://tuitionstime.com",
     },
     mainEntityOfPage: `https://tuitionstime.com/blogs/${blog.slug}`,
@@ -444,7 +444,7 @@ export default async function BlogDetailPage({ params }: Props) {
                 {blog.excerpt}
               </p>
               <p className="mt-5 text-sm font-semibold text-slate-700">
-                By <span className="text-slate-950">{blog.authorName || "TuitionsTime Team"}</span>
+                By <span className="text-slate-950">{blog.authorName || "tuitionstime Team"}</span>
               </p>
             </div>
           </section>
@@ -463,7 +463,7 @@ export default async function BlogDetailPage({ params }: Props) {
                   <div>
                     <dt className="font-medium text-slate-500">Author</dt>
                     <dd className="mt-1 font-semibold text-slate-950">
-                      {blog.authorName || "TuitionsTime Team"}
+                      {blog.authorName || "tuitionstime Team"}
                     </dd>
                   </div>
                   <div>

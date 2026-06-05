@@ -1,8 +1,8 @@
-# Tuitionstime Platform
+# tuitionstime Platform
 
 ## Overview
 
-Tuitionstime is a comprehensive tutoring marketplace platform that connects students with qualified tutors. The platform features role-based access for students, tutors, and administrators, with specialized dashboards and functionality for each user type.
+tuitionstime is a comprehensive tutoring marketplace platform that connects students with qualified tutors. The platform features role-based access for students, tutors, and administrators, with specialized dashboards and functionality for each user type.
 
 ## Features
 

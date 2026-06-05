@@ -757,7 +757,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
 
               <div className="flex items-center gap-1">
                 <IndianRupee className="w-3 h-3" />
-                {b.pricePerStudent}
+                {b.pricePerStudent} / month
               </div>
             </div>
 

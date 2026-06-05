@@ -44,9 +44,6 @@ const formatPlanLabel = (row: any) => {
   if (row.type === "note") {
     return row.noteTitle || "Paid note";
   }
-  if (row.type === "referral") {
-    return "Referral credit";
-  }
   if (row.type === "payout") {
     return "Tutor payout";
   }
@@ -65,10 +62,6 @@ const formatPlanLabel = (row: any) => {
   return row.subject || "—";
 };
 
-const formatReferralDisplay = (row: any) => row.referralCode || "—";
-
-const formatReferralAmount = (row: any) =>
-  row.referralAmount ? inr(Number(row.referralAmount || 0)) : "—";
 
 const formatOptionalAmount = (value: number | undefined | null) =>
   value !== undefined && value !== null
@@ -83,7 +76,7 @@ export default function AdminRevenuePage() {
   const [txFrom, setTxFrom] = useState<string>('');
   const [txTo, setTxTo] = useState<string>('');
   const [txStatus, setTxStatus] = useState<string>('');
-  const [txType, setTxType] = useState<'subscription' | 'note' | 'group' | 'payout' | 'referral' | ''>('');
+  const [txType, setTxType] = useState<'subscription' | 'note' | 'group' | 'payout' | ''>('');
   const [txTutor, setTxTutor] = useState<string>('');
   const [txStudent, setTxStudent] = useState<string>('');
   const [txPage, setTxPage] = useState<number>(1);
@@ -97,7 +90,6 @@ export default function AdminRevenuePage() {
     commissionTotal: number;
     refundTotal?: number;
     pendingReleaseTotal?: number;
-    referralTotal?: number;
   } | null>(null);
   const [rangeQuick, setRangeQuick] = useState<'7d' | '30d' | '90d' | 'custom'>('30d');
   const [viewMode, setViewMode] = useState<'classic' | 'trading'>('classic');
@@ -111,8 +103,7 @@ export default function AdminRevenuePage() {
       return acc;
     }, {});
     const totalDiscounts = txItems.reduce((sum, h) => sum + Number(h.couponDiscount || 0), 0);
-    const totalReferralRewards = txItems.reduce((sum, h) => sum + Number(h.referralAmount || 0), 0);
-    return { total, count, byStatus, totalDiscounts, totalReferralRewards };
+    return { total, count, byStatus, totalDiscounts };
   }, [txItems]);
 
   const debounce = (fn: () => void, ms = 400) => {
@@ -130,8 +121,6 @@ function exportHistoryCsv() {
     'Tutor Payout',
     'Release',
     'Class/Plan',
-    'Referral',
-    'Referral Amount',
     'Refund Amount',
     'Coupon',
     'Discount',
@@ -147,8 +136,6 @@ function exportHistoryCsv() {
     String(h.tutorNetAmount || 0),
     releaseLabel(h),
     formatPlanLabel(h),
-    formatReferralDisplay(h),
-    String(h.referralAmount || 0),
     String(h.refundAmount || 0),
     h.couponCode || '',
     String(h.couponDiscount || 0),
@@ -213,7 +200,6 @@ function exportHistoryCsv() {
     return (
       title.includes("payment") ||
       title.includes("refund") ||
-      title.includes("referral") ||
       Boolean(meta.paymentId) ||
       Boolean(meta.refundRequestId)
     );
@@ -318,15 +304,6 @@ function exportHistoryCsv() {
                   <p className="text-2xl font-bold text-text">{inr(Number(txSummary?.totalDiscounts || 0))}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <IndianRupee className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted">Referral Rewards (page)</p>
-                  <p className="text-2xl font-bold text-text">{inr(Number(txSummary?.totalReferralRewards || 0))}</p>
-                </div>
-              </div>
             </div>
           </Card>
 
@@ -357,10 +334,6 @@ function exportHistoryCsv() {
                 <div>
                   <div className="text-sm text-muted">Notes (sum)</div>
                   <div className="text-2xl font-bold">{inr(Number(revTotals?.noteTotal || 0))}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted">Referrals (sum)</div>
-                  <div className="text-2xl font-bold">{inr(Number(revTotals?.referralTotal || 0))}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted">Refunds (sum)</div>
@@ -399,8 +372,6 @@ function exportHistoryCsv() {
                           <Legend />
                           <Area type="monotone" dataKey="subscriptionTotal" name="Subscriptions" stroke="#6366F1" fill="url(#subGrad)" />
                           <Area type="monotone" dataKey="noteTotal" name="Notes" stroke="#10B981" fill="url(#noteGrad)" />
-                          <Area type="monotone" dataKey="referralTotal" name="Referrals" stroke="#0EA5E9" fill="#0EA5E933" />
-                          <Area type="monotone" dataKey="referralTotal" name="Referrals" stroke="#0EA5E9" fill="#0EA5E933" />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
@@ -430,7 +401,6 @@ function exportHistoryCsv() {
                   <option value="note">Note</option>
                   <option value="group">Group</option>
                   <option value="payout">Payout</option>
-                  <option value="referral">Referral</option>
                 </select>
                 <select className="h-8 rounded-md border px-2 text-xs" value={txStatus} onChange={(e) => setTxStatus(e.target.value)}>
                   <option value="">All Status</option>
@@ -468,8 +438,6 @@ function exportHistoryCsv() {
                       <th className="px-4 py-3">Tutor Payout</th>
                       <th className="px-4 py-3">Release</th>
                       <th className="px-4 py-3">Class / Plan</th>
-                      <th className="px-4 py-3">Referral</th>
-                      <th className="px-4 py-3">Referral Amount</th>
                       <th className="px-4 py-3">Refund</th>
                       <th className="px-4 py-3">Status</th>
                     </tr>
@@ -487,8 +455,6 @@ function exportHistoryCsv() {
                       <td className="px-4 py-3">{formatPlanLabel(h)}</td>
                       {/* <td className="px-4 py-3">{h.couponCode || '—'}</td> */}
                       {/* <td className="px-4 py-3">{h.couponDiscount ? `ƒ,1${Number(h.couponDiscount).toLocaleString('en-IN')}` : '—'}</td> */}
-                      <td className="px-4 py-3">{formatReferralDisplay(h)}</td>
-                      <td className="px-4 py-3">{formatReferralAmount(h)}</td>
                       <td className="px-4 py-3">{formatOptionalAmount(h.refundAmount)}</td>
                       {/* <td className="px-4 py-3">{h.gateway?.toUpperCase() || (h.type === 'payout' && h.payoutUpi ? `UPI:${h.payoutUpi}` : '—')}</td> */}
                       <td className="px-4 py-3">
@@ -505,7 +471,7 @@ function exportHistoryCsv() {
                   ))}
                   {txItems.length === 0 && (
                     <tr>
-                      <td colSpan={12} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
+                      <td colSpan={10} className="px-4 py-12 text-center text-muted">{txLoading ? 'Loading…' : 'No transactions found.'}</td>
                     </tr>
                   )}
                 </tbody>

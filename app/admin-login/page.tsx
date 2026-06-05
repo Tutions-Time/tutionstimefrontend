@@ -47,7 +47,7 @@ export default function AdminLogin() {
         <div className="flex flex-col items-center mb-6">
           <h1 className="text-2xl font-semibold text-gray-800">Admin Login</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Access the Tuitionstime dashboard
+            Access the tuitionstime dashboard
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default function AdminLogin() {
         </form>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Tuitionstime Admin
+          © {new Date().getFullYear()} tuitionstime Admin
         </p>
       </div>
     </div>

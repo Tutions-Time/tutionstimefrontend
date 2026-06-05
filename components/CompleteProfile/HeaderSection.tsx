@@ -10,7 +10,7 @@ export default function HeaderSection() {
         <div className="flex items-center h-16">
           <Image
             src="/images/logo.png"
-            alt="Tuitions Time"
+            alt="tuitionstime"
             width={160}
             height={22}
             className="object-contain"

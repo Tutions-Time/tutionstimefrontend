@@ -18,18 +18,18 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Services - Online and Offline Tutoring | TuitionsTime",
+  title: "Services - Online and Offline Tutoring | tuitionstime",
   description:
-    "Explore TuitionsTime services including online tutoring, offline home tuition, demo classes, verified tutors, flexible schedules, and personalized academic support.",
+    "Explore tuitionstime services including online tutoring, offline home tuition, demo classes, verified tutors, flexible schedules, and personalized academic support.",
   alternates: {
     canonical: "https://tuitionstime.com/services",
   },
   openGraph: {
-    title: "TuitionsTime Services - Online and Offline Tutoring",
+    title: "tuitionstime Services - Online and Offline Tutoring",
     description:
       "Personalized tutoring services for students and parents, with verified tutors for online classes and local offline tuition.",
     url: "https://tuitionstime.com/services",
-    siteName: "TuitionsTime",
+    siteName: "tuitionstime",
     type: "website",
   },
 };
@@ -109,7 +109,7 @@ export default function ServicesPage() {
                 Online and Offline Tutoring Built Around Every Student
               </h1>
               <p className="mt-6 text-lg leading-8 text-slate-700">
-                TuitionsTime helps students and parents find the right tutor for
+                tuitionstime helps students and parents find the right tutor for
                 their academic needs. Whether a student prefers live online
                 classes or in-person offline tuition, our platform makes it
                 easier to compare tutors, book demo sessions, and start regular
@@ -210,7 +210,7 @@ export default function ServicesPage() {
                 Academic Support From Discovery to Regular Classes
               </h2>
               <p className="mt-4 leading-7 text-slate-600">
-                Our services are not limited to listing tutors. TuitionsTime
+                Our services are not limited to listing tutors. tuitionstime
                 supports the full learning journey: student profile creation,
                 tutor discovery, demo booking, class conversion, scheduling,
                 feedback, and ongoing academic improvement.

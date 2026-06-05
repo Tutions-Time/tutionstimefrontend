@@ -293,7 +293,7 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm">Price per student</label>
+              <label className="text-sm">Monthly price per student</label>
               <input
                 type="number"
                 value={form.pricePerStudent}

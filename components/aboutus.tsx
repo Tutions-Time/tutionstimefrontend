@@ -29,12 +29,12 @@ export default function AboutUs() {
       >
         {/* TITLE */}
         <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6">
-          About <span className="text-primary">TuitionsTime</span>
+          About <span className="text-primary">tuitionstime</span>
         </h2>
 
         {/* SUBTITLE */}
         <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
-          TuitionsTime is a modern platform connecting students and tutors
+          tuitionstime is a modern platform connecting students and tutors
           across India. Our mission is to make quality education accessible,
           flexible, and affordable for every learner.
         </p>
@@ -52,7 +52,7 @@ export default function AboutUs() {
         >
           <p className="text-gray-800 text-lg leading-relaxed">
             Whether you&apos;re looking to strengthen fundamentals, prepare for
-            exams, or learn at your own pace, TuitionsTime empowers you with
+            exams, or learn at your own pace, tuitionstime empowers you with
             verified tutors, one-to-one sessions, and personalized learning
             paths designed for success.
           </p>

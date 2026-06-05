@@ -225,7 +225,7 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
          <Link href="/" className="flex items-center h-16">
   <Image
     src="/images/logo.png"
-    alt="Tuitions Time"
+    alt="tuitionstime"
     width={140}
     height={20}
     className="object-contain"
@@ -356,7 +356,6 @@ export function Navbar({ onMenuClick, unreadCount: _unreadCount, userName, userR
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="text-sm font-semibold">{n.title}</div>
-                        <div className="text-xs text-muted-foreground">{n.body || n.message}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         {!isRead && (

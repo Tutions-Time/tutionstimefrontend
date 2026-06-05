@@ -109,7 +109,6 @@ export default function NotificationsPage() {
             <Card key={n._id} className="p-4 flex items-center justify-between">
               <div>
                 <div className="font-semibold">{n.title}</div>
-                <div className="text-sm text-muted-foreground">{n.body}</div>
               </div>
               <div className="flex items-center gap-2">
                 {!n.read && <Button size="sm" onClick={() => markRead(n._id)}>Mark read</Button>}

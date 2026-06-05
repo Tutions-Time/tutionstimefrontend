@@ -90,7 +90,7 @@ export const loginAsync = createAsyncThunk(
 export const signupAsync = createAsyncThunk(
   'auth/signup',
   async (
-    { email, otp, requestId, role, referralCode, name, phone }: { email: string; otp: string; requestId: string; role: 'student' | 'tutor'; referralCode?: string; name: string; phone: string },
+    { email, otp, requestId, role, name, phone }: { email: string; otp: string; requestId: string; role: 'student' | 'tutor'; name: string; phone: string },
     { rejectWithValue, dispatch }
   ) => {
     try {
@@ -104,7 +104,6 @@ export const signupAsync = createAsyncThunk(
         requestId: requestId.trim(),
         purpose: 'signup',
         role,
-        referralCode,
         name: name.trim(),
         phone: phone.trim(),
       });

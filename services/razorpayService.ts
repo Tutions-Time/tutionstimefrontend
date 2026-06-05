@@ -185,7 +185,7 @@ export const getAdminAllPaymentHistory = async (params?: {
   from?: string;
   to?: string;
   status?: string;
-  type?: "subscription" | "note" | "group" | "payout" | "referral" | "";
+  type?: "subscription" | "note" | "group" | "payout" | "";
   page?: number;
   limit?: number;
   student?: string;

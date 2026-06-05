@@ -24,14 +24,14 @@ export default function TermsAndConditionsPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-10 py-10 space-y-8">
           {/* Header */}
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-            TuitionsTime – Terms and Conditions
+            tuitionstime – Terms and Conditions
           </h1>
 
           <p className="text-slate-600 leading-7">
-            Kindly read the following Terms and Conditions of TuitionsTime
+            Kindly read the following Terms and Conditions of tuitionstime
             carefully before registering. These terms are designed to protect
             students, parents, tutors, and the organization. By accessing or
-            using the TuitionsTime platform, you agree to be legally bound by
+            using the tuitionstime platform, you agree to be legally bound by
             these Terms and Conditions. If you do not agree to these Terms you
             are requested immediately <strong>NOT TO USE THIS PLATFORM</strong>.
           </p>
@@ -40,7 +40,7 @@ export default function TermsAndConditionsPage() {
           <div>
             <h2 className="font-semibold text-lg">1. Acceptance of Terms</h2>
             <p className="text-slate-700 leading-7">
-              By registering on TuitionsTime as a Student, Parent, or Tutor, you
+              By registering on tuitionstime as a Student, Parent, or Tutor, you
               confirm that you have read, understood, and accepted these Terms
               and Conditions.
             </p>
@@ -53,7 +53,7 @@ export default function TermsAndConditionsPage() {
               <li>Registration is free for students and tutors under basic membership.</li>
               <li>Premium membership plans may be introduced in the future.</li>
               <li>
-                Premium plans shall be governed by TuitionsTime Refund and
+                Premium plans shall be governed by tuitionstime Refund and
                 Cancellation Policy.
               </li>
             </ul>
@@ -71,7 +71,7 @@ export default function TermsAndConditionsPage() {
               </li>
               <li>
                 Personal contact details may be exchanged only after written or
-                system-generated confirmation from TuitionsTime.
+                system-generated confirmation from tuitionstime.
               </li>
               <li>
                 Any attempt to bypass the platform or exchange personal details
@@ -117,7 +117,7 @@ export default function TermsAndConditionsPage() {
               6. Right to Restrict or Terminate Access
             </h2>
             <p className="text-slate-700 leading-7">
-              TuitionsTime reserves the absolute right to suspend, restrict, or
+              tuitionstime reserves the absolute right to suspend, restrict, or
               permanently terminate any user account that violates these Terms
               and Conditions, without prior notice.
             </p>
@@ -141,14 +141,14 @@ export default function TermsAndConditionsPage() {
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
                 Tutors may register for free but cannot contact students or
-                parents without approval from TuitionsTime.
+                parents without approval from tuitionstime.
               </li>
               <li>
                 Tutors will receive student details only after demo confirmation.
               </li>
               <li>
                 In case of any fraud by the teachers with any student or with
-                TuitionsTime, legal action may be taken.
+                tuitionstime, legal action may be taken.
               </li>
               <li>
                 Tutors are requested to be punctual and behave, talk, and dress
@@ -166,19 +166,19 @@ export default function TermsAndConditionsPage() {
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
                 All tuition fees must be paid in advance to the official
-                TuitionsTime account only.
+                tuitionstime account only.
               </li>
               <li>
                 Direct payments between tutors and students or parents are
                 strictly prohibited.
               </li>
               <li>
-                TuitionsTime shall charge a 25% service fee per month on each
+                tuitionstime shall charge a 25% service fee per month on each
                 active tuition class.
               </li>
               <li>
                 Remaining amounts shall be settled with tutors as per
-                TuitionsTime’s payout policy.
+                tuitionstime’s payout policy.
               </li>
             </ul>
           </div>
@@ -192,7 +192,7 @@ export default function TermsAndConditionsPage() {
               <li>Tutors cannot immediately view full student details.</li>
               <li>
                 Access is granted only after verification and demo approval by
-                TuitionsTime.
+                tuitionstime.
               </li>
             </ul>
           </div>
@@ -202,12 +202,12 @@ export default function TermsAndConditionsPage() {
             <h2 className="font-semibold text-lg">11. Tutor Payments</h2>
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
-                Tutors shall receive payments only through the TuitionsTime
+                Tutors shall receive payments only through the tuitionstime
                 platform.
               </li>
               <li>
                 Payments made outside the platform are not recognized or
-                protected by TuitionsTime.
+                protected by tuitionstime.
               </li>
             </ul>
           </div>
@@ -232,7 +232,7 @@ export default function TermsAndConditionsPage() {
             </h2>
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
-                TuitionsTime strictly adheres to the Protection of Children from
+                tuitionstime strictly adheres to the Protection of Children from
                 Sexual Offences (POCSO) Act, 2012.
               </li>
               <li>
@@ -241,7 +241,7 @@ export default function TermsAndConditionsPage() {
                 a criminal offence punishable under law.
               </li>
               <li>
-                TuitionsTime follows a zero-tolerance policy toward such conduct.
+                tuitionstime follows a zero-tolerance policy toward such conduct.
               </li>
               <li>
                 Upon receiving any complaint or evidence, the concerned account
@@ -261,7 +261,7 @@ export default function TermsAndConditionsPage() {
                 and safety of minor students.
               </li>
               <li>
-                TuitionsTime does not provide physical supervision.
+                tuitionstime does not provide physical supervision.
               </li>
               <li>
                 Tutors will teach only if at least one parent is present in the
@@ -280,10 +280,10 @@ export default function TermsAndConditionsPage() {
             </h2>
             <ul className="list-disc pl-6 text-slate-700 space-y-2">
               <li>
-                TuitionsTime acts solely as a facilitating technology platform.
+                tuitionstime acts solely as a facilitating technology platform.
               </li>
               <li>
-                TuitionsTime is not responsible for misconduct or disputes
+                tuitionstime is not responsible for misconduct or disputes
                 between users.
               </li>
               <li>
@@ -296,7 +296,7 @@ export default function TermsAndConditionsPage() {
           <div>
             <h2 className="font-semibold text-lg">16. Amendments</h2>
             <p className="text-slate-700 leading-7">
-              TuitionsTime reserves the right to modify or update these Terms and
+              tuitionstime reserves the right to modify or update these Terms and
               Conditions at any time. Continued use of the platform constitutes
               acceptance of the revised terms. If you do not agree, you are
               requested immediately <strong>NOT TO USE THIS PLATFORM</strong>.

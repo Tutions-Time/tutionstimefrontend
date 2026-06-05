@@ -64,10 +64,10 @@ export default function Navbar() {
             {/* Logo */}
             <div className="flex items-center gap-2">
               <motion.div className="flex items-center" whileHover={scaleHover}>
-                <Link href="/" aria-label="TuitionsTime home">
+                <Link href="/" aria-label="tuitionstime home">
                   <Image
                     src="/images/logo.png"
-                    alt="Tuitions Time"
+                    alt="tuitionstime"
                     width={160}
                     height={22}
                     className="object-contain"

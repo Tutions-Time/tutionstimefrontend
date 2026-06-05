@@ -87,6 +87,12 @@ const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const isValidPincode = (pin: string) => /^[0-9]{6}$/.test(pin);
 const isValidPhone = (num: string) => /^[0-9]{10}$/.test(num);
 
+const parseBudget = (budget?: string) => {
+  const hourly = budget?.match(/Hourly:\s*Rs\.(\d+)/i)?.[1] || "";
+  const monthly = budget?.match(/Monthly:\s*Rs\.(\d+)/i)?.[1] || "";
+  return { hourly, monthly };
+};
+
 /* -------------------------------------------------------
    TUTOR VALIDATOR (UNCHANGED)
 -------------------------------------------------------- */
@@ -248,6 +254,15 @@ export function validateStudentProfileFields(
 
   if (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
     errors.preferredTimes = "Preferred time slots are required";
+
+  const budget = parseBudget(data.budget);
+  if (budget.hourly && budget.monthly) {
+    errors.budget = "Select either hourly or monthly budget, not both";
+  } else if (budget.hourly && !isAllowedHourlyRate(budget.hourly)) {
+    errors.budget = "Select an hourly budget from Rs.400 to Rs.2000";
+  } else if (budget.monthly && !isAllowedMonthlyRate(budget.monthly)) {
+    errors.budget = "Select a monthly budget from Rs.3500 to Rs.10000";
+  }
 
   if (data.availability && !Array.isArray(data.availability))
     errors.availability = "Availability must be a list of dates";

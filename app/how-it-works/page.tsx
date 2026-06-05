@@ -44,7 +44,7 @@ const studentSteps: Step[] = [
     icon: <ShieldCheck className="h-5 w-5" />,
   },
   {
-    text: "After the demo session, pay the tuition fee in advance to the Tuition Time account. Once the payment is confirmed, we’ll share the contact details of both the student and the tutor.",
+    text: "After the demo session, pay the tuition fee in advance to the tuitionstime account. Once the payment is confirmed, we’ll share the contact details of both the student and the tutor.",
     icon: <CreditCard className="h-5 w-5" />,
   },
   {
@@ -59,7 +59,7 @@ const studentSteps: Step[] = [
 
 const tutorSteps: Step[] = [
   {
-    text: "Sign up for free on Tuitions time and join as a tutor in just a few minutes.",
+    text: "Sign up for free on tuitionstime and join as a tutor in just a few minutes.",
     icon: <UserPlus className="h-5 w-5" />,
   },
   {
@@ -116,7 +116,7 @@ export default function HowItWorksPage() {
         </button>
 
         <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-          How Tuitions time Works
+          How tuitionstime Works
         </h1>
 
         <p className="mt-3 max-w-2xl text-slate-600">

@@ -24,12 +24,12 @@ export default function PrivacyPolicyPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 sm:px-10 py-10 space-y-10">
           {/* Header */}
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-            TuitionsTime Privacy Policy
+            tuitionstime Privacy Policy
           </h1>
 
           {/* Intro */}
           <p className="text-slate-600 leading-7">
-            This Privacy Policy describes how TuitionsTime collects, uses, and
+            This Privacy Policy describes how tuitionstime collects, uses, and
             protects your personal information when you use our website and
             services.
           </p>
@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
               <li>
                 We ask for certain information such as your username, birthrate,
                 address, WhatsApp number and e-mail address when you register for a
-                TuitionsTime account. We use this information to operate,
+                tuitionstime account. We use this information to operate,
                 maintain, and provide the features and functionality of the
                 Service.
               </li>
@@ -217,7 +217,7 @@ export default function PrivacyPolicyPage() {
               Changes to our Privacy Policy
             </h2>
             <p className="text-slate-700 leading-7">
-              TuitionsTime.com reserves the right to update this privacy policy
+              tuitionstime.com reserves the right to update this privacy policy
               at any time. Any changes will be posted on this page.
             </p>
             <p className="text-slate-700 mt-2">

@@ -26,8 +26,26 @@ export const PINCODE_MAP: Record<string, string> = {
   "Bihar::Patna": "800001",
 };
 
+const normalizeName = (value?: string) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\but\b/g, "")
+    .replace(/\bnct\b/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
 export const lookupPincode = (state?: string, city?: string): string | null => {
   if (!state || !city) return null;
   const key = `${state}::${city}`;
-  return PINCODE_MAP[key] || null;
+  if (PINCODE_MAP[key]) return PINCODE_MAP[key];
+
+  const stateKey = normalizeName(state);
+  const cityKey = normalizeName(city);
+  const normalizedMatch = Object.entries(PINCODE_MAP).find(([entryKey]) => {
+    const [entryState, entryCity] = entryKey.split("::");
+    return normalizeName(entryState) === stateKey && normalizeName(entryCity) === cityKey;
+  });
+
+  return normalizedMatch?.[1] || null;
 };

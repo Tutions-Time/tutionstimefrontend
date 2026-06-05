@@ -128,7 +128,7 @@ export default function LoginClient() {
             <div className="h-10 flex items-center">
               <Image
                 src="/images/logo.png"
-                alt="TuitionsTime logo"
+                alt="tuitionstime logo"
                 width={160}
                 height={22}
                 className="object-contain"

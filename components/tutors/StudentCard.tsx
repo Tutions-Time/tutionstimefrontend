@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Clock, MapPin, User2, BookOpen } from "lucide-react";
+import { Clock, MapPin, User2, BookOpen, IndianRupee } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -29,6 +29,7 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
     subjects = [],
     preferredTimeSlot,
     preferredTimes = [],
+    budget,
     photoUrl,
   } = student || {};
 
@@ -44,6 +45,7 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
     (Array.isArray(preferredTimes) && preferredTimes.length
       ? preferredTimes[0]
       : "");
+  const displayedBudget = typeof budget === "string" ? budget.trim() : "";
 
   return (
     <>
@@ -128,6 +130,14 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
             <span>Preferred time not provided</span>
           )}
         </div>
+
+        {/* BUDGET */}
+        {displayedBudget && (
+          <div className="flex items-center gap-1 text-[11px] text-gray-600 mb-3">
+            <IndianRupee className="w-3 h-3" />
+            <span className="truncate">Budget: {displayedBudget}</span>
+          </div>
+        )}
 
         {/* BUTTONS */}
         <div className="flex gap-2 min-w-0">

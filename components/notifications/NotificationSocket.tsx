@@ -33,8 +33,7 @@ function showToastForNotification(data: any) {
   const payload = data ?? {};
   const route = resolveToastRoute(payload);
   const title = payload?.title || "Notification";
-  const description = payload?.body || payload?.message || "";
-  toast({ title, description, meta: payload.meta, route });
+  toast({ title, meta: payload.meta, route });
 }
 
 function playBeep() {

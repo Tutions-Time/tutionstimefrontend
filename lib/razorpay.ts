@@ -91,7 +91,7 @@ export async function openRazorpayCheckout(
       key,
       amount: order.amount,
       currency: order.currency || "INR",
-      name: options.name || "TuitionsTime",
+      name: options.name || "tuitionstime",
       description: options.description || "Student payment",
       order_id: orderId,
       prefill: options.prefill,

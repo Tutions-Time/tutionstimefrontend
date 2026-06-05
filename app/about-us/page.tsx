@@ -22,18 +22,18 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "About TuitionsTime - Trusted Tutors Across India",
+  title: "About tuitionstime - Trusted Tutors Across India",
   description:
-    "Learn about TuitionsTime, a modern tutoring platform connecting students with verified tutors across India for personalized online and offline learning.",
+    "Learn about tuitionstime, a modern tutoring platform connecting students with verified tutors across India for personalized online and offline learning.",
   alternates: {
     canonical: "https://tuitionstime.com/about-us",
   },
   openGraph: {
-    title: "About TuitionsTime - Your Learning Journey Begins Here",
+    title: "About tuitionstime - Your Learning Journey Begins Here",
     description:
-      "TuitionsTime helps students find verified tutors, book free demo classes, and learn with flexible, personalized support.",
+      "tuitionstime helps students find verified tutors, book free demo classes, and learn with flexible, personalized support.",
     url: "https://tuitionstime.com/about-us",
-    siteName: "TuitionsTime",
+    siteName: "tuitionstime",
     type: "website",
   },
 };
@@ -140,13 +140,13 @@ const futureGoals = [
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  name: "About TuitionsTime",
+  name: "About tuitionstime",
   url: "https://tuitionstime.com/about-us",
   description:
-    "TuitionsTime connects students with verified tutors across India for personalized online and offline learning.",
+    "tuitionstime connects students with verified tutors across India for personalized online and offline learning.",
   mainEntity: {
     "@type": "Organization",
-    name: "TuitionsTime",
+    name: "tuitionstime",
     url: "https://tuitionstime.com",
     email: "support@tuitionstime.com",
     telephone: "+918755313291",
@@ -212,13 +212,13 @@ export default function AboutUsPage() {
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
             <div>
               <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-primary">
-                About TuitionsTime
+                About tuitionstime
               </p>
               <h1 className="max-w-4xl text-4xl font-bold leading-tight text-slate-900 sm:text-5xl">
                 Your Learning Journey Begins Here
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">
-                At TuitionsTime, we believe education is not just about passing
+                At tuitionstime, we believe education is not just about passing
                 exams. It is about building confidence, understanding concepts
                 deeply, and unlocking every student&apos;s true potential.
               </p>
@@ -264,7 +264,7 @@ export default function AboutUsPage() {
           <SectionHeading
             eyebrow="Who We Are"
             title="A Complete Learning Ecosystem"
-            text="TuitionsTime is more than a tutoring platform. Built with the vision to make quality education accessible and affordable, we bring students and tutors together where learning becomes simple, effective, and engaging."
+            text="tuitionstime is more than a tutoring platform. Built with the vision to make quality education accessible and affordable, we bring students and tutors together where learning becomes simple, effective, and engaging."
           />
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
@@ -286,7 +286,7 @@ export default function AboutUsPage() {
                 Built for Every Learner
               </h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                From school support to advanced academic topics, TuitionsTime
+                From school support to advanced academic topics, tuitionstime
                 helps learners find the right guidance at the right time.
               </p>
             </div>
@@ -435,7 +435,7 @@ export default function AboutUsPage() {
                 For Tutors
               </h2>
               <p className="mt-3 leading-7 text-slate-700">
-                TuitionsTime gives educators a flexible platform to share their
+                tuitionstime gives educators a flexible platform to share their
                 knowledge, grow professionally, and focus on teaching.
               </p>
               <div className="mt-5">
@@ -498,12 +498,12 @@ export default function AboutUsPage() {
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide">
-                  Join the TuitionsTime Community
+                  Join the tuitionstime Community
                 </p>
                 <h2 className="mt-2 text-3xl font-bold">Get Started Today</h2>
                 <p className="mt-3 max-w-3xl leading-7">
                   Whether you are a student looking to improve academic
-                  performance or a tutor passionate about teaching, TuitionsTime
+                  performance or a tutor passionate about teaching, tuitionstime
                   is built to make learning simple, effective, and enjoyable.
                 </p>
               </div>

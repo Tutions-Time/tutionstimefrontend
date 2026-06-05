@@ -35,7 +35,7 @@ const emptyForm = {
   status: "draft" as BlogStatus,
   metaTitle: "",
   metaDescription: "",
-  authorName: "TuitionsTime Team",
+  authorName: "tuitionstime Team",
   coverImageAlt: "",
 };
 
@@ -118,7 +118,7 @@ function AdminBlogsContent() {
       status: (blog.status as BlogStatus) || "draft",
       metaTitle: blog.metaTitle || blog.title || "",
       metaDescription: blog.metaDescription || blog.excerpt || "",
-      authorName: blog.authorName || "TuitionsTime Team",
+      authorName: blog.authorName || "tuitionstime Team",
       coverImageAlt: blog.coverImageAlt || blog.title || "",
     });
   };
