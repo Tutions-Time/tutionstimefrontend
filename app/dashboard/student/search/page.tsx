@@ -103,6 +103,7 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
   useEffect(() => {
     const next: QueryMap = {};
     for (const key of [
+      "name",
       "city",
       "pincode",
       "subject",
@@ -164,6 +165,7 @@ export default function SearchTutors() {
 
   // centralize filter state for URL sync
   const [filter, setFilter] = useState<QueryMap>({
+    name: "",
     city: "",
     pincode: "",
     subject: "",
@@ -267,6 +269,7 @@ export default function SearchTutors() {
       sort: filter.sort || "lastLogin_desc",
     };
 
+    if (filter.name) p.name = filter.name;
     if (filter.city) p.city = filter.city;
     if (filter.pincode) p.pincode = filter.pincode;
     if (filter.subject) p.subject = filter.subject;
@@ -330,6 +333,7 @@ export default function SearchTutors() {
 
   const clearAllFilters = () => {
     setFilter({
+      name: "",
       city: "",
       pincode: offlineRestriction.active ? offlineRestriction.pincode : "",
       subject: "",

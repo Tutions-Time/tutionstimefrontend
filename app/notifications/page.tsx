@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -18,12 +19,14 @@ import {
 } from "@/services/notificationService";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setUnreadCount } from "@/store/slices/notificationSlice";
+import { deriveNotificationRoute } from "@/lib/notificationRoute";
 
 export default function NotificationsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [prefs, setPrefs] = useState<{ email: boolean; push: boolean; inapp: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const role = useAppSelector((s) => s.auth.user?.role);
   const isAdmin = role === "admin";
 
@@ -85,6 +88,22 @@ export default function NotificationsPage() {
     });
   };
 
+  const handleNotificationClick = async (notification: any) => {
+    const route = deriveNotificationRoute({
+      role,
+      meta: notification.meta,
+      title: notification.title,
+      description: notification.body || notification.message,
+      explicitRoute: notification.route,
+    });
+
+    if (!route) return;
+    if (!(notification.read ?? notification.isRead)) {
+      await markRead(notification._id);
+    }
+    router.push(route);
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -106,12 +125,26 @@ export default function NotificationsPage() {
           </div>
           {loading && <div>Loading...</div>}
           {items.map((n: any) => (
-            <Card key={n._id} className="p-4 flex items-center justify-between">
+            <Card
+              key={n._id}
+              className="p-4 flex items-center justify-between cursor-pointer"
+              onClick={() => handleNotificationClick(n)}
+            >
               <div>
                 <div className="font-semibold">{n.title}</div>
               </div>
               <div className="flex items-center gap-2">
-                {!n.read && <Button size="sm" onClick={() => markRead(n._id)}>Mark read</Button>}
+                {!n.read && (
+                  <Button
+                    size="sm"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      markRead(n._id);
+                    }}
+                  >
+                    Mark read
+                  </Button>
+                )}
               </div>
             </Card>
           ))}

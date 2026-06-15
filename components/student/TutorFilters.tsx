@@ -53,6 +53,14 @@ export default function TutorFilters({
       {/* Basic Inputs */}
       <div className="space-y-2">
         <Input
+          placeholder="Tutor name"
+          value={filter.name || ""}
+          onChange={(e) =>
+            setFilter((f) => ({ ...f, name: e.target.value, page: "1" }))
+          }
+          className="h-8 text-sm rounded-full"
+        />
+        <Input
           placeholder="City"
           value={filter.city || ""}
           onChange={(e) =>

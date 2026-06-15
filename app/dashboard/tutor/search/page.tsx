@@ -38,6 +38,7 @@ function useUrlSync(
   useEffect(() => {
     const next: QueryMap = {};
     for (const key of [
+      "name",
       "city",
       "pincode",
       "board",
@@ -75,6 +76,7 @@ export default function SearchStudents() {
   const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
 
   const [filter, setFilter] = useState<QueryMap>({
+    name: "",
     city: "",
     pincode: "",
     board: "",
@@ -120,6 +122,7 @@ export default function SearchStudents() {
       sort: filter.sort || "createdAt_desc",
     };
 
+    if (filter.name) p.name = filter.name;
     if (filter.city) p.city = filter.city;
     if (filter.pincode) p.pincode = filter.pincode;
     if (filter.board) p.board = filter.board;
@@ -152,6 +155,7 @@ export default function SearchStudents() {
 
   const clearAllFilters = () => {
     setFilter({
+      name: "",
       city: "",
       pincode: "",
       board: "",
