@@ -165,22 +165,29 @@ export default function BookingCard({
               if (!canJoin) return;
 
               try {
-                await markDemoJoin(booking._id);
-              } catch {}
+                const joinRes = await markDemoJoin(booking._id);
+                const meetingLink = joinRes?.meetingLink || booking.meetingLink;
 
-              dispatch(
-                markJoiningDemo({
-                  bookingId: booking._id,
-                  tutorId: booking.tutorId,
-                  tutorName: booking.tutorName,
-                })
-              );
+                dispatch(
+                  markJoiningDemo({
+                    bookingId: booking._id,
+                    tutorId: booking.tutorId,
+                    tutorName: booking.tutorName,
+                  })
+                );
 
-              window.open(
-                booking.meetingLink,
-                "_blank",
-                "noopener,noreferrer"
-              );
+                window.open(
+                  meetingLink,
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              } catch {
+                window.open(
+                  booking.meetingLink,
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }
             }}
             className={`inline-flex items-center gap-2 font-semibold text-sm
               px-4 py-2 rounded-full w-fit transition

@@ -44,8 +44,12 @@ export default function ReviewChecker() {
     };
 
     checkPendingFeedback();
+    const interval = window.setInterval(checkPendingFeedback, 60 * 1000);
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [dispatch, role, shouldShowReview]);
 
   return null;

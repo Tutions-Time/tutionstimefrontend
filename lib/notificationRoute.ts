@@ -121,6 +121,15 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
   }
 
   if (isTutor) {
+    const studentUserId = (meta as any)?.studentUserId;
+    const notificationType = String((meta as any)?.type || '').toLowerCase();
+    if (
+      studentUserId &&
+      (notificationType === 'student_pincode_match' ||
+        text.includes('new student near you'))
+    ) {
+      return `/dashboard/tutor/search/student/${studentUserId}`;
+    }
     if (hasMetaValue(meta, 'groupBatchId') || hasMetaValue(meta, 'batchId')) {
       return '/dashboard/tutor/group-batches';
     }

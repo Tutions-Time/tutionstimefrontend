@@ -155,6 +155,32 @@ export default function ReviewModal() {
     </div>
   );
 
+  const DecisionStep = () => (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-gray-900">
+        Continue with {tutorName}?
+      </h2>
+      <p className="text-sm text-gray-600">
+        Would you like to join regular classes with this tutor?
+      </p>
+      <button
+        className="w-full bg-[#FFD54F] text-black font-semibold py-3 rounded-full hover:bg-[#eac747]"
+        onClick={() => setStep(3)}
+      >
+        Yes, show regular class plans
+      </button>
+      <button
+        className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-full hover:bg-gray-200"
+        onClick={() => {
+          dispatch(closeReviewModal());
+          router.push("/dashboard/student/search");
+        }}
+      >
+        No, find another tutor
+      </button>
+    </div>
+  );
+
   const openRazorpay = async (order: any, meta: { billingType: "hourly" | "monthly"; numberOfClasses?: number; regularClassId: string }) => {
     const paymentResponse = await openRazorpayCheckout(order, {
       description: "Regular Class Payment",
@@ -291,7 +317,8 @@ export default function ReviewModal() {
           </>
         )}
 
-        {step === 2 && <PaymentStep />}
+        {step === 2 && <DecisionStep />}
+        {step === 3 && <PaymentStep />}
       </div>
     </div>
   );

@@ -281,11 +281,13 @@ export default function TutorDemoRequests() {
                   {b.status === 'confirmed' && b.meetingLink && (
                     <button
                       onClick={async () => {
+                        let meetingLink = b.meetingLink;
                         try {
-                          await markTutorDemoJoin(b._id);
+                          const joinRes = await markTutorDemoJoin(b._id);
+                          meetingLink = joinRes?.meetingLink || meetingLink;
                         } catch {}
                         window.open(
-                          b.meetingLink,
+                          meetingLink,
                           '_blank',
                           'noopener,noreferrer'
                         );
