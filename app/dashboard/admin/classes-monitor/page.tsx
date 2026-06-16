@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { getClassesMonitor } from '@/services/adminService';
+import { getClassesMonitor, updateAdminSessionSchedule } from '@/services/adminService';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
 import { getUserById } from '@/services/adminService';
@@ -35,6 +35,7 @@ type LiveSession = {
 };
 
 const toDateInput = (d: Date) => d.toISOString().split('T')[0];
+const pad2 = (value: number) => String(value).padStart(2, '0');
 const addDays = (d: Date, n: number) => {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -50,6 +51,30 @@ const formatTimeRaw = (value?: string) => {
     hour12: true,
     timeZone: 'UTC',
   });
+};
+const getEditDateTime = (session: LiveSession) => {
+  const d = new Date(session.startDateTime || '');
+  if (Number.isNaN(d.getTime())) return { date: '', time: '' };
+  if (session.kind === 'group') {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(d);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value || '';
+    return {
+      date: `${get('year')}-${get('month')}-${get('day')}`,
+      time: `${get('hour')}:${get('minute')}`,
+    };
+  }
+  return {
+    date: `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`,
+    time: `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`,
+  };
 };
 
 export default function AdminClassesMonitorPage() {
@@ -79,6 +104,11 @@ export default function AdminClassesMonitorPage() {
   const [selectedTutor, setSelectedTutor] = useState<{ userId?: string; name?: string; photoUrl?: string } | null>(null);
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSession, setEditSession] = useState<LiveSession | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const refresh = async (overrides?: Partial<{
     student: string;
@@ -197,6 +227,41 @@ export default function AdminClassesMonitorPage() {
       toast({ title: 'Failed to load tutor', description: err.message, variant: 'destructive' });
     } finally {
       setTutorLoading(false);
+    }
+  };
+
+  const openEditModal = (session: LiveSession) => {
+    const next = getEditDateTime(session);
+    setEditSession(session);
+    setEditDate(next.date);
+    setEditTime(next.time);
+    setEditOpen(true);
+  };
+
+  const saveEditedSchedule = async () => {
+    if (!editSession) return;
+    if (!editDate || !editTime) {
+      toast({ title: 'Date and time are required', variant: 'destructive' });
+      return;
+    }
+    setEditSaving(true);
+    try {
+      await updateAdminSessionSchedule(editSession._id, {
+        date: editDate,
+        time: editTime,
+      });
+      toast({ title: 'Class schedule updated' });
+      setEditOpen(false);
+      setEditSession(null);
+      await refresh();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to update class',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -406,6 +471,16 @@ export default function AdminClassesMonitorPage() {
                               Join link
                             </a>
                           )}
+                          {s.status === 'scheduled' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditModal(s)}
+                              className="h-7 text-[11px]"
+                            >
+                              Edit Date/Time
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -416,6 +491,56 @@ export default function AdminClassesMonitorPage() {
           </main>
         </div>
       </div>
+      <Dialog open={editOpen} onOpenChange={(o) => {
+        setEditOpen(o);
+        if (!o) {
+          setEditSession(null);
+          setEditDate('');
+          setEditTime('');
+          setEditSaving(false);
+        }
+      }}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Class Date/Time</DialogTitle>
+            <DialogDescription>
+              Update the schedule for this {editSession?.kind === 'group' ? 'group' : 'regular'} class.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-gray-50 border px-3 py-2 text-sm">
+              <div className="font-medium">{editSession?.subject || 'Class'}</div>
+              <div className="text-muted text-xs">Current: {formatTimeRaw(editSession?.startDateTime)}</div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Date</label>
+              <input
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                className="h-10 w-full rounded-md border px-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">Time</label>
+              <input
+                type="time"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                className="h-10 w-full rounded-md border px-3 text-sm"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setEditOpen(false)} disabled={editSaving}>
+                Cancel
+              </Button>
+              <Button onClick={saveEditedSchedule} disabled={editSaving}>
+                {editSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={tutorOpen} onOpenChange={(o) => {
         setTutorOpen(o);
         if (!o) {
