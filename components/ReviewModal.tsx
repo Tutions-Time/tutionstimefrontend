@@ -47,6 +47,18 @@ export default function ReviewModal() {
     }
   }, [dispatch, isAuthenticated]);
 
+  useEffect(() => {
+    if (!shouldShowReview) return;
+    setTeaching(0);
+    setCommunication(0);
+    setUnderstanding(0);
+    setComment("");
+    setLikedTutor(null);
+    setStep(1);
+    setTutorRates(null);
+    setHourlyCount(4);
+  }, [bookingId, shouldShowReview]);
+
   if (!shouldShowReview) return null;
 
   const sendReview = async () => {
@@ -69,11 +81,17 @@ export default function ReviewModal() {
         likedTutor: likedTutor ?? false,
       });
 
-      if (res?.data?.tutorRates && likedTutor === true) {
+      if (likedTutor === true) {
         if (typeof window !== "undefined" && bookingId) {
           localStorage.setItem(`review_submitted_${bookingId}`, "1");
         }
-        setTutorRates(res.data.tutorRates);
+        setTutorRates(
+          res?.data?.tutorRates ||
+            res?.tutorRates || {
+              hourlyRate: 0,
+              monthlyRate: 0,
+            }
+        );
         setStep(2);
         return;
       }

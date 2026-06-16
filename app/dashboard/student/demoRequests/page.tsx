@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, Video, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { markDemoJoin } from "@/services/bookingService";
+import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 
 import {
   getStudentDemoRequests,
@@ -21,6 +22,7 @@ export default function StudentDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [upgradeBooking, setUpgradeBooking] = useState<any | null>(null);
 
   // 🔥 Per-request action loading
   const [actionLoading, setActionLoading] = useState<{
@@ -270,11 +272,13 @@ export default function StudentDemoRequests() {
                   {req.status === "confirmed" && req.meetingLink && (
                     <button
                       onClick={async () => {
+                        let meetingLink = req.meetingLink;
                         try {
-                          await markDemoJoin(req._id);
+                          const joinRes = await markDemoJoin(req._id);
+                          meetingLink = joinRes?.meetingLink || meetingLink;
                         } catch {}
                         window.open(
-                          req.meetingLink,
+                          meetingLink,
                           "_blank",
                           "noopener,noreferrer"
                         );
@@ -285,11 +289,36 @@ export default function StudentDemoRequests() {
                       Join Demo
                     </button>
                   )}
+
+                  {req.status === "completed" && !req.regularClassId && (
+                    <button
+                      onClick={() => setUpgradeBooking(req)}
+                      className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-semibold text-sm px-4 py-2 rounded-full transition"
+                    >
+                      Start Regular Class
+                    </button>
+                  )}
+
+                  {req.status === "completed" && req.regularClassId && (
+                    <button
+                      onClick={() => setUpgradeBooking(req)}
+                      className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-semibold text-sm px-4 py-2 rounded-full transition"
+                    >
+                      Complete Payment
+                    </button>
+                  )}
                 </div>
               </Card>
             ))}
         </main>
       </div>
+
+      {upgradeBooking && (
+        <UpgradeToRegularModal
+          booking={upgradeBooking}
+          onClose={() => setUpgradeBooking(null)}
+        />
+      )}
     </div>
   );
 }
