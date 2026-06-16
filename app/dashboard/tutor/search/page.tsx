@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { toast } from "react-hot-toast";
 import { fetchStudents } from "@/services/tutorService";
+import { getImageUrl } from "@/utils/getImageUrl";
 
 import StudentFilters from "@/components/tutors/StudentFilters";
 import StudentList from "@/components/tutors/StudentList";
@@ -23,6 +24,9 @@ const SORT_OPTIONS: SortOption[] = [
   { value: "createdAt_desc", label: "Newest (Recently added)" },
   { value: "createdAt_asc", label: "Oldest first" },
 ];
+
+const getStudentImageUrl = (photoUrl?: string) =>
+  getImageUrl(photoUrl) || "/default-avatar.png";
 
 /* ---------- URL Sync Hook ---------- */
 function useUrlSync(
@@ -73,8 +77,6 @@ function useUrlSync(
 /* ---------- Page Component ---------- */
 export default function SearchStudents() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-
   const [filter, setFilter] = useState<QueryMap>({
     name: "",
     city: "",
@@ -95,24 +97,6 @@ export default function SearchStudents() {
   const [loading, setLoading] = useState(false);
 
   useUrlSync(filter, (next) => setFilter(next));
-
- function getImageUrl(photoUrl?: string) {
-  if (!photoUrl) return "/default-avatar.png";
-
-  // If photoUrl is already a full URL (S3), return as-is
-  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
-    return photoUrl;
-  }
-
-  // Otherwise: local uploads path
-  const cleaned = photoUrl
-    .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-    .replace(/\\/g, "/")
-    .replace(/^.*uploads\//, "uploads/");
-
-  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
-}
-
 
   /* ---------- Query Builder ---------- */
   const params = useMemo(() => {
@@ -210,7 +194,7 @@ export default function SearchStudents() {
               totalPages={totalPages}
               onPageChange={handlePageChange}
               sortOptions={SORT_OPTIONS}
-              getImageUrl={getImageUrl}
+              getImageUrl={getStudentImageUrl}
             />
           </div>
         </main>

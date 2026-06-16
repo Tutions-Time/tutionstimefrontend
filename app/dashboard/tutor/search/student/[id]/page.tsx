@@ -26,6 +26,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
+import { getImageUrl } from "@/utils/getImageUrl";
 
 function Fact({
   icon: Icon,
@@ -60,15 +61,6 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
-const buildUrl = (path?: string | null) => {
-  if (!path) return "";
-  if (/^https?:\/\//i.test(path)) return path;
-  const base =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:5000";
-  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
 export default function StudentDetailPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -96,8 +88,7 @@ export default function StudentDetailPage() {
   }, [studentUserId]);
 
   const imgUrl = useMemo(() => {
-    if (!student?.photoUrl) return "/default-avatar.png";
-    return buildUrl(student.photoUrl);
+    return getImageUrl(student?.photoUrl) || "/default-avatar.png";
   }, [student]);
 
   if (loading)
