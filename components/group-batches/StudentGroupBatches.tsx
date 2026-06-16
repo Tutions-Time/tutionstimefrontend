@@ -23,6 +23,7 @@ import {
 import GroupSessionsModal from "@/components/group-batches/GroupSessionsModal";
 import { Calendar, Users, IndianRupee, Video } from "lucide-react";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -283,8 +284,9 @@ export default function StudentGroupBatches() {
 
   const joinSession = async (sessionId: string) => {
     try {
+      if (!window.confirm(CLASS_JOIN_NOTICE)) return;
       const res = await api.post(`/sessions/${sessionId}/join`);
-      if (res.data?.url) window.open(res.data.url, "_blank");
+      if (res.data?.url) window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch { }
   };
 

@@ -14,6 +14,7 @@ import { markJoiningDemo } from "@/store/slices/reviewSlice";
 import BookingStatusTag from "./BookingStatusTag";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { markDemoJoin } from "@/services/bookingService";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 type BookingType = {
   _id: string;
@@ -163,6 +164,7 @@ export default function BookingCard({
             disabled={!canJoin}
             onClick={async () => {
               if (!canJoin) return;
+              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
 
               try {
                 const joinRes = await markDemoJoin(booking._id);
@@ -176,17 +178,9 @@ export default function BookingCard({
                   })
                 );
 
-                window.open(
-                  meetingLink,
-                  "_blank",
-                  "noopener,noreferrer"
-                );
+                window.open(meetingLink, "_blank", "noopener,noreferrer");
               } catch {
-                window.open(
-                  booking.meetingLink,
-                  "_blank",
-                  "noopener,noreferrer"
-                );
+                window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
               }
             }}
             className={`inline-flex items-center gap-2 font-semibold text-sm

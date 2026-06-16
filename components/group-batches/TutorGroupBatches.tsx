@@ -22,6 +22,7 @@ import TimePicker from "./TimePicker";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { requestReschedule } from "@/services/rescheduleService";
 import { listMyRescheduleRequests } from "@/services/rescheduleService";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 type TutorGroupBatchesProps = {
   refreshToken?: number;
@@ -398,8 +399,9 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
 
   const joinSession = async (sessionId: string) => {
     try {
+      if (!window.confirm(CLASS_JOIN_NOTICE)) return;
       const res = await api.post(`/sessions/${sessionId}/join`);
-      if (res.data?.url) window.open(res.data.url, "_blank");
+      if (res.data?.url) window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch {
       toast({
         title: "Join failed",

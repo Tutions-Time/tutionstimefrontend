@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -489,7 +490,7 @@ const TutorRegularClasses = () => {
                     {!isExpired && (
                       <button
                         onClick={() =>
-                          window.open(c.nextSession.meetingLink, "_blank")
+                          openClassLinkWithNotice(c.nextSession.meetingLink)
                         }
                         disabled={!canJoin}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold ${
@@ -712,10 +713,11 @@ const TutorRegularClasses = () => {
                         {!isExpired && s.status !== "completed" && (
                           <button
                             onClick={async () => {
+                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                               try {
                                 const res = await joinSession(s._id);
                                 if (res?.success && res?.url) {
-                                  window.open(res.url, "_blank");
+                                  window.open(res.url, "_blank", "noopener,noreferrer");
                                 }
                               } catch {
                                 // ignore
