@@ -12,6 +12,7 @@ import { getUserById } from '@/services/adminService';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 export default function UserDetailPage() {
   const { id } = useParams();
@@ -101,10 +102,7 @@ export default function UserDetailPage() {
             <div className="flex items-center gap-6 mb-6">
               {user.photoUrl ? (
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL?.replace(
-                    '/api',
-                    ''
-                  )}/${user.photoUrl}`}
+                  src={getImageUrl(user.photoUrl)}
                   alt="User Photo"
                   className="w-20 h-20 rounded-full object-cover"
                 />

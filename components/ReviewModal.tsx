@@ -155,6 +155,58 @@ export default function ReviewModal() {
     </div>
   );
 
+  const RegularPaymentStep = () => (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-gray-900">
+        Regular class plans
+      </h2>
+      <p className="text-sm text-gray-600">
+        Choose a plan with {tutorName} and continue to payment.
+      </p>
+
+      <div className="w-full border p-3 rounded-lg space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Hourly plan</span>
+          <span className="text-sm text-gray-600">Rs.{hourlyRate} per class</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-600">Classes</label>
+          <input
+            type="number"
+            min={1}
+            value={hourlyCount}
+            onChange={(e) => setHourlyCount(Number(e.target.value || 1))}
+            className="w-24 border rounded-md px-2 py-1 text-sm"
+          />
+          <div className="text-sm text-gray-600">Total Rs.{hourlyTotal}</div>
+        </div>
+        <button
+          className="w-full bg-primary text-black font-semibold py-2 rounded-lg disabled:opacity-60"
+          onClick={() => handlePaymentType("hourly")}
+          disabled={loadingPay || hourlyRate <= 0}
+        >
+          {loadingPay ? "Processing..." : `Pay Rs.${hourlyTotal}`}
+        </button>
+      </div>
+
+      <button
+        className="w-full border p-3 rounded-lg text-left disabled:opacity-60"
+        onClick={() => handlePaymentType("monthly")}
+        disabled={loadingPay || monthlyRate <= 0}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <span className="font-semibold">Monthly plan</span>
+            <p className="text-xs text-gray-500">Pay for one month of regular classes</p>
+          </div>
+          <span className="text-sm font-semibold text-gray-700">
+            {loadingPay ? "Processing..." : `Pay Rs.${monthlyRate}`}
+          </span>
+        </div>
+      </button>
+    </div>
+  );
+
   const DecisionStep = () => (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">
@@ -318,7 +370,7 @@ export default function ReviewModal() {
         )}
 
         {step === 2 && <DecisionStep />}
-        {step === 3 && <PaymentStep />}
+        {step === 3 && <RegularPaymentStep />}
       </div>
     </div>
   );
