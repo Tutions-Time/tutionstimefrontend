@@ -16,6 +16,7 @@ import {
 import DemoInsights from '@/components/tutors/DemoInsights';
 import { toast } from '@/hooks/use-toast';
 import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
+import { CLASS_JOIN_NOTICE } from '@/utils/classJoinNotice';
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -163,17 +164,9 @@ export default function TutorDemoRequests() {
                         : b.subject) || 'Subject'}
                     </div>
 
-                    {(b.studentBoard || b.studentLearningMode) && (
+                    {b.studentBoard && (
                       <div className="mt-1 text-xs text-gray-500">
-                        {b.studentBoard && (
-                          <span>Board: {b.studentBoard}</span>
-                        )}
-                        {b.studentBoard && b.studentLearningMode && (
-                          <span className="mx-2">|</span>
-                        )}
-                        {b.studentLearningMode && (
-                          <span>Mode: {b.studentLearningMode}</span>
-                        )}
+                        <span>Board: {b.studentBoard}</span>
                       </div>
                     )}
 
@@ -281,6 +274,7 @@ export default function TutorDemoRequests() {
                   {b.status === 'confirmed' && b.meetingLink && (
                     <button
                       onClick={async () => {
+                        if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                         let meetingLink = b.meetingLink;
                         try {
                           const joinRes = await markTutorDemoJoin(b._id);

@@ -37,7 +37,6 @@ export default function BookDemoModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [studentBoard, setStudentBoard] = useState("");
-  const [studentLearningMode, setStudentLearningMode] = useState("");
   const todayStr = new Date().toISOString().slice(0, 10);
   const isTodaySelected = date === todayStr;
   const minTime = isTodaySelected ? dayjs() : undefined;
@@ -50,7 +49,6 @@ export default function BookDemoModal({
         const res = await getUserProfile();
         if (res?.success && res?.data?.profile) {
           setStudentBoard(res.data.profile.board || "");
-          setStudentLearningMode(res.data.profile.learningMode || "");
         }
       } catch {}
     };
@@ -102,7 +100,7 @@ export default function BookDemoModal({
         time: time24,
         note,
         studentBoard,
-        studentLearningMode,
+        studentLearningMode: "Online",
       });
 
       if (res.success) {
@@ -154,48 +152,14 @@ export default function BookDemoModal({
 
         <div className="space-y-4">
           {/* Student Info */}
-          {(studentBoard || studentLearningMode) && (
+          {studentBoard && (
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-              {studentBoard && (
-                <div>
-                  <span className="text-xs font-medium text-gray-600">Board:</span>{" "}
-                  {studentBoard}
-                </div>
-              )}
-              {studentLearningMode && (
-                <div>
-                  <span className="text-xs font-medium text-gray-600">Mode:</span>{" "}
-                  {studentLearningMode}
-                </div>
-              )}
+              <div>
+                <span className="text-xs font-medium text-gray-600">Board:</span>{" "}
+                {studentBoard}
+              </div>
             </div>
           )}
-
-          {/* Learning Mode */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Learning Mode
-            </label>
-            <div className="flex gap-2">
-              {["Online", "Offline"].map((mode) => {
-                const active = studentLearningMode === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setStudentLearningMode(mode)}
-                    className={`px-3 py-1.5 rounded-full text-xs border transition ${
-                      active
-                        ? "bg-[#FFD54F]/30 border-[#FFD54F] text-gray-900"
-                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {mode}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Subject */}
           <div>

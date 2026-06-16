@@ -88,6 +88,18 @@ export default function PreferredSubjectsSection({
       ? profile.subjects.filter((s) => s !== subj)
       : [...profile.subjects, subj];
     dispatch(setField({ key: "subjects", value: next }));
+    if (exists) {
+      const subjectTimeSlots = (profile.subjectTimeSlots || []).filter(
+        (item) => item.subject !== subj
+      );
+      dispatch(setField({ key: "subjectTimeSlots", value: subjectTimeSlots }));
+      dispatch(
+        setField({
+          key: "preferredTimes",
+          value: Array.from(new Set(subjectTimeSlots.flatMap((item) => item.slots))),
+        })
+      );
+    }
   };
 
   const addCustomSubject = () => {

@@ -21,6 +21,7 @@ interface StudentListProps {
   onPageChange: (page: number) => void;
   sortOptions: SortOption[];
   getImageUrl: (photoUrl?: string) => string;
+  canBookDemo?: boolean;
 }
 
 export default function StudentList({
@@ -33,6 +34,7 @@ export default function StudentList({
   onPageChange,
   sortOptions,
   getImageUrl,
+  canBookDemo = true,
 }: StudentListProps) {
   const currentPage = Number(filter.page || 1);
 
@@ -98,6 +100,7 @@ export default function StudentList({
                 key={student.leadId || student._id}
                 student={student}
                 getImageUrl={getImageUrl}
+                canBookDemo={canBookDemo}
               />
             ))}
           </div>

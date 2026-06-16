@@ -19,6 +19,7 @@ import { submitSessionFeedback } from "@/services/progressService";
 import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
+import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -350,7 +351,7 @@ export default function StudentBookingsPage() {
                             <Button
                               onClick={() =>
                                 joinState.inJoinWindow &&
-                                window.open(next.meetingLink, "_blank")
+                                openClassLinkWithNotice(next.meetingLink)
                               }
                               disabled={!joinState.inJoinWindow}
                               className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg"
@@ -464,10 +465,11 @@ export default function StudentBookingsPage() {
                           <Button
                             onClick={async () => {
                               if (!inJoinWindow) return;
+                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                               try {
                                 const res = await joinSession(s._id);
                                 if (res?.success && res?.url)
-                                  window.open(res.url, "_blank");
+                                  window.open(res.url, "_blank", "noopener,noreferrer");
                               } catch {}
                             }}
                             disabled={!inJoinWindow}

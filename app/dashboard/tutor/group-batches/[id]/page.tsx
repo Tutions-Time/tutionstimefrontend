@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 export default function TutorBatchDetailPage() {
   const params = useParams() as any;
@@ -48,10 +49,11 @@ export default function TutorBatchDetailPage() {
 
   const join = async (sessionId: string) => {
     try {
+      if (!window.confirm(CLASS_JOIN_NOTICE)) return;
       const res = await api.post(`/sessions/${sessionId}/join`);
       const url = res.data?.url;
       if (url) {
-        window.open(url, "_blank");
+        window.open(url, "_blank", "noopener,noreferrer");
       } else {
         toast.error("Join failed");
       }

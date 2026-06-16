@@ -60,6 +60,7 @@ export interface StudentProfileState {
 
   availability: string[];
   preferredTimes: string[];
+  subjectTimeSlots: { subject: string; slots: string[] }[];
 
   budget: string;
   goals: string;
@@ -120,6 +121,7 @@ const initialState: StudentProfileState = {
 
   availability: [],
   preferredTimes: [],
+  subjectTimeSlots: [],
 
   budget: '',
   goals: '',

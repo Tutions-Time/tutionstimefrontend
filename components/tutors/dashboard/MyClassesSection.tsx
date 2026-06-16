@@ -4,6 +4,7 @@ import { Calendar, Clock, Video, CheckCircle, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { openClassLinkWithNotice } from "@/utils/classJoinNotice";
 
 export interface TutorClass {
   id: string;
@@ -141,7 +142,7 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
                   {next?.meetingLink ? (
                     <button
                       disabled={!canJoin}
-                      onClick={() => window.open(next.meetingLink, "_blank")}
+                      onClick={() => openClassLinkWithNotice(next.meetingLink)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg w-full sm:w-auto text-sm font-medium transition
                         ${canJoin ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-200 text-gray-600"}
                       `}

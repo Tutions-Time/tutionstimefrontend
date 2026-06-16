@@ -71,6 +71,7 @@ export interface StudentProfileErrors {
   tutorGenderPref?: string;
   tutorGenderOther?: string;
   preferredTimes?: string;
+  subjectTimeSlots?: string;
   budget?: string;
   availability?: string;
   goals?: string;
@@ -252,8 +253,26 @@ export function validateStudentProfileFields(
   if (data.tutorGenderPref === "Other" && isEmpty(data.tutorGenderOther))
     errors.tutorGenderOther = "Please specify tutor gender";
 
-  if (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
+  const subjectTimeSlots = Array.isArray(data.subjectTimeSlots)
+    ? data.subjectTimeSlots
+    : [];
+  const subjectSlotMap = new Map(
+    subjectTimeSlots.map((item: any) => [item.subject, item.slots || []])
+  );
+  const subjectsWithoutSlots = Array.isArray(data.subjects)
+    ? data.subjects.filter(
+        (subject: string) =>
+          !((subjectSlotMap.get(subject) as string[] | undefined) || []).length
+      )
+    : [];
+  if (subjectTimeSlots.length && subjectsWithoutSlots.length) {
+    errors.preferredTimes = `Preferred time slot is required for ${subjectsWithoutSlots.join(", ")}`;
+  } else if (
+    !subjectTimeSlots.length &&
+    (!Array.isArray(data.preferredTimes) || data.preferredTimes.length === 0)
+  ) {
     errors.preferredTimes = "Preferred time slots are required";
+  }
 
   const budget = parseBudget(data.budget);
   if (budget.hourly && budget.monthly) {

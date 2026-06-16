@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { joinSession } from "@/services/tutorService";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 export default function UpcomingSessions() {
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ export default function UpcomingSessions() {
   }, []);
 
   const handleJoin = async (sessionId: string) => {
+    if (!window.confirm(CLASS_JOIN_NOTICE)) return;
     const res = await joinSession(sessionId);
     if (res?.success && res?.url) {
       window.open(res.url, "_blank");

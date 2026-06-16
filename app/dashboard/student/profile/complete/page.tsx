@@ -174,6 +174,7 @@ export default function StudentProfileCompletePage() {
         appendIf("tutorGenderOther", profile.tutorGenderOther);
       }
       appendIf("preferredTimes", profile.preferredTimes);
+      appendIf("subjectTimeSlots", profile.subjectTimeSlots);
       appendIf("budget", profile.budget);
       appendIf("goals", profile.goals);
 

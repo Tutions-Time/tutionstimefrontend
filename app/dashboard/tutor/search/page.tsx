@@ -6,7 +6,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { toast } from "react-hot-toast";
-import { fetchStudents } from "@/services/tutorService";
+import { fetchStudents, getTutorProfile } from "@/services/tutorService";
+import { getImageUrl } from "@/utils/getImageUrl";
+import { AlertCircle } from "lucide-react";
 
 import StudentFilters from "@/components/tutors/StudentFilters";
 import StudentList from "@/components/tutors/StudentList";
@@ -23,6 +25,9 @@ const SORT_OPTIONS: SortOption[] = [
   { value: "createdAt_desc", label: "Newest (Recently added)" },
   { value: "createdAt_asc", label: "Oldest first" },
 ];
+
+const getStudentImageUrl = (photoUrl?: string) =>
+  getImageUrl(photoUrl) || "/default-avatar.png";
 
 /* ---------- URL Sync Hook ---------- */
 function useUrlSync(
@@ -73,8 +78,6 @@ function useUrlSync(
 /* ---------- Page Component ---------- */
 export default function SearchStudents() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-
   const [filter, setFilter] = useState<QueryMap>({
     name: "",
     city: "",
@@ -93,26 +96,29 @@ export default function SearchStudents() {
   const [students, setStudents] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [tutorVerified, setTutorVerified] = useState(false);
+  const [verificationLoaded, setVerificationLoaded] = useState(false);
 
   useUrlSync(filter, (next) => setFilter(next));
 
- function getImageUrl(photoUrl?: string) {
-  if (!photoUrl) return "/default-avatar.png";
-
-  // If photoUrl is already a full URL (S3), return as-is
-  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
-    return photoUrl;
-  }
-
-  // Otherwise: local uploads path
-  const cleaned = photoUrl
-    .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-    .replace(/\\/g, "/")
-    .replace(/^.*uploads\//, "uploads/");
-
-  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
-}
-
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const profile = await getTutorProfile();
+        if (!alive) return;
+        setTutorVerified(Boolean(profile?.isVerified));
+      } catch {
+        if (!alive) return;
+        setTutorVerified(false);
+      } finally {
+        if (alive) setVerificationLoaded(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   /* ---------- Query Builder ---------- */
   const params = useMemo(() => {
@@ -192,6 +198,19 @@ export default function SearchStudents() {
         />
 
         <main className="p-4 lg:p-6 space-y-6">
+          {verificationLoaded && !tutorVerified && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <div className="font-semibold">Admin verification required</div>
+                <div>
+                  You cannot send demo requests until your tutor profile is
+                  verified by admin.
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Filter Sidebar */}
             <StudentFilters
@@ -210,7 +229,8 @@ export default function SearchStudents() {
               totalPages={totalPages}
               onPageChange={handlePageChange}
               sortOptions={SORT_OPTIONS}
-              getImageUrl={getImageUrl}
+              getImageUrl={getStudentImageUrl}
+              canBookDemo={tutorVerified}
             />
           </div>
         </main>

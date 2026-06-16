@@ -37,15 +37,12 @@ export default function BookStudentDemoModal({
     ? student.preferredTimes
     : EMPTY_ARRAY;
   const board = student?.board;
-  const learningMode = student?.learningMode;
-  const studentLearningMode = student?.studentLearningMode;
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
   const [selectedPreferredSlot, setSelectedPreferredSlot] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const resolvedLearningMode = learningMode || studentLearningMode || "";
   const todayStr = dayjs().format("YYYY-MM-DD");
   const hasPreferredSlots =
     Array.isArray(preferredTimes) && preferredTimes.length > 0;
@@ -139,7 +136,7 @@ export default function BookStudentDemoModal({
         date: selectedDate,
         time: selectedTime24,
         note,
-        studentLearningMode: resolvedLearningMode,
+        studentLearningMode: "Online",
       });
 
       if (res?.success) {
@@ -183,15 +180,6 @@ export default function BookStudentDemoModal({
             {board}
           </p>
         )}
-        {resolvedLearningMode && (
-          <p className="mb-3 text-sm text-gray-700">
-            <span className="text-xs font-medium text-gray-600 mr-1.5">
-              Mode:
-            </span>
-            {resolvedLearningMode}
-          </p>
-        )}
-
         {/* Subjects */}
         <div className="mb-3">
           <p className="text-xs font-medium text-gray-600 mb-1">

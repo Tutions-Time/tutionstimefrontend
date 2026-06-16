@@ -48,8 +48,9 @@ export default function TutorPreferencesSection({
   const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.studentProfile);
 
-  const [startTime, setStartTime] = useState<Dayjs | null>(null);
-  const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [timeDrafts, setTimeDrafts] = useState<
+    Record<string, { start: Dayjs | null; end: Dayjs | null }>
+  >({});
   const [timeError, setTimeError] = useState("");
   const budget = parseBudget(profile.budget);
 
@@ -76,21 +77,59 @@ export default function TutorPreferencesSection({
       }
     };
 
-  const addSlot = () => {
-    if (!startTime || !endTime || disabled) return;
-    if (!endTime.isAfter(startTime)) {
-      setTimeError("End time must be after start time.");
+  const syncSubjectTimeSlots = (
+    nextSlots: { subject: string; slots: string[] }[]
+  ) => {
+    dispatch(setField({ key: "subjectTimeSlots", value: nextSlots }));
+    dispatch(
+      setField({
+        key: "preferredTimes",
+        value: Array.from(new Set(nextSlots.flatMap((item) => item.slots))),
+      })
+    );
+  };
+
+  const getSlotsForSubject = (subject: string) =>
+    (profile.subjectTimeSlots || []).find((item) => item.subject === subject)
+      ?.slots || [];
+
+  const addSlot = (subject: string) => {
+    const draft = timeDrafts[subject];
+    if (!draft?.start || !draft?.end || disabled) return;
+    if (!draft.end.isAfter(draft.start)) {
+      setTimeError(`End time must be after start time for ${subject}.`);
       return;
     }
 
-    const slot = `${startTime.format("hh:mm A")} - ${endTime.format("hh:mm A")}`;
-    const next = new Set(profile.preferredTimes || []);
-    next.add(slot);
+    const slot = `${draft.start.format("hh:mm A")} - ${draft.end.format("hh:mm A")}`;
+    const current = profile.subjectTimeSlots || [];
+    const existing = current.find((item) => item.subject === subject);
+    const nextSlots = existing
+      ? current.map((item) =>
+          item.subject === subject
+            ? { ...item, slots: Array.from(new Set([...item.slots, slot])) }
+            : item
+        )
+      : [...current, { subject, slots: [slot] }];
 
-    dispatch(setField({ key: "preferredTimes", value: Array.from(next) }));
-    setStartTime(null);
-    setEndTime(null);
+    syncSubjectTimeSlots(nextSlots);
+    setTimeDrafts((prev) => ({
+      ...prev,
+      [subject]: { start: null, end: null },
+    }));
     setTimeError("");
+  };
+
+  const removeSlot = (subject: string, slot: string) => {
+    if (disabled) return;
+    const nextSlots = (profile.subjectTimeSlots || [])
+      .map((item) =>
+        item.subject === subject
+          ? { ...item, slots: item.slots.filter((s) => s !== slot) }
+          : item
+      )
+      .filter((item) => item.slots.length);
+    syncSubjectTimeSlots(nextSlots);
   };
 
   return (
@@ -123,92 +162,117 @@ export default function TutorPreferencesSection({
           disabled={disabled}
         />
 
-        <div>
+        <div className="md:col-span-2">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-primary" />
-            <Label>Preferred Time Slots</Label>
+            <Label>Subject-wise Preferred Time Slots</Label>
           </div>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <div className="grid grid-cols-2 gap-3">
-              <MobileTimePicker
-                label="Start Time"
-                value={startTime}
-                onChange={(value) => {
-                  setStartTime(value);
-                  setTimeError("");
-                  if (value && endTime && !endTime.isAfter(value)) {
-                    setEndTime(null);
-                  }
-                }}
-                ampm
-                minutesStep={1}
-                disabled={disabled}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    fullWidth: true,
-                    inputProps: { readOnly: true },
-                  },
-                }}
-              />
+          {profile.subjects.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Select subjects first to add separate time slots.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {profile.subjects.map((subject) => {
+                const draft = timeDrafts[subject] || { start: null, end: null };
+                const slots = getSlotsForSubject(subject);
+                return (
+                  <div
+                    key={subject}
+                    className="rounded-xl border border-gray-200 bg-gray-50/70 p-4"
+                  >
+                    <div className="mb-3 text-sm font-semibold text-gray-900">
+                      {subject}
+                    </div>
 
-              <MobileTimePicker
-                label="End Time"
-                value={endTime}
-                onChange={(value) => {
-                  setEndTime(value);
-                  setTimeError("");
-                }}
-                ampm
-                minutesStep={1}
-                disabled={disabled}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    fullWidth: true,
-                    inputProps: { readOnly: true },
-                  },
-                }}
-              />
-            </div>
-          </LocalizationProvider>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <div className="grid md:grid-cols-[1fr_1fr_auto] gap-3 items-center">
+                        <MobileTimePicker
+                          label="Start Time"
+                          value={draft.start}
+                          onChange={(value) => {
+                            setTimeDrafts((prev) => ({
+                              ...prev,
+                              [subject]: {
+                                start: value,
+                                end:
+                                  value && draft.end && !draft.end.isAfter(value)
+                                    ? null
+                                    : draft.end,
+                              },
+                            }));
+                            setTimeError("");
+                          }}
+                          ampm
+                          minutesStep={1}
+                          disabled={disabled}
+                          slotProps={{
+                            textField: {
+                              size: "small",
+                              fullWidth: true,
+                              inputProps: { readOnly: true },
+                            },
+                          }}
+                        />
 
-          <button
-            type="button"
-            onClick={addSlot}
-            disabled={!startTime || !endTime || disabled}
-            className="mt-3 px-4 py-2 rounded-lg text-sm bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
-          >
-            Add Slot
-          </button>
-          {timeError && <p className="mt-2 text-xs text-red-600">{timeError}</p>}
+                        <MobileTimePicker
+                          label="End Time"
+                          value={draft.end}
+                          onChange={(value) => {
+                            setTimeDrafts((prev) => ({
+                              ...prev,
+                              [subject]: { start: draft.start, end: value },
+                            }));
+                            setTimeError("");
+                          }}
+                          ampm
+                          minutesStep={1}
+                          disabled={disabled}
+                          slotProps={{
+                            textField: {
+                              size: "small",
+                              fullWidth: true,
+                              inputProps: { readOnly: true },
+                            },
+                          }}
+                        />
 
-          {(profile.preferredTimes || []).length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {(profile.preferredTimes || []).map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => {
-                    if (disabled) return;
-                    dispatch(
-                      setField({
-                        key: "preferredTimes",
-                        value: profile.preferredTimes.filter((s) => s !== slot),
-                      })
-                    );
-                  }}
-                  className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition"
-                >
-                  {slot}
-                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 group-hover:bg-primary/30">
-                    <X className="h-3 w-3" />
-                  </span>
-                </button>
-              ))}
+                        <button
+                          type="button"
+                          onClick={() => addSlot(subject)}
+                          disabled={!draft.start || !draft.end || disabled}
+                          className="h-10 px-4 rounded-lg text-sm bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+                        >
+                          Add Slot
+                        </button>
+                      </div>
+                    </LocalizationProvider>
+
+                    {slots.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {slots.map((slot) => (
+                          <button
+                            key={`${subject}-${slot}`}
+                            type="button"
+                            onClick={() => removeSlot(subject, slot)}
+                            className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition"
+                            disabled={disabled}
+                          >
+                            {slot}
+                            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 group-hover:bg-primary/30">
+                              <X className="h-3 w-3" />
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
+          {timeError && <p className="mt-2 text-xs text-red-600">{timeError}</p>}
         </div>
 
         <div className="md:col-span-2">

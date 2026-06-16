@@ -17,15 +17,17 @@ import {
   Phone,
   School,
   IndianRupee,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchStudentById } from "@/services/tutorService";
+import { fetchStudentById, getTutorProfile } from "@/services/tutorService";
 import BookStudentDemoModal from "@/components/tutors/BookStudentDemoModal";
 import { Separator } from "@/components/ui/separator";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
+import { getImageUrl } from "@/utils/getImageUrl";
 
 function Fact({
   icon: Icon,
@@ -60,15 +62,6 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
-const buildUrl = (path?: string | null) => {
-  if (!path) return "";
-  if (/^https?:\/\//i.test(path)) return path;
-  const base =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:5000";
-  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
 export default function StudentDetailPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -77,6 +70,8 @@ export default function StudentDetailPage() {
   const [student, setStudent] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tutorVerified, setTutorVerified] = useState(false);
+  const [verificationLoaded, setVerificationLoaded] = useState(false);
 
   // The ID from the URL is the user ID (passed from StudentCard)
   const studentUserId = Array.isArray(id) ? id[0] : (id as string);
@@ -95,9 +90,27 @@ export default function StudentDetailPage() {
     }
   }, [studentUserId]);
 
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const profile = await getTutorProfile();
+        if (!alive) return;
+        setTutorVerified(Boolean(profile?.isVerified));
+      } catch {
+        if (!alive) return;
+        setTutorVerified(false);
+      } finally {
+        if (alive) setVerificationLoaded(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const imgUrl = useMemo(() => {
-    if (!student?.photoUrl) return "/default-avatar.png";
-    return buildUrl(student.photoUrl);
+    return getImageUrl(student?.photoUrl) || "/default-avatar.png";
   }, [student]);
 
   if (loading)
@@ -215,12 +228,34 @@ export default function StudentDetailPage() {
 
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button
-                    className={`${buttonBase} ${solidPrimary}`}
-                    onClick={() => setShowModal(true)}
+                    className={`${buttonBase} ${
+                      tutorVerified
+                        ? solidPrimary
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    }`}
+                    onClick={() => {
+                      if (!tutorVerified) return;
+                      setShowModal(true);
+                    }}
+                    disabled={!tutorVerified}
+                    title={
+                      tutorVerified
+                        ? "Book demo session"
+                        : "Admin verification is required before sending demo requests"
+                    }
                   >
                     Book Demo Session
                   </button>
                 </div>
+                {verificationLoaded && !tutorVerified && (
+                  <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      You cannot send demo requests until your tutor profile is
+                      verified by admin.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

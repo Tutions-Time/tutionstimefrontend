@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 export default function StudentBatchDetail() {
   const params = useParams() as any;
@@ -116,10 +117,11 @@ export default function StudentBatchDetail() {
 
   const join = async (sessionId: string) => {
     try {
+      if (!window.confirm(CLASS_JOIN_NOTICE)) return;
       const res = await api.post(`/sessions/${sessionId}/join`);
       const url = res.data?.url;
       if (url) {
-        window.open(url, "_blank");
+        window.open(url, "_blank", "noopener,noreferrer");
       } else {
         toast.error("Join window closed");
       }

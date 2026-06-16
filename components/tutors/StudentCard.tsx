@@ -11,9 +11,14 @@ import BookStudentDemoModal from "@/components/tutors/BookStudentDemoModal";
 interface StudentCardProps {
   student: any;
   getImageUrl: (photoUrl?: string) => string;
+  canBookDemo?: boolean;
 }
 
-export default function StudentCard({ student, getImageUrl }: StudentCardProps) {
+export default function StudentCard({
+  student,
+  getImageUrl,
+  canBookDemo = true,
+}: StudentCardProps) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
 
@@ -151,8 +156,17 @@ export default function StudentCard({ student, getImageUrl }: StudentCardProps) 
 
           <Button
             variant="outline"
-            onClick={() => setShowModal(true)}
-            className="flex-1 min-w-0 h-8 text-xs font-semibold rounded-full border-primary text-black hover:bg-primary hover:text-white"
+            onClick={() => {
+              if (!canBookDemo) return;
+              setShowModal(true);
+            }}
+            disabled={!canBookDemo}
+            title={
+              canBookDemo
+                ? "Book demo"
+                : "Admin verification is required before sending demo requests"
+            }
+            className="flex-1 min-w-0 h-8 text-xs font-semibold rounded-full border-primary text-black hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-white disabled:hover:text-black"
           >
             Book Demo
           </Button>

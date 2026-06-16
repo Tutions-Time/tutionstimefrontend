@@ -208,22 +208,26 @@ export default function SearchTutors() {
         const classLevel = up?.profile?.classLevel;
         const board = up?.profile?.board;
         const subjects = Array.isArray(up?.profile?.subjects) ? up.profile.subjects : [];
-        const isOfflineOnly = learningMode === "Offline";
+        const isOfflineOnly = normalizeMode(learningMode) === "offline";
         if (!alive) return;
         setStudentAccess({ learningMode, pincode });
         setOfflineRestriction({
           active: isOfflineOnly,
           pincode: isOfflineOnly ? pincode : "",
         });
+        if (isOfflineOnly) {
+          setFilter((f) => ({
+            ...f,
+            classLevel: "",
+            board: "",
+            subject: "",
+            teachingMode: "Offline",
+            pincode,
+            page: "1",
+          }));
+          return;
+        }
         if (filter.classLevel || filter.subject || filter.board) {
-          if (isOfflineOnly) {
-            setFilter((f) => ({
-              ...f,
-              teachingMode: "Offline",
-              pincode,
-              page: "1",
-            }));
-          }
           return;
         }
         if (classLevel) {

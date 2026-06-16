@@ -34,6 +34,7 @@ import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { getStudentRefunds } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
+import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -563,7 +564,7 @@ export default function StudentSessions() {
                   {/* Join Now */}
                   {s.status === "confirmed" && s.zoomLink && (
                     <Button
-                      onClick={() => window.open(s.zoomLink, "_blank")}
+                      onClick={() => openClassLinkWithNotice(s.zoomLink)}
                       className="bg-primary hover:bg-primary/90 text-white"
                     >
                       <Video className="w-4 h-4 mr-2" /> Join Now
@@ -783,9 +784,10 @@ export default function StudentSessions() {
                         <div className="flex items-center gap-2">
                           <Button
                             onClick={async () => {
+                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                               try {
                                 const res = await joinSession(s._id);
-                                if (res?.success && res?.url) window.open(res.url, "_blank");
+                                if (res?.success && res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
                               } catch { }
                             }}
                             disabled={!canJoin}

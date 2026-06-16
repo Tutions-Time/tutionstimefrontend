@@ -11,6 +11,7 @@ import { CalendarDays, Clock, Video, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { markDemoJoin } from "@/services/bookingService";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
+import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
 
 import {
   getStudentDemoRequests,
@@ -162,7 +163,7 @@ export default function StudentDemoRequests() {
 
                     <div className="text-sm text-gray-500">{req.subject}</div>
                     <div className="text-sm text-gray-500">
-                      Mode: {req.studentLearningMode || "N/A"}
+                      Mode: Online
                     </div>
 
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
@@ -272,6 +273,7 @@ export default function StudentDemoRequests() {
                   {req.status === "confirmed" && req.meetingLink && (
                     <button
                       onClick={async () => {
+                        if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                         let meetingLink = req.meetingLink;
                         try {
                           const joinRes = await markDemoJoin(req._id);
