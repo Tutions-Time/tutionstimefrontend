@@ -152,6 +152,18 @@ export const getClassesMonitor = async (params?: {
   }
 };
 
+export const updateAdminSessionSchedule = async (
+  sessionId: string,
+  payload: { date: string; time: string }
+) => {
+  try {
+    const response = await api.patch(`/admin/sessions/${sessionId}/schedule`, payload);
+    return response.data || {};
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 
 export const getAllTutors = async (params?: {
   page?: number;
