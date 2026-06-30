@@ -108,7 +108,7 @@ export default function StudentBatchDetail() {
       if (diff <= 0) diff += 24 * 60;
       classDurationMin = diff || 60;
     }
-    const openAt = startMs - 5 * 60 * 1000;
+    const openAt = startMs - 10 * 60 * 1000;
     const end = startMs + classDurationMin * 60 * 1000;
     const closeAt = end;
     const now = Date.now();
@@ -246,7 +246,7 @@ export default function StudentBatchDetail() {
                   <Clock className="h-4 w-4 text-gray-400" />
                   <span className="font-medium text-gray-900">Join before</span>
                   <span className="ml-auto text-gray-600">
-                    {batch.accessWindow?.joinBeforeMin ?? 5} min
+                    {batch.accessWindow?.joinBeforeMin ?? 10} min
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -297,3 +297,4 @@ export default function StudentBatchDetail() {
     </>
   );
 }
+

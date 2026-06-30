@@ -16,7 +16,7 @@ import {
 import DemoInsights from '@/components/tutors/DemoInsights';
 import { toast } from '@/hooks/use-toast';
 import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
-import { CLASS_JOIN_NOTICE } from '@/utils/classJoinNotice';
+import { CLASS_JOIN_NOTICE, DEMO_CLASS_DURATION_MINUTES, getClassJoinWindowState } from '@/utils/classJoinNotice';
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -89,6 +89,20 @@ export default function TutorDemoRequests() {
       window.removeEventListener("focus", handleFocus);
     };
   }, [loadBookings]);
+
+  const getDemoStart = (booking: any) => {
+    const base = new Date(booking.preferredDate);
+    if (Number.isNaN(base.getTime())) return null;
+    const [hourStr, minuteStr] = String(booking.preferredTime || "00:00").split(":");
+    return new Date(
+      base.getFullYear(),
+      base.getMonth(),
+      base.getDate(),
+      Number(hourStr) || 0,
+      Number(minuteStr) || 0,
+      0
+    );
+  };
 
   // Accept / Reject
   const handleStatus = async (
@@ -270,28 +284,38 @@ export default function TutorDemoRequests() {
                         </Button>
                       </>
                     )}
-
-                  {b.status === 'confirmed' && b.meetingLink && (
-                    <button
-                      onClick={async () => {
-                        if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                        let meetingLink = b.meetingLink;
-                        try {
-                          const joinRes = await markTutorDemoJoin(b._id);
-                          meetingLink = joinRes?.meetingLink || meetingLink;
-                        } catch {}
-                        window.open(
-                          meetingLink,
-                          '_blank',
-                          'noopener,noreferrer'
-                        );
-                      }}
-                      className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
-                    >
-                      <Video className="w-4 h-4" />
-                      Join Demo
-                    </button>
-                  )}
+                  {b.status === 'confirmed' && b.meetingLink && (() => {
+                    const joinState = getClassJoinWindowState(getDemoStart(b), {
+                      durationMin: DEMO_CLASS_DURATION_MINUTES,
+                    });
+                    return (
+                      <button
+                        disabled={!joinState.canJoin}
+                        onClick={async () => {
+                          if (!joinState.canJoin) return;
+                          if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                          let meetingLink = b.meetingLink;
+                          try {
+                            const joinRes = await markTutorDemoJoin(b._id);
+                            meetingLink = joinRes?.meetingLink || meetingLink;
+                          } catch {}
+                          window.open(
+                            meetingLink,
+                            '_blank',
+                            'noopener,noreferrer'
+                          );
+                        }}
+                        className={`flex items-center gap-2 font-medium text-sm px-4 py-2 rounded-full transition ${
+                          joinState.canJoin
+                            ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        <Video className="w-4 h-4" />
+                        {joinState.canJoin ? "Join Demo" : "Join (available soon)"}
+                      </button>
+                    );
+                  })()}
                 </div>
               </Card>
             ))}

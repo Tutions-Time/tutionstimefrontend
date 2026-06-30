@@ -54,7 +54,7 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     const start = getUtcWallClockMs(startTime);
     if (!Number.isFinite(start)) return false;
     const classDurationMin = 60;
-    const joinBeforeMin = 5;
+    const joinBeforeMin = 10;
     const expireAfterMin = 5;
 
     const end = start + classDurationMin * 60000;
@@ -167,3 +167,4 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     </section>
   );
 }
+

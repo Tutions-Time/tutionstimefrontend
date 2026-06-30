@@ -212,7 +212,7 @@ export default function StudentBookingsPage() {
     }
     const nowMs = Date.now();
 
-    const joinOpenAt = startMs - 5 * 60 * 1000; // 5 min before
+    const joinOpenAt = startMs - 10 * 60 * 1000; // 10 min before
     const joinCloseAt = startMs + 60 * 60 * 1000; // 1 hour after
 
     const isFuture = nowMs < joinOpenAt;
@@ -436,7 +436,7 @@ export default function StudentBookingsPage() {
                   if (!Number.isFinite(startMs)) return null;
                   const nowMs = Date.now();
 
-                  const joinOpenAt = startMs - 5 * 60 * 1000;
+                  const joinOpenAt = startMs - 10 * 60 * 1000;
                   const joinCloseAt = startMs + 60 * 60 * 1000;
 
                   const inJoinWindow = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
@@ -790,4 +790,6 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+
+
 

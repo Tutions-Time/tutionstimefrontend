@@ -66,7 +66,7 @@ export default function BookingCard({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    const EARLY_JOIN_MINUTES = 5;
+    const EARLY_JOIN_MINUTES = 10;
     const LATE_JOIN_MINUTES = 5;
     const SESSION_DURATION_MIN = booking.type === "demo" ? 15 : 60;
 
@@ -265,3 +265,4 @@ export default function BookingCard({
     </>
   );
 }
+

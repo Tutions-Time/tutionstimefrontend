@@ -427,7 +427,7 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
       if (diff <= 0) diff += 24 * 60;
       classDurationMin = diff || 60;
     }
-    const openAt = startMs - 5 * 60 * 1000;
+    const openAt = startMs - 10 * 60 * 1000;
     const end = startMs + classDurationMin * 60 * 1000;
     const closeAt = end;
 
@@ -869,3 +869,4 @@ export default function TutorGroupBatches({ refreshToken }: TutorGroupBatchesPro
     </div>
   );
 }
+

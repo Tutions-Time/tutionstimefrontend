@@ -255,7 +255,7 @@ export default function StudentGroupBatches() {
       if (diff <= 0) diff += 24 * 60;
       duration = diff || 60;
     }
-    const openAt = startMs - 5 * 60 * 1000;
+    const openAt = startMs - 10 * 60 * 1000;
     const end = startMs + duration * 60 * 1000;
     const closeAt = end;
 
@@ -713,3 +713,4 @@ export default function StudentGroupBatches() {
     </>
   );
 }
+

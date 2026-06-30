@@ -216,7 +216,7 @@ const TutorRegularClasses = () => {
     }
 
     const classDurationMin = 60;
-    const joinBeforeMin = 5;
+    const joinBeforeMin = 10;
     const expireAfterMin = 5;
 
     const endMs = startMs + classDurationMin * 60 * 1000;
@@ -865,4 +865,5 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   return `${IMAGE_BASE}/${cleaned}`;
 };
+
 
