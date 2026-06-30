@@ -11,7 +11,7 @@ import { CalendarDays, Clock, Video, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { markDemoJoin } from "@/services/bookingService";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
-import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
+import { CLASS_JOIN_NOTICE, DEMO_CLASS_DURATION_MINUTES, getClassJoinWindowState } from "@/utils/classJoinNotice";
 
 import {
   getStudentDemoRequests,
@@ -85,6 +85,20 @@ export default function StudentDemoRequests() {
   useNotificationRefresh(() => {
     loadRequests();
   }, isDemoNotification);
+
+  const getDemoStart = (req: any) => {
+    const base = new Date(req.preferredDate);
+    if (Number.isNaN(base.getTime())) return null;
+    const [hourStr, minuteStr] = String(req.preferredTime || "00:00").split(":");
+    return new Date(
+      base.getFullYear(),
+      base.getMonth(),
+      base.getDate(),
+      Number(hourStr) || 0,
+      Number(minuteStr) || 0,
+      0
+    );
+  };
 
   // Accept / Reject
   const handleStatus = async (
@@ -269,28 +283,38 @@ export default function StudentDemoRequests() {
                         Pending Tutor Approval
                       </span>
                     )}
-
-                  {req.status === "confirmed" && req.meetingLink && (
-                    <button
-                      onClick={async () => {
-                        if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                        let meetingLink = req.meetingLink;
-                        try {
-                          const joinRes = await markDemoJoin(req._id);
-                          meetingLink = joinRes?.meetingLink || meetingLink;
-                        } catch {}
-                        window.open(
-                          meetingLink,
-                          "_blank",
-                          "noopener,noreferrer"
-                        );
-                      }}
-                      className="flex items-center gap-2 bg-[#FFD54F] hover:bg-[#f3c942] text-black font-medium text-sm px-4 py-2 rounded-full transition"
-                    >
-                      <Video className="w-4 h-4" />
-                      Join Demo
-                    </button>
-                  )}
+                  {req.status === "confirmed" && req.meetingLink && (() => {
+                    const joinState = getClassJoinWindowState(getDemoStart(req), {
+                      durationMin: DEMO_CLASS_DURATION_MINUTES,
+                    });
+                    return (
+                      <button
+                        disabled={!joinState.canJoin}
+                        onClick={async () => {
+                          if (!joinState.canJoin) return;
+                          if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                          let meetingLink = req.meetingLink;
+                          try {
+                            const joinRes = await markDemoJoin(req._id);
+                            meetingLink = joinRes?.meetingLink || meetingLink;
+                          } catch {}
+                          window.open(
+                            meetingLink,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                        }}
+                        className={`flex items-center gap-2 font-medium text-sm px-4 py-2 rounded-full transition ${
+                          joinState.canJoin
+                            ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        <Video className="w-4 h-4" />
+                        {joinState.canJoin ? "Join Demo" : "Join (available soon)"}
+                      </button>
+                    );
+                  })()}
 
                   {req.status === "completed" && !req.regularClassId && (
                     <button

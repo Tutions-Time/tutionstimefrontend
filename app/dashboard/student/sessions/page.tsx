@@ -766,7 +766,7 @@ export default function StudentSessions() {
                   const start = new Date(s.startDateTime);
                   const startMs = start.getTime();
                   const classDurationMin = 60;
-                  const joinBeforeMin = 5;
+                  const joinBeforeMin = 10;
                   const expireAfterMin = 5;
                   const endMs = startMs + classDurationMin * 60 * 1000;
                   const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
@@ -985,5 +985,6 @@ export default function StudentSessions() {
     </div>
   );
 }
+
 
 

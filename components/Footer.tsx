@@ -10,6 +10,28 @@ import { motion } from "framer-motion";
 import { fadeInUp, useScrollAnimation } from "./animations";
 import Image from "next/image";
 
+const tutorCitiesByState = [
+  { state: "Delhi NCR", cities: ["Delhi", "New Delhi", "Noida", "Gurgaon", "Faridabad", "Ghaziabad"] },
+  { state: "Chandigarh", cities: ["Chandigarh", "Panchkula", "Mohali"] },
+  { state: "Uttar Pradesh", cities: ["Lucknow", "Kanpur", "Agra", "Varanasi", "Prayagraj", "Meerut", "Bareilly", "Gorakhpur"] },
+  { state: "Maharashtra", cities: ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Kolhapur", "Solapur"] },
+  { state: "Madhya Pradesh", cities: ["Indore", "Bhopal", "Gwalior", "Jabalpur", "Ujjain", "Sagar"] },
+  { state: "Rajasthan", cities: ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner", "Alwar"] },
+  { state: "Gujarat", cities: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar", "Anand", "Bhavnagar"] },
+  { state: "Karnataka", cities: ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi", "Belagavi", "Dharwad"] },
+  { state: "Tamil Nadu", cities: ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Erode", "Tiruppur"] },
+  { state: "Telangana", cities: ["Hyderabad", "Warangal", "Karimnagar", "Nizamabad", "Khammam"] },
+  { state: "West Bengal", cities: ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"] },
+  { state: "Punjab", cities: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Mohali", "Bathinda"] },
+  { state: "Haryana", cities: ["Gurgaon", "Faridabad", "Panipat", "Ambala", "Hisar", "Karnal", "Rohtak"] },
+  { state: "Bihar", cities: ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Darbhanga", "Purnia"] },
+  { state: "Jharkhand", cities: ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Hazaribag"] },
+  { state: "Odisha", cities: ["Bhubaneswar", "Cuttack", "Rourkela", "Sambalpur", "Puri", "Balasore"] },
+  { state: "Uttarakhand", cities: ["Dehradun", "Haridwar", "Haldwani", "Roorkee", "Rudrapur"] },
+];
+
+const citySearchHref = () => "/signup";
+
 export default function Footer() {
   const { ref, isInView } = useScrollAnimation();
 
@@ -129,6 +151,28 @@ export default function Footer() {
           </div>
         </div>
 
+
+        <div className="border-t pt-8 mb-8">
+          <h4 className="font-semibold text-text mb-4">Tutors by City</h4>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {tutorCitiesByState.map((group) => (
+              <div key={group.state}>
+                <h5 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                  {group.state}
+                </h5>
+                <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
+                  {group.cities.map((city) => (
+                    <li key={`${group.state}-${city}`}>
+                      <Link href={citySearchHref()} className="hover:text-text">
+                        Tutors in {city}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
         {/* Bottom */}
         <div className="pt-8 border-t text-center text-sm text-muted">
           <p>
@@ -173,3 +217,4 @@ export default function Footer() {
     </footer>
   );
 }
+

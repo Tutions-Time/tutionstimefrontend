@@ -46,7 +46,7 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     pricePerStudent: "500",
     description: "",
     published: false,
-    accessWindow: { joinBeforeMin: "5", expireAfterMin: "5" },
+    accessWindow: { joinBeforeMin: "10", expireAfterMin: "5" },
   });
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
       description: batch.description || "",
       published: !!batch.published,
       accessWindow: {
-        joinBeforeMin: String(batch.accessWindow?.joinBeforeMin ?? 5),
+        joinBeforeMin: String(batch.accessWindow?.joinBeforeMin ?? 10),
         expireAfterMin: String(batch.accessWindow?.expireAfterMin ?? 5),
       },
     });
@@ -103,7 +103,7 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
       description: String(form.description || ""),
       published: !!form.published,
       accessWindow: {
-        joinBeforeMin: toNumber(form.accessWindow?.joinBeforeMin, 5),
+        joinBeforeMin: toNumber(form.accessWindow?.joinBeforeMin, 10),
         expireAfterMin: toNumber(form.accessWindow?.expireAfterMin, 5),
       },
     };
@@ -374,3 +374,4 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     </Dialog>
   );
 }
+

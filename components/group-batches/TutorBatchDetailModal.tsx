@@ -183,7 +183,7 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span className="font-medium text-gray-900">Join before</span>
                     <span className="ml-auto text-gray-600">
-                      {batch.accessWindow?.joinBeforeMin ?? 5} min
+                      {batch.accessWindow?.joinBeforeMin ?? 10} min
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -262,5 +262,6 @@ export default function TutorBatchDetailModal({ open, onOpenChange, batch, roste
     </Dialog>
   );
 }
+
 
 
