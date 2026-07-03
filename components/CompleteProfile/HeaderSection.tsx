@@ -7,7 +7,7 @@ export default function HeaderSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
         
         {/* Logo */}
-        <div className="flex items-center h-16">
+        <div className="flex items-center h-16"> 
           <Image
             src="/images/logo.png"
             alt="tuitionstime"
