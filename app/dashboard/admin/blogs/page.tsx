@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Edit3, Eye, FileText, ImagePlus, Plus, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -56,10 +63,10 @@ function AdminBlogsContent() {
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | BlogStatus>("all");
+  const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const editorRef = useRef<HTMLDivElement | null>(null);
 
   const loadBlogs = async () => {
     try {
@@ -99,10 +106,15 @@ function AdminBlogsContent() {
     };
   }, [previewImage]);
 
-  const startNew = () => {
+  const resetForm = () => {
     setEditing(null);
     setForm(emptyForm);
     setImageFile(null);
+  };
+
+  const startNew = () => {
+    resetForm();
+    setEditorOpen(true);
   };
 
   const fillEditForm = (blog: BlogPost) => {
@@ -127,7 +139,7 @@ function AdminBlogsContent() {
     const id = blog._id;
     if (!id) {
       fillEditForm(blog);
-      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setEditorOpen(true);
       return;
     }
 
@@ -135,9 +147,7 @@ function AdminBlogsContent() {
       setLoadingEdit(true);
       const freshBlog = await getAdminBlogById(id);
       fillEditForm(freshBlog || blog);
-      setTimeout(() => {
-        editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
+      setEditorOpen(true);
     } catch (error: any) {
       toast({
         title: "Could not open blog for editing",
@@ -196,7 +206,8 @@ function AdminBlogsContent() {
         await createAdminBlog(buildPayload());
         toast({ title: "Blog created" });
       }
-      startNew();
+      setEditorOpen(false);
+      resetForm();
       await loadBlogs();
     } catch (error: any) {
       toast({
@@ -216,7 +227,10 @@ function AdminBlogsContent() {
     try {
       await deleteAdminBlog(blog._id);
       toast({ title: "Blog deleted" });
-      if (editing?._id === blog._id) startNew();
+      if (editing?._id === blog._id) {
+        setEditorOpen(false);
+        resetForm();
+      }
       await loadBlogs();
     } catch (error: any) {
       toast({
@@ -247,7 +261,7 @@ function AdminBlogsContent() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="lg:pr-64">
+      <div className="max-w-full overflow-x-hidden lg:pr-64">
         <Topbar
           title="Blogs"
           subtitle="Create SEO blog posts with images, metadata, categories, and tags"
@@ -259,8 +273,8 @@ function AdminBlogsContent() {
           }
         />
 
-        <main className="grid gap-6 p-4 lg:grid-cols-[1fr_380px] lg:p-6">
-          <div className="space-y-6">
+        <main className="grid max-w-full grid-cols-1 gap-6 p-4 lg:p-6">
+          <div className="min-w-0 space-y-6">
             <Card className="rounded-2xl bg-white p-4 shadow-sm">
               <div className="grid gap-3 md:grid-cols-[1fr_180px]">
                 <Input
@@ -359,24 +373,23 @@ function AdminBlogsContent() {
             </Card>
           </div>
 
-          <Card ref={editorRef} className="h-fit rounded-2xl bg-white p-5 shadow-sm">
-            <div className="mb-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-text">
-                    {editing ? "Edit Blog" : "Create Blog"}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted">
-                    {editing
-                      ? `Editing: ${editing.title}`
-                      : "Published posts appear on `/blogs` and can rank as SEO pages."}
-                  </p>
+          <Dialog open={editorOpen} onOpenChange={(open) => !saving && setEditorOpen(open)}>
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+              <DialogHeader className="pr-8">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <DialogTitle>{editing ? "Edit Blog" : "Create Blog"}</DialogTitle>
+                    <DialogDescription className="mt-1">
+                      {editing
+                        ? `Editing: ${editing.title}`
+                        : "Published posts appear on `/blogs` and can rank as SEO pages."}
+                    </DialogDescription>
+                  </div>
+                  {loadingEdit ? <Badge>Opening</Badge> : null}
                 </div>
-                {loadingEdit ? <Badge>Opening</Badge> : null}
-              </div>
-            </div>
+              </DialogHeader>
 
-            <div className="space-y-4">
+              <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium">Title</label>
                 <Input
@@ -519,12 +532,13 @@ function AdminBlogsContent() {
                 >
                   {saving ? "Saving..." : editing ? "Update Blog" : "Create Blog"}
                 </Button>
-                <Button variant="outline" onClick={startNew} disabled={saving}>
+                <Button variant="outline" onClick={resetForm} disabled={saving}>
                   Clear
                 </Button>
               </div>
-            </div>
-          </Card>
+              </div>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>
@@ -538,3 +552,4 @@ export default function AdminBlogsPage() {
     </ProtectedRoute>
   );
 }
+
