@@ -46,6 +46,8 @@ export default function BookStudentDemoModal({
   const todayStr = dayjs().format("YYYY-MM-DD");
   const hasPreferredSlots =
     Array.isArray(preferredTimes) && preferredTimes.length > 0;
+  const singlePreferredSlot =
+    preferredTimes.length === 1 ? String(preferredTimes[0] || "") : "";
 
   const selectedDay = selectedDate ? dayjs(selectedDate) : null;
   const isSelectedDayToday = selectedDay?.isSame(dayjs(), "day");
@@ -60,14 +62,14 @@ export default function BookStudentDemoModal({
     if (!open) return;
     setSelectedDate("");
     setSelectedTime(null);
-    setSelectedPreferredSlot("");
+    setSelectedPreferredSlot(singlePreferredSlot);
     setNote("");
-  }, [open]);
+  }, [open, singlePreferredSlot]);
 
   useEffect(() => {
     setSelectedTime(null);
-    setSelectedPreferredSlot("");
-  }, [selectedDate]);
+    setSelectedPreferredSlot(singlePreferredSlot);
+  }, [selectedDate, singlePreferredSlot]);
 
   const getStartTimeFromPreferredSlot = (slot: string) => {
     const part = String(slot || "")
@@ -288,3 +290,4 @@ export default function BookStudentDemoModal({
     </div>
   );
 }
+

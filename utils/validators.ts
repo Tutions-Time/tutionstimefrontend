@@ -205,8 +205,8 @@ export function validateStudentProfileFields(
     errors.pincode = "Pincode must be 6 digits";
 
   if (isEmpty(data.learningMode)) errors.learningMode = "Learning mode is required";
-  else if (!["Online", "Offline", "Both"].includes(data.learningMode))
-    errors.learningMode = "Learning mode must be Online, Offline, or Both";
+  else if (!["Online", "Offline"].includes(data.learningMode))
+    errors.learningMode = "Learning mode must be Online or Offline";
 
   if (!["school", "college", "competitive"].includes(data.track))
     errors.track = "Learning track is required";
@@ -265,7 +265,21 @@ export function validateStudentProfileFields(
           !((subjectSlotMap.get(subject) as string[] | undefined) || []).length
       )
     : [];
-  if (subjectTimeSlots.length && subjectsWithoutSlots.length) {
+  const slotOwner = new Map<string, string>();
+  const duplicateSlots: string[] = [];
+  subjectTimeSlots.forEach((item: any) => {
+    (item.slots || []).forEach((slot: string) => {
+      if (slotOwner.has(slot) && slotOwner.get(slot) !== item.subject) {
+        duplicateSlots.push(`${slot} (${slotOwner.get(slot)} and ${item.subject})`);
+      } else {
+        slotOwner.set(slot, item.subject);
+      }
+    });
+  });
+
+  if (duplicateSlots.length) {
+    errors.preferredTimes = `A time slot can be selected for only one subject. Duplicate: ${duplicateSlots[0]}`;
+  } else if (subjectTimeSlots.length && subjectsWithoutSlots.length) {
     errors.preferredTimes = `Preferred time slot is required for ${subjectsWithoutSlots.join(", ")}`;
   } else if (
     !subjectTimeSlots.length &&
@@ -295,3 +309,6 @@ export default {
   validateTutorProfile,
   validateStudentProfileFields,
 };
+
+
+

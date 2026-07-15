@@ -70,7 +70,7 @@ export interface StudentProfileState {
   bankAccountNumber: string;
   ifsc: string;
 
-  learningMode: '' | 'Online' | 'Offline' | 'Both';
+  learningMode: '' | 'Online' | 'Offline';
 
   isSubmitting: boolean;
   lastSavedAt?: string;
@@ -260,3 +260,4 @@ export function validateStudentProfile(p: StudentProfileState) {
 
   return e;
 }
+
