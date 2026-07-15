@@ -15,7 +15,7 @@ import { lookupPincode } from "@/app/data/PincodeMap";
 import { getPincodeForCity } from "@/utils/pincodeLookup";
 
 const GENDER = ["Male", "Female", "Other"] as const;
-const LEARNING_MODES = ["Online", "Offline", "Both"] as const;
+const LEARNING_MODES = ["Online", "Offline"] as const;
 
 export default function PersonalInfoSection({
   photoFile,
@@ -154,9 +154,9 @@ export default function PersonalInfoSection({
             />
           </div>
 
-          {/* Address Line 1 */}
+          {/* Address */}
           <div>
-            <Label>Address Line 1</Label>
+            <Label>Address</Label>
             <Input
               placeholder="Address"
               value={profile.addressLine1}
@@ -259,3 +259,5 @@ export default function PersonalInfoSection({
     </section>
   );
 }
+
+

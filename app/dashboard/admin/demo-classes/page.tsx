@@ -148,7 +148,7 @@ export default function AdminDemoClassesPage() {
   const summary = useMemo(() => {
     const pending = bookings.filter((b) => b.status === 'pending').length;
     const confirmed = bookings.filter((b) => b.status === 'confirmed').length;
-    const stalePending = bookings.filter((b) => b.status === 'pending' && b.createdAt && Date.now() - new Date(b.createdAt).getTime() > 5 * 60 * 60 * 1000).length;
+    const stalePending = bookings.filter((b) => b.status === 'pending' && b.createdAt && Date.now() - new Date(b.createdAt).getTime() > 24 * 60 * 60 * 1000).length;
     return { pending, confirmed, stalePending };
   }, [bookings]);
 
@@ -187,7 +187,7 @@ export default function AdminDemoClassesPage() {
                 <div className="mt-1 text-2xl font-semibold text-yellow-700">{summary.pending}</div>
               </Card>
               <Card className="rounded-lg bg-white p-4 shadow-sm">
-                <div className="text-xs text-muted">Pending over 5 hours</div>
+                <div className="text-xs text-muted">Pending over 24 hours</div>
                 <div className="mt-1 text-2xl font-semibold text-red-700">{summary.stalePending}</div>
               </Card>
             </div>
@@ -344,4 +344,5 @@ export default function AdminDemoClassesPage() {
     </ProtectedRoute>
   );
 }
+
 

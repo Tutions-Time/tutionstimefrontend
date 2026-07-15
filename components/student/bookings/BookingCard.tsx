@@ -97,9 +97,9 @@ export default function BookingCard({
 
   const expiryMessage =
     booking.expiryReason === "tutor-no-response"
-      ? "Expired because the tutor did not accept the demo request within 5 hours. Please Book Again."
+      ? "Expired because the tutor did not accept the demo request within 24 hours. Please Book Again."
       : booking.expiryReason === "student-no-response"
-      ? "Expired because the student did not accept the demo request within 5 hours. Please Book Again."
+      ? "Expired because the student did not accept the demo request within 24 hours. Please Book Again."
       : booking.status === "expired"
       ? "This demo is no longer active."
       : null;
@@ -265,4 +265,5 @@ export default function BookingCard({
     </>
   );
 }
+
 

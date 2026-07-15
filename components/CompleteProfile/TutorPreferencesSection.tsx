@@ -52,11 +52,25 @@ export default function TutorPreferencesSection({
     Record<string, { start: Dayjs | null; end: Dayjs | null }>
   >({});
   const [timeError, setTimeError] = useState("");
+  const [selectedBudgetMode, setSelectedBudgetMode] = useState<
+    "" | "hourly" | "monthly"
+  >("");
   const budget = parseBudget(profile.budget);
+  const budgetMode = budget.hourly
+    ? "hourly"
+    : budget.monthly
+      ? "monthly"
+      : selectedBudgetMode;
+
+  const updateBudgetMode = (mode: "hourly" | "monthly") => {
+    setSelectedBudgetMode(mode);
+    dispatch(setField({ key: "budget", value: buildBudget("", "") }));
+  };
 
   const updateBudget = (next: Partial<typeof budget>) => {
-    const hourly = next.hourly !== undefined ? next.hourly : next.monthly !== undefined ? "" : budget.hourly;
-    const monthly = next.monthly !== undefined ? next.monthly : next.hourly !== undefined ? "" : budget.monthly;
+    const hourly = next.hourly !== undefined ? next.hourly : "";
+    const monthly = next.monthly !== undefined ? next.monthly : "";
+    setSelectedBudgetMode(next.hourly !== undefined ? "hourly" : "monthly");
     dispatch(setField({ key: "budget", value: buildBudget(hourly, monthly) }));
   };
 
@@ -93,6 +107,11 @@ export default function TutorPreferencesSection({
     (profile.subjectTimeSlots || []).find((item) => item.subject === subject)
       ?.slots || [];
 
+  const getSubjectUsingSlot = (slot: string, currentSubject: string) =>
+    (profile.subjectTimeSlots || []).find(
+      (item) => item.subject !== currentSubject && item.slots.includes(slot)
+    )?.subject || "";
+
   const addSlot = (subject: string) => {
     const draft = timeDrafts[subject];
     if (!draft?.start || !draft?.end || disabled) return;
@@ -102,6 +121,14 @@ export default function TutorPreferencesSection({
     }
 
     const slot = `${draft.start.format("hh:mm A")} - ${draft.end.format("hh:mm A")}`;
+    const usedBySubject = getSubjectUsingSlot(slot, subject);
+    if (usedBySubject) {
+      setTimeError(
+        `${slot} is already selected for ${usedBySubject}. Choose a different slot for ${subject}.`
+      );
+      return;
+    }
+
     const current = profile.subjectTimeSlots || [];
     const existing = current.find((item) => item.subject === subject);
     const nextSlots = existing
@@ -276,41 +303,61 @@ export default function TutorPreferencesSection({
         </div>
 
         <div className="md:col-span-2">
-          <Label className="mb-2 block">What is your budget?</Label>
+          <Label className="mb-2 block">How do you want to pay?</Label>
           <div className="grid md:grid-cols-2 gap-4">
             <Select
               disabled={disabled}
-              value={budget.hourly}
-              onValueChange={(value) => updateBudget({ hourly: value })}
+              value={budgetMode}
+              onValueChange={(value) =>
+                updateBudgetMode(value as "hourly" | "monthly")
+              }
             >
               <SelectTrigger className="h-10">
-                <SelectValue placeholder="Select hourly budget" />
+                <SelectValue placeholder="Select hourly or monthly" />
               </SelectTrigger>
               <SelectContent>
-                {HOURLY_RATE_OPTIONS.map((rate) => (
-                  <SelectItem key={rate} value={String(rate)}>
-                    Rs.{rate}
-                  </SelectItem>
-                ))}
+                <SelectItem value="hourly">Hourly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select
-              disabled={disabled}
-              value={budget.monthly}
-              onValueChange={(value) => updateBudget({ monthly: value })}
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Select monthly budget" />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHLY_RATE_OPTIONS.map((rate) => (
-                  <SelectItem key={rate} value={String(rate)}>
-                    Rs.{rate}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {budgetMode === "hourly" && (
+              <Select
+                disabled={disabled}
+                value={budget.hourly}
+                onValueChange={(value) => updateBudget({ hourly: value })}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select hourly budget" />
+                </SelectTrigger>
+                <SelectContent>
+                  {HOURLY_RATE_OPTIONS.map((rate) => (
+                    <SelectItem key={rate} value={String(rate)}>
+                      Rs.{rate}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {budgetMode === "monthly" && (
+              <Select
+                disabled={disabled}
+                value={budget.monthly}
+                onValueChange={(value) => updateBudget({ monthly: value })}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select monthly budget" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHLY_RATE_OPTIONS.map((rate) => (
+                    <SelectItem key={rate} value={String(rate)}>
+                      Rs.{rate}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 
@@ -330,3 +377,6 @@ export default function TutorPreferencesSection({
     </div>
   );
 }
+
+
+

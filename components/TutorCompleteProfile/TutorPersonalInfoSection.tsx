@@ -171,7 +171,7 @@ export default function TutorPersonalInfoSection({
             />
           </div>
 
-          {/* ADDRESS LINE 1 */}
+          {/* ADDRESS */}
           <div>
             <Input
               disabled={disabled}
@@ -179,7 +179,7 @@ export default function TutorPersonalInfoSection({
               onChange={(e) =>
                 dispatch(setField({ key: "addressLine1", value: e.target.value }))
               }
-              placeholder="address"
+              placeholder="Address"
             />
           </div>
 
@@ -273,3 +273,4 @@ export default function TutorPersonalInfoSection({
     </section>
   );
 }
+
