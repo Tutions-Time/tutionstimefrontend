@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -169,18 +170,34 @@ export default function TutorDemoRequests() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="font-semibold">
-                      {b.studentName || 'Unknown Student'}
-                    </div>
+                    {b.studentUserId || b.studentId ? (
+                      <Link
+                        href={`/dashboard/tutor/search/student/${b.studentUserId || b.studentId}`}
+                        className="font-semibold text-gray-900 hover:text-primary hover:underline"
+                      >
+                        {b.studentName || 'Unknown Student'}
+                      </Link>
+                    ) : (
+                      <div className="font-semibold">{b.studentName || 'Unknown Student'}</div>
+                    )}
                     <div className="text-sm text-gray-500">
                       {(b.subjects?.length
                         ? b.subjects.join(', ')
                         : b.subject) || 'Subject'}
                     </div>
 
-                    {b.studentBoard && (
+                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
+                      {b.studentClassLevel && <span>Class: {b.studentClassLevel}</span>}
+                      {b.studentBoard && <span>Board: {b.studentBoard}</span>}
+                      {b.studentTrack && <span>{b.studentTrack}</span>}
+                      {b.studentLearningMode && <span>{b.studentLearningMode}</span>}
+                      {(b.studentCity || b.studentState) && (
+                        <span>{[b.studentCity, b.studentState].filter(Boolean).join(', ')}</span>
+                      )}
+                    </div>
+                    {Array.isArray(b.studentSubjects) && b.studentSubjects.length > 0 && (
                       <div className="mt-1 text-xs text-gray-500">
-                        <span>Board: {b.studentBoard}</span>
+                        Needs: {b.studentSubjects.slice(0, 4).join(', ')}
                       </div>
                     )}
 
@@ -327,4 +344,6 @@ export default function TutorDemoRequests() {
     </div>
   );
 }
+
+
 

@@ -25,6 +25,7 @@ function getItems(role: Role): Item[] {
       { href: '/dashboard/admin', label: 'Home', icon: LayoutDashboard },
       { href: '/dashboard/admin/users', label: 'Students', icon: Users },
       { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
+      { href: '/dashboard/admin/demo-classes', label: 'Demos', icon: Calendar },
       { href: '/dashboard/admin/refunds', label: 'Refunds', icon: Wallet },
     ];
   }
@@ -117,3 +118,4 @@ export default function MobileBottomNav({
     </div>
   ) : null;
 }
+
