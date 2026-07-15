@@ -114,6 +114,31 @@ export const getAllBookings = async (params?: {
   }
 };
 
+export const getAdminDemoBookings = async (params?: {
+  status?: string;
+  requestedBy?: 'student' | 'tutor';
+  q?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}) => {
+  try {
+    const response = await api.get('/admin/bookings', { params });
+    return response.data || { data: [], pagination: {} };
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const cancelAdminDemoBooking = async (id: string, reason?: string) => {
+  try {
+    const response = await api.patch(`/admin/bookings/${id}/cancel`, { reason });
+    return response.data || {};
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
 // Dashboard Statistics
 export const getDashboardStats = async () => {
   try {
@@ -326,3 +351,4 @@ export const deleteAdminBlog = async (id: string) => {
     throw new Error(handleApiError(error));
   }
 };
+

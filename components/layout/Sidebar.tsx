@@ -65,6 +65,7 @@ const adminLinks: NavLink[] = [
   { href: '/dashboard/admin/users', label: 'Students', icon: Users },
   { href: '/dashboard/admin/tutors', label: 'Tutors', icon: User },
   { href: '/dashboard/admin/classes-monitor', label: 'Classes Monitor', icon: Calendar },
+  { href: '/dashboard/admin/demo-classes', label: 'Demo Classes', icon: ClipboardList },
   // { href: '/dashboard/admin/subjects', label: 'Subjects', icon: BookOpen },
   { href: '/dashboard/admin/revenue', label: 'Revenue', icon: Wallet },
   { href: '/dashboard/admin/payouts', label: 'Tutor Payouts', icon: IndianRupee },
@@ -193,4 +194,5 @@ export function Sidebar({ userRole = 'student', isOpen = true, onClose }: Sideba
     </>
   );
 }
+
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -171,14 +172,33 @@ export default function StudentDemoRequests() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="font-semibold">
-                      {req.tutorName || "Tutor"}
-                    </div>
+                    {req.tutorProfileId ? (
+                      <Link
+                        href={`/dashboard/student/search/tutor/${req.tutorProfileId}?userId=${req.tutorUserId || req.tutorId}`}
+                        className="font-semibold text-gray-900 hover:text-primary hover:underline"
+                      >
+                        {req.tutorName || "Tutor"}
+                      </Link>
+                    ) : (
+                      <div className="font-semibold">{req.tutorName || "Tutor"}</div>
+                    )}
 
                     <div className="text-sm text-gray-500">{req.subject}</div>
-                    <div className="text-sm text-gray-500">
-                      Mode: Online
+                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
+                      {req.tutorQualification && <span>{req.tutorQualification}</span>}
+                      {req.tutorExperience !== null && req.tutorExperience !== undefined && (
+                        <span>{req.tutorExperience} yrs exp</span>
+                      )}
+                      {req.tutorTeachingMode && <span>{req.tutorTeachingMode}</span>}
+                      {(req.tutorCity || req.tutorState) && (
+                        <span>{[req.tutorCity, req.tutorState].filter(Boolean).join(", ")}</span>
+                      )}
                     </div>
+                    {Array.isArray(req.tutorSubjects) && req.tutorSubjects.length > 0 && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        Teaches: {req.tutorSubjects.slice(0, 4).join(", ")}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
@@ -348,4 +368,6 @@ export default function StudentDemoRequests() {
     </div>
   );
 }
+
+
 

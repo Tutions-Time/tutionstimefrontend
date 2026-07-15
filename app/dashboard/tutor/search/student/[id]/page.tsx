@@ -13,8 +13,6 @@ import {
   ArrowLeft,
   Briefcase,
   Target,
-  Mail,
-  Phone,
   School,
   IndianRupee,
   AlertCircle,
@@ -139,14 +137,9 @@ export default function StudentDetailPage() {
   const solidPrimary =
     "bg-[--primary] text-black hover:bg-[#f0c945] hover:shadow";
 
-  // Address construction
-  const addressParts = [
-    student.addressLine1,
-    student.city,
-    student.state,
-    student.pincode,
-  ].filter(Boolean);
-  const fullAddress = addressParts.length > 0 ? addressParts.join(", ") : null;
+  // Keep location broad until a class is confirmed.
+  const locationParts = [student.city, student.state].filter(Boolean);
+  const broadLocation = locationParts.length > 0 ? locationParts.join(", ") : null;
 
   // Track Logic
   const track = student.track;
@@ -277,14 +270,11 @@ export default function StudentDetailPage() {
                       label="Gender"
                       value={getField(student.gender, student.genderOther)}
                     />
-                    {/* <Fact icon={Mail} label="Email" value={student.email || student.userId?.email} />
-                <Fact icon={Phone} label="WhatsApp" value={student.userId?.phone} />
-                <Fact icon={Phone} label="Alternate WhatsApp" value={student.altPhone} /> */}
                     <Separator />
                     <Fact
                       icon={MapPin}
-                      label="Full Address"
-                      value={fullAddress}
+                      label="Location"
+                      value={broadLocation}
                     />
                   </CardContent>
                 </Card>
@@ -518,3 +508,6 @@ export default function StudentDetailPage() {
     </div>
   );
 }
+
+
+
