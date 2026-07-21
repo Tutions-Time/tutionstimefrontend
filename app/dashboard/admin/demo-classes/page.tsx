@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, CheckCircle, Clock, Eye, RefreshCw, Search, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Download, Eye, RefreshCw, Search, Trash2, XCircle } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { acceptAdminDemoBooking, cancelAdminDemoBooking, getAdminDemoBookings } from '@/services/adminService';
+import { acceptAdminDemoBooking, cancelAdminDemoBooking, deleteAdminDemoBooking, getAdminDemoBookings } from '@/services/adminService';
 
 const STATUSES = ['all', 'pending', 'confirmed', 'completed', 'cancelled', 'expired', 'student-missed', 'tutor-missed'];
 
@@ -103,6 +103,62 @@ const participantSummary = (person?: Person | null) => {
   return details.length ? details.join(' | ') : 'Profile details not filled';
 };
 
+const csvValue = (value: unknown) => {
+  const text = String(value ?? '').replace(/\r?\n/g, ' ');
+  return `"${text.replace(/"/g, '""')}"`;
+};
+
+const downloadCsv = (rows: DemoBooking[]) => {
+  const headers = [
+    'ID',
+    'Status',
+    'Requested By',
+    'Subject',
+    'Date',
+    'Time',
+    'Student',
+    'Student Email',
+    'Student Phone',
+    'Tutor',
+    'Tutor Email',
+    'Tutor Phone',
+    'Attendance',
+    'Remark/Reason',
+    'Expiry Reason',
+    'Created At',
+  ];
+  const body = rows.map((booking) => [
+    booking._id,
+    statusLabel(booking.status),
+    booking.requestedBy || 'student',
+    booking.subject || (booking.subjects || []).join(', '),
+    formatDate(booking.preferredDate),
+    [booking.preferredTime || '', booking.preferredEndTime ? `to ${booking.preferredEndTime}` : ''].filter(Boolean).join(' '),
+    booking.student?.name || '',
+    booking.student?.email || '',
+    booking.student?.phone || '',
+    booking.tutor?.name || '',
+    booking.tutor?.email || '',
+    booking.tutor?.phone || '',
+    booking.attendance || 'not-marked',
+    booking.note || '',
+    booking.expiryReason || '',
+    formatDateTime(booking.createdAt),
+  ]);
+  const csv = [headers, ...body]
+    .map((row) => row.map(csvValue).join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `demo-classes-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
 export default function AdminDemoClassesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -116,6 +172,8 @@ export default function AdminDemoClassesPage() {
   const [total, setTotal] = useState(0);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const refresh = async (overrides?: Partial<{ page: number; q: string }>) => {
     const nextPage = overrides?.page ?? page;
@@ -186,6 +244,47 @@ export default function AdminDemoClassesPage() {
     }
   };
 
+  const deleteDemo = async (booking: DemoBooking) => {
+    const ok = window.confirm(
+      `Delete this demo class record for ${booking.subject || 'demo class'}? This cannot be undone.`,
+    );
+    if (!ok) return;
+    setDeletingId(booking._id);
+    try {
+      await deleteAdminDemoBooking(booking._id);
+      toast({ title: 'Demo deleted' });
+      refresh();
+    } catch (error: any) {
+      toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const exportDemoRecords = async () => {
+    setExporting(true);
+    try {
+      const res = await getAdminDemoBookings({
+        status: status === 'all' ? undefined : status,
+        requestedBy: requestedBy === 'all' ? undefined : requestedBy,
+        q: q.trim() || undefined,
+        page: 1,
+        limit: Math.max(10000, total || 0),
+      });
+      const rows = res.data || [];
+      if (!rows.length) {
+        toast({ title: 'No records to export' });
+        return;
+      }
+      downloadCsv(rows);
+      toast({ title: 'Demo records exported', description: `${rows.length} records downloaded.` });
+    } catch (error: any) {
+      toast({ title: 'Export failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="min-h-screen bg-gray-50">
@@ -238,6 +337,9 @@ export default function AdminDemoClassesPage() {
                 </select>
                 <Button variant="outline" size="sm" onClick={() => refresh()} disabled={loading}>
                   <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportDemoRecords} disabled={loading || exporting}>
+                  <Download className="mr-2 h-4 w-4" /> {exporting ? 'Exporting...' : 'Export'}
                 </Button>
               </div>
             </Card>
@@ -303,12 +405,22 @@ export default function AdminDemoClassesPage() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => cancelDemo(booking)}
-                                disabled={cancellingId === booking._id || acceptingId === booking._id}
+                                disabled={cancellingId === booking._id || acceptingId === booking._id || deletingId === booking._id}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 {cancellingId === booking._id ? 'Cancelling...' : 'Cancel'}
                               </Button>
                             )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteDemo(booking)}
+                              disabled={deletingId === booking._id || cancellingId === booking._id || acceptingId === booking._id}
+                              className="border-red-200 text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              {deletingId === booking._id ? 'Deleting...' : 'Delete'}
+                            </Button>
                           </div>
                         </div>
 

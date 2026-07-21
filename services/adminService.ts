@@ -148,6 +148,15 @@ export const acceptAdminDemoBooking = async (id: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const deleteAdminDemoBooking = async (id: string) => {
+  try {
+    const response = await api.delete(`/admin/bookings/${id}`);
+    return response.data || {};
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
 // Dashboard Statistics
 export const getDashboardStats = async () => {
   try {
