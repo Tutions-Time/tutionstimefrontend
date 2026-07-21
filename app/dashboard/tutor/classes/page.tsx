@@ -20,7 +20,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Dialog } from "@headlessui/react";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
-import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_NOTICE,
+  openClassLinkWithNotice,
+} from "@/utils/classJoinNotice";
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -488,20 +493,26 @@ const TutorRegularClasses = () => {
                   {/* Buttons */}
                   <div className="mt-4 flex gap-3">
                     {!isExpired && (
-                      <button
-                        onClick={() =>
-                          openClassLinkWithNotice(c.nextSession.meetingLink)
-                        }
-                        disabled={!canJoin}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold ${
-                          canJoin
-                            ? "bg-[#FFD54F] text-black"
-                            : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                        }`}
-                      >
-                        <Video className="w-4 h-4 inline-block mr-2" />
-                        Join
-                      </button>
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => {
+                            if (!canJoin) return;
+                            openClassLinkWithNotice(c.nextSession.meetingLink);
+                          }}
+                          disabled={!canJoin}
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                            canJoin
+                              ? "bg-[#FFD54F] text-black"
+                              : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                          }`}
+                        >
+                          <Video className="w-4 h-4 inline-block mr-2" />
+                          {canJoin ? "Join" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                        </button>
+                        {!canJoin && (
+                          <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                        )}
+                      </div>
                     )}
 
                     <button
@@ -711,27 +722,33 @@ const TutorRegularClasses = () => {
 
                         {/* Join Button */}
                         {!isExpired && s.status !== "completed" && (
-                          <button
-                            onClick={async () => {
-                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                              try {
-                                const res = await joinSession(s._id);
-                                if (res?.success && res?.url) {
-                                  window.open(res.url, "_blank", "noopener,noreferrer");
+                          <div className="space-y-1 text-right">
+                            <button
+                              onClick={async () => {
+                                if (!canJoin) return;
+                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                                try {
+                                  const res = await joinSession(s._id);
+                                  if (res?.success && res?.url) {
+                                    window.open(res.url, "_blank", "noopener,noreferrer");
+                                  }
+                                } catch {
+                                  // ignore
                                 }
-                              } catch {
-                                // ignore
-                              }
-                            }}
-                            disabled={!canJoin}
-                            className={`px-3 py-2 rounded-lg text-sm ${
-                              canJoin
-                                ? "bg-[#FFD54F] text-black"
-                                : "bg-gray-200 text-gray-600 cursor-not-allowed"
-                            }`}
-                          >
-                            Join Now
-                          </button>
+                              }}
+                              disabled={!canJoin}
+                              className={`px-3 py-2 rounded-lg text-sm ${
+                                canJoin
+                                  ? "bg-[#FFD54F] text-black"
+                                  : "bg-gray-200 text-gray-600 cursor-not-allowed"
+                              }`}
+                            >
+                              {canJoin ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                            </button>
+                            {!canJoin && (
+                              <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                            )}
+                          </div>
                         )}
                       </div>
 

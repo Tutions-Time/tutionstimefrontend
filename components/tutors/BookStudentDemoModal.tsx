@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
-import { X } from "lucide-react";
+import { IndianRupee, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { bookStudentDemo } from "@/services/bookingService";
 
@@ -16,6 +16,16 @@ const resolveStudentUserId = (student: any) => {
   if (!userId) return "";
   if (typeof userId === "string") return userId;
   return String(userId.id || userId._id || "");
+};
+
+const formatBudget = (budget?: string) => {
+  const value = String(budget || "").trim();
+  if (!value) return "Not provided";
+
+  return value
+    .replace(/Rs\./gi, "Rs. ")
+    .replace(/\s+/g, " ")
+    .replace(/;\s*/g, " | ");
 };
 
 interface Props {
@@ -37,6 +47,7 @@ export default function BookStudentDemoModal({
     ? student.preferredTimes
     : EMPTY_ARRAY;
   const board = student?.board;
+  const budget = formatBudget(student?.budget);
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
@@ -182,6 +193,15 @@ export default function BookStudentDemoModal({
             {board}
           </p>
         )}
+
+        <div className="mb-3 flex items-start gap-2 rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-700">
+          <IndianRupee className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-gray-600">Budget</p>
+            <p className="break-words">{budget}</p>
+          </div>
+        </div>
+
         {/* Subjects */}
         <div className="mb-3">
           <p className="text-xs font-medium text-gray-600 mb-1">

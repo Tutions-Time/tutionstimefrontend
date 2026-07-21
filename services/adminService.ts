@@ -139,6 +139,15 @@ export const cancelAdminDemoBooking = async (id: string, reason?: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
+export const acceptAdminDemoBooking = async (id: string) => {
+  try {
+    const response = await api.patch(`/admin/bookings/${id}/accept`);
+    return response.data || {};
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
 // Dashboard Statistics
 export const getDashboardStats = async () => {
   try {

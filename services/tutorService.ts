@@ -213,10 +213,11 @@ export const getTutorDemoInsights = async () => {
  */
 export const updateDemoRequestStatus = async (
   bookingId: string,
-  status: 'confirmed' | 'cancelled'
+  status: 'confirmed' | 'cancelled',
+  reason?: string
 ) => {
   try {
-    const response = await api.patch(`/bookings/${bookingId}/status`, { status });
+    const response = await api.patch(`/bookings/${bookingId}/status`, { status, reason });
     return response.data; // contains { success, message, data }
   } catch (error) {
     throw new Error(handleApiError(error));

@@ -2,6 +2,10 @@
 import { Dialog } from "@headlessui/react";
 import { useState } from "react";
 import { submitSessionFeedback } from "@/services/progressService";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+} from "@/utils/classJoinNotice";
 
 type Props = {
   open: boolean;
@@ -90,13 +94,21 @@ export default function GroupSessionsModal({
                         <div className="text-xs text-gray-500">{s.status}</div>
                       </div>
                       {!isExpired && s.status !== "completed" && (
-                        <button
-                          onClick={() => onJoin(s._id)}
-                          disabled={!canJoin}
-                          className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
-                        >
-                          Join Now
-                        </button>
+                        <div className="space-y-1 text-right">
+                          <button
+                            onClick={() => {
+                              if (!canJoin) return;
+                              onJoin(s._id);
+                            }}
+                            disabled={!canJoin}
+                            className={`px-3 py-2 rounded-lg text-sm ${canJoin ? "bg-[#FFD54F] text-black" : "bg-gray-200 text-gray-600 cursor-not-allowed"}`}
+                          >
+                            {canJoin ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                          </button>
+                          {!canJoin && (
+                            <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                          )}
+                        </div>
                       )}
                     </div>
                     {pendingRequests[s._id] && (

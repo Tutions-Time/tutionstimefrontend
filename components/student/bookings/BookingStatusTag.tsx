@@ -13,7 +13,7 @@ export default function BookingStatusTag({ status }: { status: string }) {
 
   const labels: Record<string, string> = {
     pending: "Pending",
-    confirmed: "Confirmed",
+    confirmed: "Booked",
     completed: "Completed",
     cancelled: "Cancelled",
     expired: "Expired",

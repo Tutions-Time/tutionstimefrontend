@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, Eye, RefreshCw, Search, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Eye, RefreshCw, Search, XCircle } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { cancelAdminDemoBooking, getAdminDemoBookings } from '@/services/adminService';
+import { acceptAdminDemoBooking, cancelAdminDemoBooking, getAdminDemoBookings } from '@/services/adminService';
 
 const STATUSES = ['all', 'pending', 'confirmed', 'completed', 'cancelled', 'expired', 'student-missed', 'tutor-missed'];
 
@@ -62,6 +62,11 @@ const statusClass = (status: string) => {
   return 'bg-gray-50 text-gray-700 border-gray-200';
 };
 
+const statusLabel = (status: string) => {
+  if (status === 'confirmed') return 'booked';
+  return status;
+};
+
 const formatDate = (value?: string) => {
   if (!value) return '-';
   const d = new Date(value);
@@ -109,6 +114,7 @@ export default function AdminDemoClassesPage() {
   const [limit, setLimit] = useState(20);
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const refresh = async (overrides?: Partial<{ page: number; q: string }>) => {
@@ -167,6 +173,19 @@ export default function AdminDemoClassesPage() {
     }
   };
 
+  const acceptDemo = async (booking: DemoBooking) => {
+    setAcceptingId(booking._id);
+    try {
+      await acceptAdminDemoBooking(booking._id);
+      toast({ title: 'Demo accepted' });
+      refresh();
+    } catch (error: any) {
+      toast({ title: 'Accept failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="min-h-screen bg-gray-50">
@@ -179,11 +198,11 @@ export default function AdminDemoClassesPage() {
           <main className="p-4 lg:p-6 space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Card className="rounded-lg bg-white p-4 shadow-sm">
-                <div className="text-xs text-muted">Visible total</div>
+                <div className="text-xs text-muted">All demo requests</div>
                 <div className="mt-1 text-2xl font-semibold text-text">{total}</div>
               </Card>
               <Card className="rounded-lg bg-white p-4 shadow-sm">
-                <div className="text-xs text-muted">Pending on this page</div>
+                <div className="text-xs text-muted">Pending for action</div>
                 <div className="mt-1 text-2xl font-semibold text-yellow-700">{summary.pending}</div>
               </Card>
               <Card className="rounded-lg bg-white p-4 shadow-sm">
@@ -204,7 +223,7 @@ export default function AdminDemoClassesPage() {
                   />
                 </div>
                 <select className="h-9 rounded-md border px-2 text-sm" value={status} onChange={(e) => { setPage(1); setStatus(e.target.value); }}>
-                  {STATUSES.map((s) => <option key={s} value={s}>{s === 'all' ? 'All statuses' : s}</option>)}
+                  {STATUSES.map((s) => <option key={s} value={s}>{s === 'all' ? 'All statuses' : statusLabel(s)}</option>)}
                 </select>
                 <select className="h-9 rounded-md border px-2 text-sm" value={requestedBy} onChange={(e) => { setPage(1); setRequestedBy(e.target.value as any); }}>
                   <option value="all">Any requester</option>
@@ -240,13 +259,14 @@ export default function AdminDemoClassesPage() {
                 <div className="divide-y">
                   {bookings.map((booking) => {
                     const canCancel = !['cancelled', 'completed', 'expired'].includes(booking.status);
+                    const canAccept = booking.status === 'pending';
                     return (
                       <div key={booking._id} className="p-4 space-y-4">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <h2 className="text-base font-semibold text-text">{booking.subject || 'Demo class'}</h2>
-                              <Badge className={`border ${statusClass(booking.status)}`}>{booking.status}</Badge>
+                              <Badge className={`border ${statusClass(booking.status)}`}>{statusLabel(booking.status)}</Badge>
                               <Badge variant="outline">Requested by {booking.requestedBy || 'student'}</Badge>
                               {booking.status === 'pending' && (
                                 <Badge className="border border-orange-200 bg-orange-50 text-orange-700">
@@ -267,12 +287,23 @@ export default function AdminDemoClassesPage() {
                                 <Button variant="outline" size="sm">Meeting</Button>
                               </a>
                             )}
+                            {canAccept && (
+                              <Button
+                                size="sm"
+                                onClick={() => acceptDemo(booking)}
+                                disabled={acceptingId === booking._id || cancellingId === booking._id}
+                                className="bg-green-600 text-white hover:bg-green-700"
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                {acceptingId === booking._id ? 'Accepting...' : 'Accept'}
+                              </Button>
+                            )}
                             {canCancel && (
                               <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => cancelDemo(booking)}
-                                disabled={cancellingId === booking._id}
+                                disabled={cancellingId === booking._id || acceptingId === booking._id}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 {cancellingId === booking._id ? 'Cancelling...' : 'Cancel'}
@@ -317,7 +348,7 @@ export default function AdminDemoClassesPage() {
 
                         {(booking.note || booking.expiryReason || booking.demoFeedback) && (
                           <div className="rounded-lg border bg-gray-50 p-3 text-sm text-muted">
-                            {booking.note && <div><span className="font-medium text-text">Note:</span> {booking.note}</div>}
+                            {booking.note && <div><span className="font-medium text-text">Remark/Reason:</span> {booking.note}</div>}
                             {booking.expiryReason && <div><span className="font-medium text-text">Expiry:</span> {booking.expiryReason} at {formatDateTime(booking.expiredAt)}</div>}
                             {booking.demoFeedback && (
                               <div>

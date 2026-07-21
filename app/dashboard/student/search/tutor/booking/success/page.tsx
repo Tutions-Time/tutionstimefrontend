@@ -32,19 +32,19 @@ export default function BookingSuccessPage() {
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} unreadCount={0} userRole="student" />
       <Sidebar userRole="student" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="lg:pr-64">
-        <Topbar title="Booking Confirmed" subtitle="Your session details" />
+        <Topbar title="Booking Successful" subtitle="Your session details" />
         <main className="p-6">
           <Card className="p-6 bg-white rounded-2xl shadow-sm">
             {!booking && <p className="text-gray-500">Loading booking...</p>}
             {booking && (
               <div className="space-y-3 text-gray-700">
                 <h2 className="text-xl font-semibold text-primary">
-                  🎉 {booking.type === "demo" ? "Demo Booked Successfully!" : "Class Confirmed!"}
+                  🎉 {booking.type === "demo" ? "Demo Booked Successfully!" : "Class Booked!"}
                 </h2>
                 <p><strong>Tutor:</strong> {booking.tutorId?.name || "N/A"}</p>
                 <p><strong>Subject:</strong> {booking.subject}</p>
                 <p><strong>Date:</strong> {dayjs(booking.startTime).format("MMM D, YYYY h:mm A")}</p>
-                <p><strong>Status:</strong> <span className="capitalize">{booking.status}</span></p>
+                <p><strong>Status:</strong> <span className="capitalize">{booking.status === "confirmed" ? "booked" : booking.status}</span></p>
 
                 {booking.zoomLink && (
                   <div className="mt-4">

@@ -7,7 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { joinSession } from "@/services/tutorService";
-import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_NOTICE,
+} from "@/utils/classJoinNotice";
 
 export default function UpcomingSessions() {
   const [loading, setLoading] = useState(true);
@@ -104,14 +108,19 @@ export default function UpcomingSessions() {
                 {displaySession.regularClass?.planType === "monthly" ? "Monthly" : "Regular"}
               </span> */}
           </div>
-          <div className="mt-4 flex justify-between items-center">
-            <Button
-              onClick={() => handleJoin(displaySession.session._id)}
-              disabled={!joinState.canJoin}
-              className={`px-4 py-2 rounded-full text-sm ${joinState.canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}
-            >
-              {joinState.canJoin ? "Join Now" : "Join (available soon)"}
-            </Button>
+          <div className="mt-4 flex justify-between items-start gap-3">
+            <div className="space-y-1">
+              <Button
+                onClick={() => handleJoin(displaySession.session._id)}
+                disabled={!joinState.canJoin}
+                className={`px-4 py-2 rounded-full text-sm ${joinState.canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}
+              >
+                {joinState.canJoin ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+              </Button>
+              {!joinState.canJoin && (
+                <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+              )}
+            </div>
             {/* <Link href={`/dashboard/student/demoBookings?tab=regular`}>
               <Button variant="outline" size="sm">
                 View Sessions

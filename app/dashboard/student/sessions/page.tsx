@@ -34,7 +34,15 @@ import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { getStudentRefunds } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
-import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_NOTICE,
+  DEMO_CLASS_DURATION_MINUTES,
+  REGULAR_CLASS_DURATION_MINUTES,
+  getClassJoinWindowState,
+  openClassLinkWithNotice,
+} from "@/utils/classJoinNotice";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -265,7 +273,7 @@ export default function StudentSessions() {
         description: "Regular Class Payment",
       });
       await verifyBookingPayment(bookingId, paymentResponse);
-      toast({ title: "Regular class confirmed!" });
+      toast({ title: "Regular class booked!" });
       fetchAll();
       router.push("/dashboard/student/demoBookings");
       return;
@@ -289,7 +297,7 @@ export default function StudentSessions() {
         handler: async (response: any) => {
           try {
             await verifyBookingPayment(bookingId, response);
-            toast({ title: "✅ Regular class confirmed!" });
+            toast({ title: "Regular class booked!" });
             fetchAll();
             router.push("/dashboard/student/demoBookings");
           } catch {
@@ -496,7 +504,15 @@ export default function StudentSessions() {
           )}
 
           <div className="grid gap-5">
-            {filteredSessions.map((s) => (
+            {filteredSessions.map((s) => {
+              const listJoinState = getClassJoinWindowState(s.startTime, {
+                durationMin:
+                  s.type === "demo"
+                    ? DEMO_CLASS_DURATION_MINUTES
+                    : REGULAR_CLASS_DURATION_MINUTES,
+              });
+
+              return (
               <Card
                 key={s._id}
                 className="p-6 bg-white border border-gray-100 rounded-2xl shadow hover:shadow-lg transition-all duration-300"
@@ -563,12 +579,26 @@ export default function StudentSessions() {
 
                   {/* Join Now */}
                   {s.status === "confirmed" && s.zoomLink && (
-                    <Button
-                      onClick={() => openClassLinkWithNotice(s.zoomLink)}
-                      className="bg-primary hover:bg-primary/90 text-white"
-                    >
-                      <Video className="w-4 h-4 mr-2" /> Join Now
-                    </Button>
+                    <div className="space-y-1">
+                      <Button
+                        onClick={() =>
+                          listJoinState.canJoin &&
+                          openClassLinkWithNotice(s.zoomLink)
+                        }
+                        disabled={!listJoinState.canJoin}
+                        className={`${
+                          listJoinState.canJoin
+                            ? "bg-primary hover:bg-primary/90 text-white"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        <Video className="w-4 h-4 mr-2" />
+                        {listJoinState.canJoin ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                      </Button>
+                      {!listJoinState.canJoin && (
+                        <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                      )}
+                    </div>
                   )}
 
                   {/* Cancel */}
@@ -710,7 +740,8 @@ export default function StudentSessions() {
                   );
                 })()}
               </Card>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-6">
             <Card className="p-6">
@@ -782,19 +813,25 @@ export default function StudentSessions() {
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button
-                            onClick={async () => {
-                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                              try {
-                                const res = await joinSession(s._id);
-                                if (res?.success && res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
-                              } catch { }
-                            }}
-                            disabled={!canJoin}
-                            className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}
-                          >
-                            Join Now
-                          </Button>
+                          <div className="space-y-1 text-right">
+                            <Button
+                              onClick={async () => {
+                                if (!canJoin) return;
+                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                                try {
+                                  const res = await joinSession(s._id);
+                                  if (res?.success && res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
+                                } catch { }
+                              }}
+                              disabled={!canJoin}
+                              className={`px-3 py-2 rounded-full text-sm ${canJoin ? "bg-primary text-white" : "bg-gray-200 text-gray-600"}`}
+                            >
+                              {canJoin ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                            </Button>
+                            {!canJoin && (
+                              <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                            )}
+                          </div>
 
                           {s.status === "completed" && s.notesUrl && (
                             <a href={safeUrl(s.notesUrl)} download target="_blank" rel="noreferrer">

@@ -14,7 +14,11 @@ import { markJoiningDemo } from "@/store/slices/reviewSlice";
 import BookingStatusTag from "./BookingStatusTag";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { markDemoJoin } from "@/services/bookingService";
-import { CLASS_JOIN_NOTICE } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_NOTICE,
+} from "@/utils/classJoinNotice";
 
 type BookingType = {
   _id: string;
@@ -159,42 +163,47 @@ export default function BookingCard({
         {/* JOIN BUTTON: only for confirmed demos inside join window           */}
         {/* ---------------------------------------------------------------- */}
         {booking.status === "confirmed" && booking.meetingLink ? (
-          <button
-            type="button"
-            disabled={!canJoin}
-            onClick={async () => {
-              if (!canJoin) return;
-              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+          <div className="space-y-1">
+            <button
+              type="button"
+              disabled={!canJoin}
+              onClick={async () => {
+                if (!canJoin) return;
+                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
 
-              try {
-                const joinRes = await markDemoJoin(booking._id);
-                const meetingLink = joinRes?.meetingLink || booking.meetingLink;
+                try {
+                  const joinRes = await markDemoJoin(booking._id);
+                  const meetingLink = joinRes?.meetingLink || booking.meetingLink;
 
-                dispatch(
-                  markJoiningDemo({
-                    bookingId: booking._id,
-                    tutorId: booking.tutorId,
-                    tutorName: booking.tutorName,
-                  })
-                );
+                  dispatch(
+                    markJoiningDemo({
+                      bookingId: booking._id,
+                      tutorId: booking.tutorId,
+                      tutorName: booking.tutorName,
+                    })
+                  );
 
-                window.open(meetingLink, "_blank", "noopener,noreferrer");
-              } catch {
-                window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
-              }
-            }}
-            className={`inline-flex items-center gap-2 font-semibold text-sm
-              px-4 py-2 rounded-full w-fit transition
-              ${
-                canJoin
-                  ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
-                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }
-            `}
-          >
-            <Video className="w-4 h-4" />
-            {canJoin ? "Join Demo" : "Join (available soon)"}
-          </button>
+                  window.open(meetingLink, "_blank", "noopener,noreferrer");
+                } catch {
+                  window.open(booking.meetingLink, "_blank", "noopener,noreferrer");
+                }
+              }}
+              className={`inline-flex items-center gap-2 font-semibold text-sm
+                px-4 py-2 rounded-full w-fit transition
+                ${
+                  canJoin
+                    ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black cursor-pointer"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                }
+              `}
+            >
+              <Video className="w-4 h-4" />
+              {canJoin ? "Join Demo" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+            </button>
+            {!canJoin && (
+              <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+            )}
+          </div>
         ) : null}
 
         {/* STATUS NOTES */}

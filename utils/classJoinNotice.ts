@@ -2,6 +2,9 @@ export const CLASS_JOIN_NOTICE =
   "Tab/Laptop and high speed internet is required.";
 
 export const CLASS_JOIN_BEFORE_MINUTES = 10;
+export const CLASS_JOIN_AVAILABLE_SOON_LABEL = "Join opens 10 mins before class";
+export const CLASS_JOIN_AVAILABLE_SOON_MESSAGE =
+  "Join button will be available 10 minutes before your class time.";
 export const CLASS_EXPIRE_AFTER_MINUTES = 5;
 export const REGULAR_CLASS_DURATION_MINUTES = 60;
 export const DEMO_CLASS_DURATION_MINUTES = 15;

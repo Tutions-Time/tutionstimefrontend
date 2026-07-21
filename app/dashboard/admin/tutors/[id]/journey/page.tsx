@@ -208,6 +208,11 @@ export default function TutorJourneyPage() {
     }
   };
 
+  const statusLabel = (status?: string) => {
+    if ((status || "").toLowerCase() === "confirmed") return "booked";
+    return status || "";
+  };
+
   const renderRatingStars = (rating?: number) => {
     const safe = Number.isFinite(rating) ? Math.max(0, Math.min(5, Number(rating))) : 0;
     const full = Math.floor(safe);
@@ -444,7 +449,7 @@ export default function TutorJourneyPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={cn("capitalize", statusTone(d.status))}>
-                              {d.status}
+                              {statusLabel(d.status)}
                             </Badge>
                             {d.regularClassId ? (
                               <Badge className="bg-emerald-100 text-emerald-900 border border-emerald-200">
@@ -517,7 +522,7 @@ export default function TutorJourneyPage() {
                                   )}
                                 </div>
                                 <Badge className={cn("capitalize", statusTone(s.status))}>
-                                  {s.status}
+                                  {statusLabel(s.status)}
                                 </Badge>
                               </div>
                             ))
@@ -541,7 +546,7 @@ export default function TutorJourneyPage() {
                                 )}
                               </div>
                               <Badge className={cn("capitalize", statusTone(s.status))}>
-                                {s.status}
+                                {statusLabel(s.status)}
                               </Badge>
                             </div>
                           ))
@@ -585,7 +590,7 @@ export default function TutorJourneyPage() {
                             </div>
                           </div>
                           <Badge className={cn("capitalize", statusTone(b.status))}>
-                            {b.status}
+                            {statusLabel(b.status)}
                           </Badge>
                         </div>
                       ))
@@ -623,7 +628,7 @@ export default function TutorJourneyPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge className={cn("capitalize", statusTone(p.status))}>
-                              {p.status}
+                              {statusLabel(p.status)}
                             </Badge>
                             {p.refundTotal ? (
                               <Badge variant="secondary">Refunded {formatMoney(p.refundTotal)}</Badge>

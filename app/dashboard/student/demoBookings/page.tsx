@@ -19,7 +19,12 @@ import { submitSessionFeedback } from "@/services/progressService";
 import { getRegularPaymentByClass, requestRefund, getStudentRefunds, previewRefund } from "@/services/studentService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileService";
-import { CLASS_JOIN_NOTICE, openClassLinkWithNotice } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_NOTICE,
+  openClassLinkWithNotice,
+} from "@/utils/classJoinNotice";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -348,19 +353,24 @@ export default function StudentBookingsPage() {
                         <div className="mt-4 flex flex-wrap gap-3">
                           {/* JOIN BUTTON (never hidden, just disabled when outside window) */}
                           {!joinState.isExpired && (
-                            <Button
-                              onClick={() =>
-                                joinState.inJoinWindow &&
-                                openClassLinkWithNotice(next.meetingLink)
-                              }
-                              disabled={!joinState.inJoinWindow}
-                              className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg"
-                            >
-                              <Video className="w-4 h-4 mr-2" />
-                              {joinState.inJoinWindow
-                                ? "Join Now"
-                                : "Join (available soon)"}
-                            </Button>
+                            <div className="space-y-1">
+                              <Button
+                                onClick={() =>
+                                  joinState.inJoinWindow &&
+                                  openClassLinkWithNotice(next.meetingLink)
+                                }
+                                disabled={!joinState.inJoinWindow}
+                                className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg disabled:bg-gray-200 disabled:text-gray-600 disabled:shadow-none"
+                              >
+                                <Video className="w-4 h-4 mr-2" />
+                                {joinState.inJoinWindow
+                                  ? "Join Now"
+                                  : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                              </Button>
+                              {!joinState.inJoinWindow && (
+                                <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                              )}
+                            </div>
                           )}
 
                           {/* VIEW SESSIONS */}
@@ -462,21 +472,26 @@ export default function StudentBookingsPage() {
                         </div>
 
                         {!isExpired && (
-                          <Button
-                            onClick={async () => {
-                              if (!inJoinWindow) return;
-                              if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                              try {
-                                const res = await joinSession(s._id);
-                                if (res?.success && res?.url)
-                                  window.open(res.url, "_blank", "noopener,noreferrer");
-                              } catch {}
-                            }}
-                            disabled={!inJoinWindow}
-                            className="bg-[#FFD54F] text-black px-3 py-2 rounded-full text-sm"
-                          >
-                            {inJoinWindow ? "Join Now" : "Join (available soon)"}
-                          </Button>
+                          <div className="space-y-1 text-right">
+                            <Button
+                              onClick={async () => {
+                                if (!inJoinWindow) return;
+                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                                try {
+                                  const res = await joinSession(s._id);
+                                  if (res?.success && res?.url)
+                                    window.open(res.url, "_blank", "noopener,noreferrer");
+                                } catch {}
+                              }}
+                              disabled={!inJoinWindow}
+                              className="bg-[#FFD54F] text-black px-3 py-2 rounded-full text-sm disabled:bg-gray-200 disabled:text-gray-600"
+                            >
+                              {inJoinWindow ? "Join Now" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                            </Button>
+                            {!inJoinWindow && (
+                              <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                            )}
+                          </div>
                         )}
                       </div>
 

@@ -4,7 +4,11 @@ import { Calendar, Clock, Video, CheckCircle, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { openClassLinkWithNotice } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  openClassLinkWithNotice,
+} from "@/utils/classJoinNotice";
 
 export interface TutorClass {
   id: string;
@@ -140,16 +144,24 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
 
                   {/* JOIN BUTTON FROM NEXT SESSION */}
                   {next?.meetingLink ? (
-                    <button
-                      disabled={!canJoin}
-                      onClick={() => openClassLinkWithNotice(next.meetingLink)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg w-full sm:w-auto text-sm font-medium transition
-                        ${canJoin ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-200 text-gray-600"}
-                      `}
-                    >
-                      <Video className="w-4 h-4" />
-                      {canJoin ? "Join Class" : "Join (available soon)"}
-                    </button>
+                    <div className="space-y-1">
+                      <button
+                        disabled={!canJoin}
+                        onClick={() => {
+                          if (!canJoin) return;
+                          openClassLinkWithNotice(next.meetingLink);
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg w-full sm:w-auto text-sm font-medium transition
+                          ${canJoin ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-200 text-gray-600 cursor-not-allowed"}
+                        `}
+                      >
+                        <Video className="w-4 h-4" />
+                        {canJoin ? "Join Class" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                      </button>
+                      {!canJoin && (
+                        <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                      )}
+                    </div>
                   ) : (
                     <Button className="bg-primary text-white w-full sm:w-auto">
                       <Video className="w-4 h-4 mr-2" />

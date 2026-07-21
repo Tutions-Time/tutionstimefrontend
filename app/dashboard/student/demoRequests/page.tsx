@@ -8,11 +8,17 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, Video, CheckCircle } from "lucide-react";
+import { CalendarDays, Clock, Eye, Video, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { markDemoJoin } from "@/services/bookingService";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
-import { CLASS_JOIN_NOTICE, DEMO_CLASS_DURATION_MINUTES, getClassJoinWindowState } from "@/utils/classJoinNotice";
+import {
+  CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  CLASS_JOIN_NOTICE,
+  DEMO_CLASS_DURATION_MINUTES,
+  getClassJoinWindowState,
+} from "@/utils/classJoinNotice";
 
 import {
   getStudentDemoRequests,
@@ -106,10 +112,22 @@ export default function StudentDemoRequests() {
     id: string,
     status: "confirmed" | "cancelled"
   ) => {
+    const reason =
+      status === "cancelled"
+        ? window.prompt("Reason for rejecting this demo request?", "")
+        : null;
+    if (status === "cancelled") {
+      if (reason === null) return;
+      if (!reason.trim()) {
+        toast({ title: "Reason required", description: "Please enter a reason before rejecting." });
+        return;
+      }
+    }
+
     try {
       setActionLoading((prev) => ({ ...prev, [id]: status }));
 
-      const res = await updateStudentDemoRequestStatus(id, status);
+      const res = await updateStudentDemoRequestStatus(id, status, reason?.trim());
 
       if (res.success) {
         toast({ title: "Success", description: res.message });
@@ -219,7 +237,7 @@ export default function StudentDemoRequests() {
                   {/* Status */}
                   {req.status === "confirmed" ? (
                     <Badge className="bg-green-100 text-green-700 border-green-200">
-                      <CheckCircle className="w-3 h-3 mr-1" /> Confirmed
+                      <CheckCircle className="w-3 h-3 mr-1" /> Booked
                     </Badge>
                   ) : req.status === "expired" ? (
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">
@@ -253,6 +271,17 @@ export default function StudentDemoRequests() {
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2 flex-wrap">
+                  {req.tutorProfileId && (
+                    <Link href={`/dashboard/student/search/tutor/${req.tutorProfileId}?userId=${req.tutorUserId || req.tutorId}`}>
+                      <Button
+                        variant="outline"
+                        className="rounded-full px-4 py-2"
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Profile
+                      </Button>
+                    </Link>
+                  )}
                   {req.status === "pending" && req.requestedBy === "tutor" && (
                     <>
                       {/* Accept */}
@@ -308,31 +337,36 @@ export default function StudentDemoRequests() {
                       durationMin: DEMO_CLASS_DURATION_MINUTES,
                     });
                     return (
-                      <button
-                        disabled={!joinState.canJoin}
-                        onClick={async () => {
-                          if (!joinState.canJoin) return;
-                          if (!window.confirm(CLASS_JOIN_NOTICE)) return;
-                          let meetingLink = req.meetingLink;
-                          try {
-                            const joinRes = await markDemoJoin(req._id);
-                            meetingLink = joinRes?.meetingLink || meetingLink;
-                          } catch {}
-                          window.open(
-                            meetingLink,
-                            "_blank",
-                            "noopener,noreferrer"
-                          );
-                        }}
-                        className={`flex items-center gap-2 font-medium text-sm px-4 py-2 rounded-full transition ${
-                          joinState.canJoin
-                            ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black"
-                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        }`}
-                      >
-                        <Video className="w-4 h-4" />
-                        {joinState.canJoin ? "Join Demo" : "Join (available soon)"}
-                      </button>
+                      <div className="space-y-1">
+                        <button
+                          disabled={!joinState.canJoin}
+                          onClick={async () => {
+                            if (!joinState.canJoin) return;
+                            if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                            let meetingLink = req.meetingLink;
+                            try {
+                              const joinRes = await markDemoJoin(req._id);
+                              meetingLink = joinRes?.meetingLink || meetingLink;
+                            } catch {}
+                            window.open(
+                              meetingLink,
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                          }}
+                          className={`flex items-center gap-2 font-medium text-sm px-4 py-2 rounded-full transition ${
+                            joinState.canJoin
+                              ? "bg-[#FFD54F] hover:bg-[#f3c942] text-black"
+                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          }`}
+                        >
+                          <Video className="w-4 h-4" />
+                          {joinState.canJoin ? "Join Demo" : CLASS_JOIN_AVAILABLE_SOON_LABEL}
+                        </button>
+                        {!joinState.canJoin && (
+                          <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
+                        )}
+                      </div>
                     );
                   })()}
 
