@@ -25,6 +25,7 @@ import {
   updateStudentDemoRequestStatus,
 } from "@/services/studentDemoService";
 import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
+import { formatTime12 } from "@/utils/timeFormat";
 
 export default function StudentDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,7 +35,7 @@ export default function StudentDemoRequests() {
 
   // 🔥 Per-request action loading
   const [actionLoading, setActionLoading] = useState<{
-    [key: string]: "confirmed" | "cancelled" | null;
+    [key: string]: "confirmed" | "rejected" | null;
   }>({});
 
   const getExpiryMessage = (booking: any) => {
@@ -110,13 +111,13 @@ export default function StudentDemoRequests() {
   // Accept / Reject
   const handleStatus = async (
     id: string,
-    status: "confirmed" | "cancelled"
+    status: "confirmed" | "rejected"
   ) => {
     const reason =
-      status === "cancelled"
+      status === "rejected"
         ? window.prompt("Reason for rejecting this demo request?", "")
         : null;
-    if (status === "cancelled") {
+    if (status === "rejected") {
       if (reason === null) return;
       if (!reason.trim()) {
         toast({ title: "Reason required", description: "Please enter a reason before rejecting." });
@@ -229,7 +230,7 @@ export default function StudentDemoRequests() {
 
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {req.preferredTime || "Scheduled"}
+                        {formatTime12(req.preferredTime) || "Scheduled"}
                       </span>
                     </div>
                   </div>
@@ -245,7 +246,11 @@ export default function StudentDemoRequests() {
                     </Badge>
                   ) : req.status === "cancelled" ? (
                     <Badge className="bg-gray-100 text-gray-700 border-gray-200">
-                      cancelled
+                      Cancelled
+                    </Badge>
+                  ) : req.status === "rejected" ? (
+                    <Badge className="bg-red-100 text-red-700 border-red-200">
+                      Rejected
                     </Badge>
                   ) : req.status === "completed" ? (
                     <Badge className="bg-blue-100 text-blue-700 border-blue-200">
@@ -307,14 +312,14 @@ export default function StudentDemoRequests() {
                       {/* Reject */}
                       <Button
                         onClick={() =>
-                          handleStatus(req._id, "cancelled")
+                          handleStatus(req._id, "rejected")
                         }
                         disabled={
-                          actionLoading[req._id] === "cancelled"
+                          actionLoading[req._id] === "rejected"
                         }
                         className="bg-red-500 hover:bg-red-600 text-white rounded-full px-4 py-2 disabled:opacity-70"
                       >
-                        {actionLoading[req._id] === "cancelled" ? (
+                        {actionLoading[req._id] === "rejected" ? (
                           <span className="flex items-center gap-2">
                             <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             Rejecting...

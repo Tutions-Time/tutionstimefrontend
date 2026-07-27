@@ -19,7 +19,7 @@ export const getStudentDemoRequests = async () => {
  */
 export const updateStudentDemoRequestStatus = async (
   bookingId: string,
-  status: "confirmed" | "cancelled",
+  status: "confirmed" | "rejected",
   reason?: string
 ) => {
   try {

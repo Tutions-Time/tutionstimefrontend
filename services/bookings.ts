@@ -18,7 +18,7 @@ export type Booking = {
   date: string;
   startTime: string;
   endTime: string;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
+  status: "pending" | "confirmed" | "cancelled" | "rejected" | "completed" | "expired";
   type: "demo" | "regular";
   amount: number;
   paymentStatus: "pending" | "initiated" | "completed" | "failed";

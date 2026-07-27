@@ -18,11 +18,18 @@ import { setTutorSlots, getMySlots, deleteSlot, Slot } from '@/services/availabi
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const getDefaultPmTime = (selectedDate?: Dayjs | null) => {
+  const noon = dayjs().hour(12).minute(0).second(0).millisecond(0);
+  if (!selectedDate || !selectedDate.isSame(dayjs(), 'day')) return noon;
+  if (noon.isAfter(dayjs())) return noon;
+  return dayjs().add(5, 'minute').startOf('minute');
+};
+
 export default function TutorBookingFlow() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
-  const [startTime, setStartTime] = useState<Dayjs | null>(null);
-  const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [startTime, setStartTime] = useState<Dayjs | null>(getDefaultPmTime(dayjs()));
+  const [endTime, setEndTime] = useState<Dayjs | null>(getDefaultPmTime(dayjs()).add(1, 'hour'));
   const [slots, setSlots] = useState<
     { startTime: string; endTime: string; slotType: 'demo' | 'regular' }[]
   >([]);
@@ -37,6 +44,12 @@ export default function TutorBookingFlow() {
   useEffect(() => {
     fetchMySlots();
   }, []);
+
+  useEffect(() => {
+    const defaultStartTime = getDefaultPmTime(selectedDate);
+    setStartTime(defaultStartTime);
+    setEndTime(defaultStartTime.add(1, 'hour'));
+  }, [selectedDate]);
 
   const fetchMySlots = async () => {
     try {
@@ -151,8 +164,9 @@ export default function TutorBookingFlow() {
       title: 'Slot Added',
       description: `${slotType === 'demo' ? 'Demo (15 min)' : 'Regular'} slot added.`,
     });
-    setStartTime(null);
-    setEndTime(null);
+    const defaultStartTime = getDefaultPmTime(selectedDate);
+    setStartTime(defaultStartTime);
+    setEndTime(defaultStartTime.add(1, 'hour'));
   };
 
   const handleRemoveSlot = (index: number) => {
@@ -177,8 +191,9 @@ export default function TutorBookingFlow() {
       fetchMySlots();
       // Reset pickers
       setSelectedDate(dayjs());
-      setStartTime(null);
-      setEndTime(null);
+      const defaultStartTime = getDefaultPmTime(dayjs());
+      setStartTime(defaultStartTime);
+      setEndTime(defaultStartTime.add(1, 'hour'));
       setSlotType('demo');
     } catch (err: any) {
       toast({

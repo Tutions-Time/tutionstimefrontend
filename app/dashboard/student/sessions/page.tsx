@@ -43,6 +43,7 @@ import {
   getClassJoinWindowState,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
+import { formatTime12 } from "@/utils/timeFormat";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -809,7 +810,7 @@ export default function StudentSessions() {
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           <div>{start.toLocaleDateString("en-IN")}</div>
-                          <div>{start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                          <div>{formatTime12(start)}</div>
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>
                         <div className="flex items-center gap-2">

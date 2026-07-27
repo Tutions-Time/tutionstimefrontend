@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { acceptAdminDemoBooking, cancelAdminDemoBooking, deleteAdminDemoBooking, getAdminDemoBookings } from '@/services/adminService';
+import { formatDateTime12, formatTimeRange12 } from '@/utils/timeFormat';
 
-const STATUSES = ['all', 'pending', 'confirmed', 'completed', 'cancelled', 'expired', 'student-missed', 'tutor-missed'];
+const STATUSES = ['all', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected', 'expired', 'student-missed', 'tutor-missed'];
 
 type Person = {
   userId?: string;
@@ -58,7 +59,7 @@ const statusClass = (status: string) => {
   if (status === 'confirmed') return 'bg-blue-50 text-blue-700 border-blue-200';
   if (status === 'completed') return 'bg-green-50 text-green-700 border-green-200';
   if (status === 'pending') return 'bg-yellow-50 text-yellow-800 border-yellow-200';
-  if (status === 'cancelled' || status === 'expired') return 'bg-red-50 text-red-700 border-red-200';
+  if (status === 'cancelled' || status === 'rejected' || status === 'expired') return 'bg-red-50 text-red-700 border-red-200';
   return 'bg-gray-50 text-gray-700 border-gray-200';
 };
 
@@ -75,10 +76,7 @@ const formatDate = (value?: string) => {
 };
 
 const formatDateTime = (value?: string | null) => {
-  if (!value) return '-';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '-';
-  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return formatDateTime12(value);
 };
 
 const ageText = (value?: string) => {
@@ -133,7 +131,7 @@ const downloadCsv = (rows: DemoBooking[]) => {
     booking.requestedBy || 'student',
     booking.subject || (booking.subjects || []).join(', '),
     formatDate(booking.preferredDate),
-    [booking.preferredTime || '', booking.preferredEndTime ? `to ${booking.preferredEndTime}` : ''].filter(Boolean).join(' '),
+    formatTimeRange12(booking.preferredTime, booking.preferredEndTime),
     booking.student?.name || '',
     booking.student?.email || '',
     booking.student?.phone || '',
@@ -360,7 +358,7 @@ export default function AdminDemoClassesPage() {
               ) : (
                 <div className="divide-y">
                   {bookings.map((booking) => {
-                    const canCancel = !['cancelled', 'completed', 'expired'].includes(booking.status);
+                    const canCancel = !['cancelled', 'rejected', 'completed', 'expired'].includes(booking.status);
                     const canAccept = booking.status === 'pending';
                     return (
                       <div key={booking._id} className="p-4 space-y-4">
@@ -378,7 +376,7 @@ export default function AdminDemoClassesPage() {
                             </div>
                             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                               <span className="inline-flex items-center gap-1"><Calendar className="h-4 w-4" /> {formatDate(booking.preferredDate)}</span>
-                              <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {booking.preferredTime || '-'}{booking.preferredEndTime ? ` to ${booking.preferredEndTime}` : ''}</span>
+                              <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {formatTimeRange12(booking.preferredTime, booking.preferredEndTime) || '-'}</span>
                               <span>Created {formatDateTime(booking.createdAt)}</span>
                             </div>
                           </div>

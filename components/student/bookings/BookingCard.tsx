@@ -19,6 +19,7 @@ import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
+import { formatTime12 } from "@/utils/timeFormat";
 
 type BookingType = {
   _id: string;
@@ -149,7 +150,7 @@ export default function BookingCard({
 
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4 text-[--primary]" />
-            {booking.preferredTime}
+            {formatTime12(booking.preferredTime)}
           </span>
         </div>
 

@@ -26,6 +26,7 @@ import {
   CLASS_JOIN_NOTICE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
+import { formatTimeSlot12 } from "@/utils/timeFormat";
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -195,7 +196,7 @@ const TutorRegularClasses = () => {
       minute: "2-digit",
       hour12: true,
       timeZone: "UTC",
-    });
+    }).toUpperCase();
 
   // ------------------------------------------------------
   // ⭐ JOIN LOGIC CALC (Unified frontend logic)
@@ -497,7 +498,17 @@ const TutorRegularClasses = () => {
                         <button
                           onClick={() => {
                             if (!canJoin) return;
-                            openClassLinkWithNotice(c.nextSession.meetingLink);
+                            if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                            joinSession(c.nextSession.sessionId)
+                              .then((res) => {
+                                const meetingUrl = res?.url || c.nextSession.meetingLink;
+                                if (meetingUrl) {
+                                  window.open(meetingUrl, "_blank", "noopener,noreferrer");
+                                }
+                              })
+                              .catch(() => {
+                                openClassLinkWithNotice(c.nextSession.meetingLink);
+                              });
                           }}
                           disabled={!canJoin}
                           className={`px-4 py-2 rounded-lg text-sm font-semibold ${
@@ -558,7 +569,7 @@ const TutorRegularClasses = () => {
                     </div>
                     {!!(c.preferredTimes?.length || c.student?.preferredTimes?.length) && (
                       <div className="text-gray-600 text-xs mt-2">
-                        Preferred Time: {(c.preferredTimes || c.student?.preferredTimes || []).join(", ")}
+                        Preferred Time: {(c.preferredTimes || c.student?.preferredTimes || []).map(formatTimeSlot12).join(", ")}
                       </div>
                     )}
                   </div>
@@ -606,7 +617,7 @@ const TutorRegularClasses = () => {
                         onClick={() => applyPreferredSlot(slot)}
                         className="px-2 py-1 rounded-full text-xs border bg-[#FFD54F]/20 hover:bg-[#FFD54F]/30 text-gray-800"
                       >
-                        {slot}
+                        {formatTimeSlot12(slot)}
                       </button>
                     ))}
                   </div>
@@ -877,10 +888,11 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   const cleaned = photoUrl
     .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+    .replace(/^[A-Za-z]:[\\/].*?[\\/]uploads[\\/]/i, "uploads/")
     .replace(/\\/g, "/")
     .replace(/^.*uploads\//, "uploads/");
 
-  return `${IMAGE_BASE}/${cleaned}`;
+  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
 };
 
 

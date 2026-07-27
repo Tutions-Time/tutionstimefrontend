@@ -30,6 +30,8 @@ import { toast } from '@/hooks/use-toast';
 import { getAllUsers, getUserById, updateUserStatus, hardDeleteUser } from '@/services/adminService';
 import { Trash2 } from 'lucide-react';
 import { FileDown } from 'lucide-react';
+import { formatTimeSlot12 } from '@/utils/timeFormat';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 type Role = 'student' | 'tutor' | 'admin';
 type Status = 'active' | 'inactive' | 'suspended';
@@ -161,13 +163,7 @@ export default function AdminUsersPage() {
     return () => clearTimeout(t);
   }, [page, limit, status, query, sort]);
 
-  // Image URL helper
-  const imgSrc = (url?: string) => {
-    if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || '';
-    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
-  };
+  const imgSrc = getImageUrl;
 
   const formatText = (value?: string | null) => (value ? String(value) : 'N/A');
   const formatList = (value?: string[] | null) =>
@@ -325,7 +321,7 @@ export default function AdminUsersPage() {
       csvOtherValue(r.targetYear, r.targetYearOther),
       csvValue([...(Array.isArray(r.subjects) ? r.subjects : []), r.subjectOther].filter(Boolean)),
       csvOtherValue(r.tutorGenderPref, r.tutorGenderOther),
-      csvValue(r.preferredTimes),
+      csvValue(Array.isArray(r.preferredTimes) ? r.preferredTimes.map(formatTimeSlot12).join(', ') : r.preferredTimes),
       r.budget || '',
       r.goals || '',
       csvValue(r.availability),
@@ -890,7 +886,7 @@ export default function AdminUsersPage() {
                   </div>
                   <div>
                     <div className="text-muted">Preferred Time Slots</div>
-                    <div>{formatList(profileData?.preferredTimes)}</div>
+                    <div>{formatList(Array.isArray(profileData?.preferredTimes) ? profileData.preferredTimes.map(formatTimeSlot12) : profileData?.preferredTimes)}</div>
                   </div>
                   <div>
                     <div className="text-muted">Learning Goals</div>

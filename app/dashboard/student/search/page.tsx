@@ -144,7 +144,10 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
 
 export default function SearchTutors() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+  const IMAGE_BASE =
+    process.env.NEXT_PUBLIC_IMAGE_URL ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") ||
+    "http://127.0.0.1:5000";
 
  function getImageUrl(photoUrl?: string) {
   if (!photoUrl) return "/default-avatar.png";
@@ -156,6 +159,7 @@ export default function SearchTutors() {
 
   const cleaned = photoUrl
     .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
+    .replace(/^[A-Za-z]:[\\/].*?[\\/]uploads[\\/]/i, "uploads/")
     .replace(/\\/g, "/")
     .replace(/^.*uploads\//, "uploads/");
 

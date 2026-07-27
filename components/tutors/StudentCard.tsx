@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import BookStudentDemoModal from "@/components/tutors/BookStudentDemoModal";
+import { formatTimeSlot12 } from "@/utils/timeFormat";
 
 interface StudentCardProps {
   student: any;
@@ -130,7 +131,7 @@ export default function StudentCard({
           <Clock className="w-3 h-3" />
 
           {displayedPreferredTime ? (
-            <span className="truncate">Preferred Time: {displayedPreferredTime}</span>
+            <span className="truncate">Preferred Time: {formatTimeSlot12(displayedPreferredTime)}</span>
           ) : (
             <span>Preferred time not provided</span>
           )}

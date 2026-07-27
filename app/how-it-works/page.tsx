@@ -2,167 +2,239 @@
 
 import Link from "next/link";
 import {
-  UserPlus,
   BadgeCheck,
-  Search,
+  BookOpen,
   CalendarCheck,
-  ShieldCheck,
+  CheckCircle2,
   CreditCard,
   MessageSquare,
+  Search,
+  ShieldCheck,
   TrendingUp,
-  BookOpen,
-  Wallet,
+  UserPlus,
   Users,
-  ArrowLeft,
+  Wallet,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 type Step = {
+  title: string;
   text: string;
   icon: React.ReactNode;
 };
 
 const studentSteps: Step[] = [
   {
-    text: "Sign up for free on our website and tell us what kind of tuition you’re looking for.",
+    title: "Create Your Account",
+    text: "Sign up for free and share the class, subject, learning mode, and schedule you need.",
     icon: <UserPlus className="h-5 w-5" />,
   },
   {
-    text: "Register as a free student or parent member. Our team will quickly verify your profile, and once approved, it will be visible on the platform.",
+    title: "Get Profile Ready",
+    text: "Complete your student or parent profile so tutors can understand your learning requirements clearly.",
     icon: <BadgeCheck className="h-5 w-5" />,
   },
   {
-    text: "Browse through tutor profiles and filter them by your preferred time, class, subject, teaching mode (online or offline), or city.",
+    title: "Find Verified Tutors",
+    text: "Search tutors by subject, class, preferred time, teaching mode, location, and profile details.",
     icon: <Search className="h-5 w-5" />,
   },
   {
-    text: "Choose a tutor you like and book a demo session at a time and mode that works best for you.",
+    title: "Book a Demo",
+    text: "Choose a tutor and schedule a demo session at a time that works for both sides.",
     icon: <CalendarCheck className="h-5 w-5" />,
   },
   {
-    text: "Before you move ahead, take a moment to check the tutor’s credentials and make sure you’re comfortable with them.",
+    title: "Review Credentials",
+    text: "Check tutor experience, qualification, teaching style, and comfort before moving ahead.",
     icon: <ShieldCheck className="h-5 w-5" />,
   },
   {
-    text: "After the demo session, pay the tuition fee in advance to the tuitionstime account. Once the payment is confirmed, we’ll share the contact details of both the student and the tutor.",
+    title: "Start Paid Classes",
+    text: "After a successful demo, complete the payment and continue with regular learning sessions.",
     icon: <CreditCard className="h-5 w-5" />,
   },
   {
-    text: "Keep track of the tuition sessions and share your feedback—it helps other students and parents make better choices.",
+    title: "Share Feedback",
+    text: "Track sessions and give feedback so your learning experience keeps improving.",
     icon: <MessageSquare className="h-5 w-5" />,
   },
   {
-    text: "With the right private tutor or mentor, learning becomes more effective, and you can easily track your academic progress along the way.",
+    title: "Track Progress",
+    text: "Use regular classes, notes, assignments, and feedback to monitor academic growth.",
     icon: <TrendingUp className="h-5 w-5" />,
   },
 ];
 
 const tutorSteps: Step[] = [
   {
-    text: "Sign up for free on tuitionstime and join as a tutor in just a few minutes.",
+    title: "Join as Tutor",
+    text: "Create your free tutor account and start setting up your teaching profile.",
     icon: <UserPlus className="h-5 w-5" />,
   },
   {
-    text: "Create your profile, showcase your skills, and set your own fees (hourly or monthly).",
+    title: "Build Your Profile",
+    text: "Add your subjects, qualifications, experience, teaching mode, location, and fees.",
     icon: <BookOpen className="h-5 w-5" />,
   },
   {
-    text: "Our team will verify your profile, and once approved, it will go live so students can find you.",
+    title: "Complete Verification",
+    text: "Submit profile and KYC details so students can trust your profile before booking.",
     icon: <BadgeCheck className="h-5 w-5" />,
   },
   {
-    text: "Browse student requirements based on your availability, teaching mode (online/offline), subject, class, or city.",
+    title: "Find Student Requests",
+    text: "Browse matching students by subject, class, timing, learning mode, and city.",
     icon: <Search className="h-5 w-5" />,
   },
   {
-    text: "Choose students that match your schedule and book demo sessions at your convenience.",
+    title: "Schedule Demos",
+    text: "Invite students or respond to incoming demo requests based on your availability.",
     icon: <Users className="h-5 w-5" />,
   },
   {
-    text: "After a successful demo and payment confirmation, student contact details are shared so you can start teaching.",
+    title: "Teach Regularly",
+    text: "After demo confirmation and payment, conduct regular sessions through the platform.",
     icon: <CalendarCheck className="h-5 w-5" />,
   },
   {
-    text: "Earn while you learn—gain experience, build your profile, and become financially independent.",
+    title: "Grow Earnings",
+    text: "Build your reputation, manage classes, and track your earnings from your dashboard.",
     icon: <Wallet className="h-5 w-5" />,
   },
 ];
 
-function StepItem({ step }: { step: Step }) {
+function StepCard({ step, index }: { step: Step; index: number }) {
   return (
-    <li className="flex gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex h-10 w-10 p-2 items-center justify-center rounded-lg bg-primary text-black">
-        {step.icon}
+    <li className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-primary/70 hover:shadow-md">
+      <div className="flex items-start gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-slate-950">
+          {step.icon}
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              Step {index + 1}
+            </span>
+            <CheckCircle2 className="h-4 w-4 text-primary" />
+          </div>
+          <h3 className="mt-1 text-base font-semibold text-slate-950">
+            {step.title}
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{step.text}</p>
+        </div>
       </div>
-      <p className="text-sm leading-6 text-slate-700">{step.text}</p>
     </li>
   );
 }
 
 export default function HowItWorksPage() {
-  const router = useRouter();
-
   return (
-    <main className="bg-slate-50 min-h-screen">
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 py-14">
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
+    <div className="min-h-screen bg-white">
+      <Navbar />
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-          How tuitionstime Works
-        </h1>
+      <main>
+        <section className="border-b bg-slate-50">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+                How it works
+              </p>
+              <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+                Learn or teach with a clear, trusted process
+              </h1>
+              <p className="mt-5 text-base leading-7 text-slate-600 sm:text-lg">
+                tuitionstime helps students find verified tutors, attend demo
+                classes, and continue learning with transparent scheduling,
+                payments, and progress tracking.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/signup?role=student"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-primary/90"
+                >
+                  Book a Free Demo
+                </Link>
+                <Link
+                  href="/signup?role=tutor"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400"
+                >
+                  Join as Tutor
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <p className="mt-3 max-w-2xl text-slate-600">
-          Simple, transparent, and trusted tuition booking for students, parents,
-          and tutors.
-        </p>
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="mb-8 max-w-3xl">
+            <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+              For Students and Parents
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+              From searching tutors to continuing regular classes, every step is
+              designed to make tutor selection simple and transparent.
+            </p>
+          </div>
 
-        {/* <div className="mt-6">
-          <Link
-            href="/"
-            className="inline-block rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-black shadow"
-          >
-            Get Free Demo Class
-          </Link>
-        </div> */}
-      </section>
+          <ol className="grid gap-4 md:grid-cols-2">
+            {studentSteps.map((step, index) => (
+              <StepCard key={step.title} step={step} index={index} />
+            ))}
+          </ol>
+        </section>
 
-      {/* Students */}
-      <section className="mx-auto max-w-6xl px-4 pb-14">
-        <h2 className="mb-6 text-2xl font-bold text-slate-900">
-          How It Works For <span className="text-primary">Students</span>
-        </h2>
+        <section className="bg-slate-50 py-14">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 max-w-3xl">
+              <h2 className="text-2xl font-bold text-slate-950 sm:text-3xl">
+                For Tutors
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                Create a professional profile, connect with suitable students,
+                manage classes, and grow your teaching income.
+              </p>
+            </div>
 
-        <ul className="grid gap-4 md:grid-cols-2">
-          {studentSteps.map((step, i) => (
-            <StepItem key={i} step={step} />
-          ))}
-        </ul>
-      </section>
+            <ol className="grid gap-4 md:grid-cols-2">
+              {tutorSteps.map((step, index) => (
+                <StepCard key={step.title} step={step} index={index} />
+              ))}
+            </ol>
+          </div>
+        </section>
 
-      {/* Tutors */}
-      <section className="mx-auto max-w-6xl px-4 pb-20">
-        <h2 className="mb-2 text-2xl font-bold text-slate-900">
-          How It Works For <span className="text-primary">Tutors</span>
-        </h2>
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="rounded-lg bg-slate-950 p-8 text-white sm:p-10">
+            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Ready to get started?</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+                  Choose your role and continue to the right dashboard flow in a
+                  few clicks.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/signup?role=student"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-primary/90"
+                >
+                  Start Learning
+                </Link>
+                <Link
+                  href="/signup?role=tutor"
+                  className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                >
+                  Start Teaching
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
 
-        <p className="mb-6 text-slate-600">
-          Join as a Tutor – Start Earning Today (Free)
-        </p>
-
-        <ul className="grid gap-4 md:grid-cols-2">
-          {tutorSteps.map((step, i) => (
-            <StepItem key={i} step={step} />
-          ))}
-        </ul>
-      </section>
-    </main>
+      <Footer />
+    </div>
   );
 }

@@ -25,6 +25,7 @@ import {
   CLASS_JOIN_NOTICE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
+import { getAvatarUrl } from "@/utils/getImageUrl";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -82,25 +83,7 @@ export default function StudentBookingsPage() {
 
   const themePrimary = "#FFD54F";
 
-  const IMAGE_BASE =
-    process.env.NEXT_PUBLIC_IMAGE_URL ||
-    (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000").replace("/api", "");
-
-  const getImageUrl = (photoUrl?: string | null) => {
-    if (!photoUrl) return "/default-avatar.png";
-    const p = String(photoUrl);
-    if (p.startsWith("http://") || p.startsWith("https://")) return p;
-
-    const cleaned = p
-      .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-      .replace(/\\/g, "/")
-      .replace(/^.*uploads\//, "uploads/");
-
-    const base = (IMAGE_BASE || "").replace(/\/$/, "");
-    const rel = cleaned.replace(/^\//, "");
-
-    return `${base}/${rel}`;
-  };
+  const getImageUrl = getAvatarUrl;
 
   const load = useCallback(async () => {
     try {
@@ -241,7 +224,7 @@ export default function StudentBookingsPage() {
       minute: "2-digit",
       hour12: true,
       timeZone: "UTC",
-    });
+    }).toUpperCase();
 
   return (
     <>
@@ -462,11 +445,7 @@ export default function StudentBookingsPage() {
                             })}
                           </div>
                           <div>
-                            {new Date(s.startDateTime).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              timeZone: "UTC",
-                            })}
+                            {formatTimeRaw(s.startDateTime)}
                           </div>
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>

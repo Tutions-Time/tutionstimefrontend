@@ -8,7 +8,7 @@ type Props = {
 };
 
 const toParts = (val?: string) => {
-  if (!val || !/^\d{1,2}:\d{2}$/.test(val)) return { hour12: 12, minute: "00", period: "AM" as const };
+  if (!val || !/^\d{1,2}:\d{2}$/.test(val)) return { hour12: 12, minute: "00", period: "PM" as const };
   const [hStr, mStr] = val.split(":");
   const h = Math.max(0, Math.min(23, Number(hStr)));
   const minute = mStr.padStart(2, "0");

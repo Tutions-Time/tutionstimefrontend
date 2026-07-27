@@ -23,6 +23,13 @@ interface BookDemoModalProps {
   availability: string[];
 }
 
+const getDefaultPmTime = (selectedDate?: string) => {
+  const noon = dayjs().hour(12).minute(0).second(0).millisecond(0);
+  if (!selectedDate || !dayjs(selectedDate).isSame(dayjs(), "day")) return noon;
+  if (noon.isAfter(dayjs())) return noon;
+  return dayjs().add(5, "minute").startOf("minute");
+};
+
 export default function BookDemoModal({
   open,
   onClose,
@@ -58,9 +65,14 @@ export default function BookDemoModal({
   useEffect(() => {
     if (!open) return;
     setDate("");
-    setTime(null);
+    setTime(getDefaultPmTime());
     setNote("");
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setTime(getDefaultPmTime(date));
+  }, [date, open]);
 
   if (!open) return null;
 

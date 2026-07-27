@@ -26,6 +26,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/utils/getImageUrl";
+import { formatTimeSlot12 } from "@/utils/timeFormat";
 
 function Fact({
   icon: Icon,
@@ -437,7 +438,7 @@ export default function StudentDetailPage() {
                       </h3>
                       <p className="text-sm text-gray-800 font-medium">
                         {student.preferredTimes?.length
-                          ? student.preferredTimes.join(", ")
+                          ? student.preferredTimes.map(formatTimeSlot12).join(", ")
                           : "Flexible"}
                       </p>
                     </div>

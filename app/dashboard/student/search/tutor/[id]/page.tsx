@@ -22,6 +22,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { formatTimeSlot12 } from "@/utils/timeFormat";
+import { getAvatarUrl } from "@/utils/getImageUrl";
 
 function Fact({
   icon: Icon,
@@ -50,15 +52,6 @@ function Chip({ children }: { children: React.ReactNode }) {
     </span>
   );
 }
-
-const buildUrl = (path?: string | null) => {
-  if (!path) return "";
-  if (/^https?:\/\//i.test(path)) return path;
-  const base =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://127.0.0.1:5000";
-  return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
-};
 
 function StarRating({ value, size = 16 }: { value: number; size?: number }) {
   const clamped = Number.isFinite(value) ? Math.min(5, Math.max(0, value)) : 0;
@@ -146,15 +139,14 @@ export default function TutorDetailPage() {
   }, [routeTutorId]);
 
   const imgUrl = useMemo(() => {
-    if (!tutor?.photoUrl) return "/default-avatar.png";
-    return buildUrl(tutor.photoUrl);
+    return getAvatarUrl(tutor?.photoUrl);
   }, [tutor]);
 
   const preferredTimeText = useMemo(() => {
     const arr = tutor?.preferredTimes;
-    if (Array.isArray(arr) && arr.length) return arr.join(", ");
+    if (Array.isArray(arr) && arr.length) return arr.map(formatTimeSlot12).join(", ");
     if (typeof tutor?.preferredTime === "string" && tutor.preferredTime.trim())
-      return tutor.preferredTime;
+      return formatTimeSlot12(tutor.preferredTime);
     return "Flexible";
   }, [tutor]);
 

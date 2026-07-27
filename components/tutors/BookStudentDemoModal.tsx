@@ -8,6 +8,7 @@ import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import { IndianRupee, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { bookStudentDemo } from "@/services/bookingService";
+import { formatTimeSlot12 } from "@/utils/timeFormat";
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -26,6 +27,13 @@ const formatBudget = (budget?: string) => {
     .replace(/Rs\./gi, "Rs. ")
     .replace(/\s+/g, " ")
     .replace(/;\s*/g, " | ");
+};
+
+const getDefaultPmTime = (selectedDate?: string) => {
+  const noon = dayjs().hour(12).minute(0).second(0).millisecond(0);
+  if (!selectedDate || !dayjs(selectedDate).isSame(dayjs(), "day")) return noon;
+  if (noon.isAfter(dayjs())) return noon;
+  return dayjs().add(5, "minute").startOf("minute");
 };
 
 interface Props {
@@ -72,13 +80,13 @@ export default function BookStudentDemoModal({
   useEffect(() => {
     if (!open) return;
     setSelectedDate("");
-    setSelectedTime(null);
+    setSelectedTime(getDefaultPmTime());
     setSelectedPreferredSlot(singlePreferredSlot);
     setNote("");
   }, [open, singlePreferredSlot]);
 
   useEffect(() => {
-    setSelectedTime(null);
+    setSelectedTime(getDefaultPmTime(selectedDate));
     setSelectedPreferredSlot(singlePreferredSlot);
   }, [selectedDate, singlePreferredSlot]);
 
@@ -251,7 +259,7 @@ export default function BookStudentDemoModal({
               <option value="">Select Preferred Time</option>
               {preferredTimes.map((slot: string, idx: number) => (
                 <option key={`${slot}-${idx}`} value={slot}>
-                  {slot}
+                  {formatTimeSlot12(slot)}
                 </option>
               ))}
             </select>

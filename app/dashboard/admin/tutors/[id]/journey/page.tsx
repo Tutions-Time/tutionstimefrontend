@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { getTutorJourney } from "@/services/adminService";
 import { cn } from "@/lib/utils";
+import { formatDateTime12, formatTime12 } from "@/utils/timeFormat";
 
 type StudentInfo = {
   id?: string;
@@ -175,8 +176,7 @@ export default function TutorJourneyPage() {
   };
 
   const formatDateTime = (v?: string) => {
-    if (!v) return "-";
-    return new Date(v).toLocaleString();
+    return formatDateTime12(v);
   };
 
   const formatMoney = (n?: number) => `₹${(Number(n || 0)).toLocaleString("en-IN")}`;
@@ -437,7 +437,7 @@ export default function TutorJourneyPage() {
                             <div className="font-medium text-text">{d.subject || "Demo"}</div>
                             <div className="text-xs text-muted">Student: {formatStudentLabel(d.student)}</div>
                             <div className="text-xs text-muted">
-                              Preferred: {formatDate(d.preferredDate)} {d.preferredTime || ""}
+                              Preferred: {formatDate(d.preferredDate)} {formatTime12(d.preferredTime)}
                             </div>
                             {d.note ? <div className="text-xs text-muted">Note: {d.note}</div> : null}
                             {d.demoFeedback ? (

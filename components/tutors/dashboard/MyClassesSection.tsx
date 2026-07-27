@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_JOIN_NOTICE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
+import { joinSession } from "@/services/tutorService";
 
 export interface TutorClass {
   id: string;
@@ -22,6 +24,7 @@ export interface TutorClass {
 
   // NEW (from regular classes system)
   nextSession?: {
+    sessionId?: string;
     startDateTime: string;
     meetingLink?: string;
     canJoin?: boolean;
@@ -147,9 +150,22 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
                     <div className="space-y-1">
                       <button
                         disabled={!canJoin}
-                        onClick={() => {
+                        onClick={async () => {
                           if (!canJoin) return;
-                          openClassLinkWithNotice(next.meetingLink);
+                          if (!next.sessionId) {
+                            openClassLinkWithNotice(next.meetingLink);
+                            return;
+                          }
+                          if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                          try {
+                            const res = await joinSession(next.sessionId);
+                            const meetingUrl = res?.url || next.meetingLink;
+                            if (meetingUrl) {
+                              window.open(meetingUrl, "_blank", "noopener,noreferrer");
+                            }
+                          } catch {
+                            openClassLinkWithNotice(next.meetingLink);
+                          }
                         }}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg w-full sm:w-auto text-sm font-medium transition
                           ${canJoin ? "bg-primary text-white hover:bg-primary/90" : "bg-gray-200 text-gray-600 cursor-not-allowed"}

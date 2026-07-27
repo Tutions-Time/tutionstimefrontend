@@ -12,6 +12,7 @@ import {
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
+import { formatTime12 } from "@/utils/timeFormat";
 
 export default function UpcomingSessions() {
   const [loading, setLoading] = useState(true);
@@ -98,10 +99,7 @@ export default function UpcomingSessions() {
                 })}
               </p>
               <p className="text-sm text-gray-500">
-                {new Date(displaySession.session.startDateTime).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatTime12(displaySession.session.startDateTime)}
               </p>
             </div>
               {/* <span className="text-xs uppercase tracking-wide px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">

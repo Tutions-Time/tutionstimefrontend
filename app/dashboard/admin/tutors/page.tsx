@@ -36,6 +36,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getImageUrl } from "@/utils/getImageUrl";
 import AvailabilityPicker from "@/components/forms/AvailabilityPicker";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -136,21 +137,7 @@ export default function AdminTutorsPage() {
     [rows],
   );
 
-  const getProperImageUrl = (path?: string | null) => {
-    if (!path) return "";
-    const p = String(path);
-    if (p.startsWith("http://") || p.startsWith("https://")) return p;
-    const cleaned = p
-      .replace(/^[A-Za-z]:\\.*?uploads\\/i, "uploads/")
-      .replace(/\\/g, "/");
-    const base = (
-      process.env.NEXT_PUBLIC_IMAGE_URL ||
-      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-      "http://127.0.0.1:5000"
-    ).replace(/\/$/, "");
-    const rel = cleaned.replace(/^\//, "");
-    return `${base}/${rel}`;
-  };
+  const getProperImageUrl = getImageUrl;
 
   const formatText = (value?: string | number | null) =>
     value === undefined || value === null || value === "" ? "-" : String(value);

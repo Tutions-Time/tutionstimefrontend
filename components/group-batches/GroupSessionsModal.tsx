@@ -90,7 +90,7 @@ export default function GroupSessionsModal({
                     <div className="flex items-center justify-between">
                       <div className="text-sm">
                         <div>{new Date(s.startDateTime).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}</div>
-                        <div>{new Date(s.startDateTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" })}</div>
+                        <div>{new Date(s.startDateTime).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata" }).toUpperCase()}</div>
                         <div className="text-xs text-gray-500">{s.status}</div>
                       </div>
                       {!isExpired && s.status !== "completed" && (

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import api from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
+import { formatTime12 } from '@/utils/timeFormat';
 
 type Sess = {
   _id: string;
@@ -215,12 +216,7 @@ export default function AdminSessionsPage() {
                           >
                             <div className="space-y-1">
                               <div className="font-semibold">
-                                {s.startDateTime
-                                  ? new Date(s.startDateTime).toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    })
-                                  : '-'}
+                                {formatTime12(s.startDateTime) || '-'}
                               </div>
                               <div className="text-muted">
                                 {(s as any).regularClassId?.subject || (s as any).subject || '-'}
@@ -292,12 +288,7 @@ export default function AdminSessionsPage() {
                           >
                             <div className="space-y-1">
                               <div className="font-semibold">
-                                {s.startDateTime
-                                  ? new Date(s.startDateTime).toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit',
-                                    })
-                                  : '-'}
+                                {formatTime12(s.startDateTime) || '-'}
                               </div>
                               <div className="text-muted">
                                 Batch: {(s as any).regularClassId?.subject || (s as any).subject || '-'}
@@ -368,7 +359,7 @@ export default function AdminSessionsPage() {
                         >
                           <div className="space-y-1">
                             <div className="font-semibold">
-                              {s.preferredTime || '-'}
+                              {formatTime12(s.preferredTime) || '-'}
                             </div>
                             <div className="text-muted">
                               Demo - {s.subject || '-'}

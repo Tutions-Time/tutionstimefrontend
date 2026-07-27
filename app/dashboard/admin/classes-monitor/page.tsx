@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
 import { getUserById } from '@/services/adminService';
 import { toast } from '@/hooks/use-toast';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 type LiveSession = {
   _id: string;
@@ -50,7 +51,7 @@ const formatTimeRaw = (value?: string) => {
     minute: '2-digit',
     hour12: true,
     timeZone: 'UTC',
-  });
+  }).toUpperCase();
 };
 const getEditDateTime = (session: LiveSession) => {
   const d = new Date(session.startDateTime || '');
@@ -184,18 +185,7 @@ export default function AdminClassesMonitorPage() {
 
   const rows = useMemo(() => sessions, [sessions]);
 
-  const getProperImageUrl = (path?: string | null) => {
-    if (!path) return '';
-    const p = String(path);
-    if (p.startsWith('http://') || p.startsWith('https://')) return p;
-    const cleaned = p.replace(/^[A-Za-z]:\\.*?uploads\\/i, 'uploads/').replace(/\\/g, '/');
-    const base =
-      process.env.NEXT_PUBLIC_IMAGE_URL ||
-      process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') ||
-      '';
-    const trimmed = cleaned.replace(/^\/+/, '');
-    return base ? `${base}/${trimmed}` : cleaned;
-  };
+  const getProperImageUrl = getImageUrl;
   const formatText = (v: any) => {
     if (v === null || v === undefined) return '-';
     const s = String(v).trim();
