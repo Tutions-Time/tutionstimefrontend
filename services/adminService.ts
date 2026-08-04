@@ -32,9 +32,13 @@ export const getUserById = async (userId: string) => {
   }
 };
 
-export const updateUserStatus = async (userId: string, status: 'active' | 'inactive') => {
+export const updateUserStatus = async (
+  userId: string,
+  status: 'active' | 'inactive' | 'suspended',
+  payload?: { reason?: string; explanation?: string }
+) => {
   try {
-    const response = await api.put(`admin/users/${userId}/status`, { status });
+    const response = await api.put(`admin/users/${userId}/status`, { status, ...(payload || {}) });
     return response.data.user;
   } catch (error) {
     throw new Error(handleApiError(error));
@@ -250,9 +254,13 @@ export const updateTutorKyc = async (
   }
 };
 
-export const updateTutorStatus = async (id: string, status: 'active' | 'suspended') => {
+export const updateTutorStatus = async (
+  id: string,
+  status: 'active' | 'suspended',
+  payload?: { reason?: string; explanation?: string }
+) => {
   try {
-    const res = await api.put(`/admin/tutors/${id}/status`, { status });
+    const res = await api.put(`/admin/tutors/${id}/status`, { status, ...(payload || {}) });
     return res.data.user;
   } catch (error) {
     throw new Error(handleApiError(error));
@@ -379,5 +387,8 @@ export const getAdminSuspensionAppeal = async (id: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
+
+
 
 

@@ -23,11 +23,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -125,6 +127,10 @@ export default function AdminTutorsPage() {
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [selectedTutor, setSelectedTutor] = useState<TutorRow | null>(null);
+  const [suspendModal, setSuspendModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
+  const [suspendReason, setSuspendReason] = useState("");
+  const [suspendMessage, setSuspendMessage] = useState("");
+  const [suspendSaving, setSuspendSaving] = useState(false);
   const incompleteTutorContacts = useMemo(
     () =>
       rows
@@ -138,6 +144,7 @@ export default function AdminTutorsPage() {
   );
 
   const getProperImageUrl = getImageUrl;
+  const showing = rows.length;
 
   const formatText = (value?: string | number | null) =>
     value === undefined || value === null || value === "" ? "-" : String(value);
@@ -187,15 +194,10 @@ export default function AdminTutorsPage() {
       const normalized = normalizeUserResponse(res);
       setProfileUser(normalized.user);
       setProfileData(normalized.profile);
-      // Ensure email is visible even when profile lacks it
-      if ((!row.email || row.email.trim() === '') && (normalized?.user?.email || normalized?.profile?.email)) {
-        const newEmail = normalized?.profile?.email || normalized?.user?.email;
-        setSelectedTutor((prev) => (prev ? { ...prev, email: newEmail } : prev));
-      }
     } catch (err: any) {
       toast({
         title: "Failed to load tutor profile",
-        description: err.message,
+        description: err.message || "Unexpected error",
         variant: "destructive",
       });
     } finally {
@@ -203,151 +205,59 @@ export default function AdminTutorsPage() {
     }
   };
 
+
   const handleProfileOpenChange = (open: boolean) => {
     setProfileOpen(open);
     if (!open) {
       setSelectedTutor(null);
       setProfileUser(null);
       setProfileData(null);
-      setProfileLoading(false);
     }
   };
+  // Activate / Suspend tutor
+  async function toggleStatus(id: string, current: Status) {
+    if (current === "active") {
+      const row = rows.find((item) => item.id === id);
+      setSuspendModal({ open: true, row });
+      setSuspendReason("");
+      setSuspendMessage("");
+      return;
+    }
 
-  // ✅ Fetch tutors from backend
-  useEffect(() => {
-    const fetchTutors = async () => {
-      try {
-        setLoading(true);
-        const res = await getAllTutors({
-          page,
-          limit,
-          q: query,
-          kyc,
-          status,
-          sort,
-        });
-        if (res.success) {
-          const data = res.data || [];
-          const filtered = data.filter((t: any) => {
-            const statusVal = String((t as any)?.status || "").toLowerCase();
-            const isDeleted =
-              t?.deleted || t?.isDeleted || t?.softDeleted || statusVal === "deleted";
-            const isSuspended = statusVal === "suspended";
-            // Hide deleted always. Hide suspended unless explicitly filtering for it.
-            if (isDeleted) return false;
-            if (status !== "suspended" && isSuspended) return false;
-            return true;
-          });
-          setRows(filtered);
-          setTotal(res.pagination?.total || filtered.length || 0);
-          setPages(res.pagination?.pages || 1);
-        } else {
-          toast({
-            title: "Failed to load tutors",
-            variant: "destructive",
-          });
-        }
-      } catch (err: any) {
-        toast({
-          title: "Error loading tutors",
-          description: err.message,
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTutors();
-  }, [page, limit, query, kyc, status, sort]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [query, kyc, status, sort, limit]);
-
-  const showing = useMemo(() => {
-    if (total === 0) return "0";
-    const start = (page - 1) * limit + 1;
-    const end = Math.min(page * limit, total);
-    return `${start}-${end}`;
-  }, [page, limit, total]);
-
-  // ✅ Approve/Reject KYC
-  async function setKycStatus(id: string, newStatus: Kyc, reason?: string) {
     try {
-      await updateTutorKyc(id, newStatus as "approved" | "rejected" | "pending", reason);
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                kyc: newStatus,
-                payoutDetailsStatus: newStatus,
-                kycDocumentsStatus: newStatus,
-                kycRejectionReason: newStatus === "rejected" ? reason || "" : "",
-              }
-            : r,
-        ),
-      );
-      setKycModal((prev) =>
-        prev.row?.id === id
-          ? {
-              ...prev,
-              row: {
-                ...prev.row,
-                kyc: newStatus,
-                payoutDetailsStatus: newStatus,
-                kycDocumentsStatus: newStatus,
-                kycRejectionReason: newStatus === "rejected" ? reason || "" : "",
-              },
-            }
-          : prev,
-      );
-      toast({
-        title: `KYC ${newStatus} successfully ✅`,
-      });
+      await updateTutorStatus(id, "active");
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: "active" } : r)));
+      toast({ title: "Tutor activated successfully" });
     } catch (err: any) {
-      if (err.response?.data?.message === "Tutor profile not found") {
-        toast({
-          title: "Tutor profile not found",
-          description: "Create or complete the tutor profile before updating verification.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Failed to update KYC",
-          description: err.message,
-          variant: "destructive",
-        });
-      }
+      toast({ title: "Failed to update status", description: err.message, variant: "destructive" });
     }
   }
 
-  // ✅ Activate / Suspend tutor
-  async function toggleStatus(id: string, current: Status) {
+  async function submitTutorSuspension() {
+    const row = suspendModal.row;
+    const reason = suspendReason.trim();
+    const explanation = suspendMessage.trim();
+    if (!row || !reason) {
+      toast({ title: "Reason is required", description: "Please enter why this tutor is being suspended.", variant: "destructive" });
+      return;
+    }
+
     try {
-      const newStatus = current === "active" ? "suspended" : "active";
-      await updateTutorStatus(id, newStatus);
+      setSuspendSaving(true);
+      await updateTutorStatus(row.id, "suspended", { reason, explanation });
       setRows((prev) => {
-        if (newStatus === "suspended" && status !== "suspended") {
-          // remove instantly when hiding suspended in current filter
-          return prev.filter((r) => r.id !== id);
-        }
-        return prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r));
+        if (status !== "suspended") return prev.filter((r) => r.id !== row.id);
+        return prev.map((r) => (r.id === row.id ? { ...r, status: "suspended" } : r));
       });
-      if (newStatus === "suspended" && status !== "suspended") {
-        setTotal((t) => Math.max(0, t - 1));
-      }
-      toast({
-        title: `Tutor ${
-          newStatus === "active" ? "activated" : "suspended"
-        } successfully ✅`,
-      });
+      if (status !== "suspended") setTotal((t) => Math.max(0, t - 1));
+      setSuspendModal({ open: false });
+      setSuspendReason("");
+      setSuspendMessage("");
+      toast({ title: "Tutor suspended successfully" });
     } catch (err: any) {
-      toast({
-        title: "Failed to update status",
-        description: err.message,
-        variant: "destructive",
-      });
+      toast({ title: "Failed to suspend tutor", description: err.message, variant: "destructive" });
+    } finally {
+      setSuspendSaving(false);
     }
   }
 
@@ -372,6 +282,29 @@ export default function AdminTutorsPage() {
     }
   }
 
+
+  async function setKycStatus(id: string, nextKyc: 'approved' | 'rejected' | 'pending', reason?: string) {
+    try {
+      const updated = await updateTutorKyc(id, nextKyc, reason);
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? {
+                ...r,
+                kyc: updated?.kycStatus || nextKyc,
+                kycDocumentsStatus: updated?.kycDocumentsStatus || r.kycDocumentsStatus,
+                payoutDetailsStatus: updated?.payoutDetailsStatus || r.payoutDetailsStatus,
+                kycRejectionReason: updated?.kycRejectionReason || reason || r.kycRejectionReason,
+              }
+            : r,
+        ),
+      );
+      setKycModal((prev) => ({ ...prev, row: prev.row ? { ...prev.row, kyc: nextKyc } : prev.row }));
+      toast({ title: `KYC ${nextKyc}` });
+    } catch (err: any) {
+      toast({ title: "Failed to update KYC", description: err.message, variant: "destructive" });
+    }
+  }
   function csvValue(value: any) {
     if (Array.isArray(value)) return value.filter(Boolean).join(" | ");
     if (value === undefined || value === null) return "";
@@ -775,7 +708,6 @@ export default function AdminTutorsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                              window.confirm(`Toggle status for ${t.name}?`) &&
                               toggleStatus(t.id, t.status)
                             }
                           >
@@ -935,9 +867,7 @@ export default function AdminTutorsPage() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() =>
-                                    window.confirm(
-                                      `Toggle status for ${t.name}?`,
-                                    ) && toggleStatus(t.id, t.status)
+                                    toggleStatus(t.id, t.status)
                                   }
                                 >
                                   {t.status === "active" ? (
@@ -1192,6 +1122,31 @@ export default function AdminTutorsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={suspendModal.open} onOpenChange={(open) => !suspendSaving && setSuspendModal({ open, row: open ? suspendModal.row : undefined })}>
+        <DialogContent className="max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Suspend tutor</DialogTitle>
+            <DialogDescription>
+              Enter the reason and message that will be emailed and shown in the tutor notifications.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Reason</label>
+              <Input value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} placeholder="Example: Policy violation" />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Message to tutor</label>
+              <Textarea value={suspendMessage} onChange={(e) => setSuspendMessage(e.target.value)} rows={5} placeholder="Explain what happened and what the tutor can reply with." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={suspendSaving} onClick={() => setSuspendModal({ open: false })}>Cancel</Button>
+            <Button disabled={suspendSaving || !suspendReason.trim()} onClick={submitTutorSuspension}>{suspendSaving ? "Saving..." : "Save and suspend"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {kycModal.open && kycModal.row && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4">
           <div
@@ -1370,5 +1325,11 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
+
+
+
+
+
 
 

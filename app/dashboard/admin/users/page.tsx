@@ -17,11 +17,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
 import AvailabilityPicker from '@/components/forms/AvailabilityPicker';
@@ -88,7 +90,6 @@ type UserRow = {
 
 export default function AdminUsersPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   // Filters
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<Status>('active');
@@ -108,6 +109,10 @@ export default function AdminUsersPage() {
   const [profileUser, setProfileUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [suspendModal, setSuspendModal] = useState<{ open: boolean; row?: UserRow }>({ open: false });
+  const [suspendReason, setSuspendReason] = useState('');
+  const [suspendMessage, setSuspendMessage] = useState('');
+  const [suspendSaving, setSuspendSaving] = useState(false);
   const incompleteContacts = useMemo(
     () =>
       rows
@@ -120,7 +125,15 @@ export default function AdminUsersPage() {
     [rows],
   );
 
-  // Fetch users from backend (server-side filters/pagination)
+  const imgSrc = getImageUrl;
+  const formatText = (value?: string | number | null) =>
+    value === undefined || value === null || value === '' ? '-' : String(value);
+  const formatList = (value?: string[] | string | null) => {
+    if (!value) return '-';
+    if (Array.isArray(value)) return value.length ? value.join(', ') : '-';
+    return String(value) || '-';
+  };
+
   useEffect(() => {
     const t = setTimeout(async () => {
       try {
@@ -128,46 +141,29 @@ export default function AdminUsersPage() {
         const res = await getAllUsers({
           page,
           limit,
-          role: 'student',
           status,
           q: query,
           sort,
+          role: 'student',
         });
-
-        const users = res?.users || [];
-        const filtered = users.filter((u: any) => {
+        const users = (res.users || []).filter((u: any) => {
           const statusVal = String((u as any)?.status || '').toLowerCase();
           return !(u?.deleted || u?.isDeleted || u?.softDeleted || statusVal === 'deleted');
         });
-        const pag = res?.pagination || {} as any;
-        if (res.success && Array.isArray(users)) {
-          setRows(filtered);
-          setTotal(Number(pag.total || filtered.length));
-        } else {
-          toast({
-            title: 'Failed to load students',
-            description: 'Unexpected response format',
-            variant: 'destructive',
-          });
-        }
+        setRows(users);
+        setTotal(res.pagination?.total || users.length || 0);
       } catch (error: any) {
-        toast({
-          title: 'Error loading students',
-          description: error.message || 'An unexpected error occurred',
-          variant: 'destructive',
-        });
+        toast({ title: 'Failed to load users', description: error.message, variant: 'destructive' });
       } finally {
         setLoading(false);
       }
-    }, 300);
+    }, 250);
     return () => clearTimeout(t);
   }, [page, limit, status, query, sort]);
 
-  const imgSrc = getImageUrl;
-
-  const formatText = (value?: string | null) => (value ? String(value) : 'N/A');
-  const formatList = (value?: string[] | null) =>
-    value && value.length ? value.join(', ') : 'N/A';
+  useEffect(() => {
+    setPage(1);
+  }, [query, status, sort, limit]);
 
   const normalizeUserResponse = (res: any) => {
     if (!res) return { user: null, profile: null };
@@ -178,23 +174,19 @@ export default function AdminUsersPage() {
     return { user: res, profile: null };
   };
 
-  const openProfileModal = async (user: UserRow) => {
-    setSelectedUser(user);
+  const openProfileModal = async (row: UserRow) => {
+    setSelectedUser(row);
     setProfileOpen(true);
     setProfileLoading(true);
     setProfileUser(null);
     setProfileData(null);
     try {
-      const res = await getUserById(user._id);
+      const res = await getUserById(row._id);
       const normalized = normalizeUserResponse(res);
       setProfileUser(normalized.user);
       setProfileData(normalized.profile);
     } catch (error: any) {
-      toast({
-        title: 'Failed to load student profile',
-        description: error.message || 'An unexpected error occurred',
-        variant: 'destructive',
-      });
+      toast({ title: 'Failed to load user profile', description: error.message, variant: 'destructive' });
     } finally {
       setProfileLoading(false);
     }
@@ -206,33 +198,49 @@ export default function AdminUsersPage() {
       setSelectedUser(null);
       setProfileUser(null);
       setProfileData(null);
-      setProfileLoading(false);
     }
   };
 
-  // ✅ Toggle active/inactive status
+  // Toggle active/suspended status
   async function handleToggleStatus(id: string, currentStatus: Status) {
+    if (currentStatus === 'active') {
+      const row = rows.find((item) => item._id === id);
+      setSuspendModal({ open: true, row });
+      setSuspendReason('');
+      setSuspendMessage('');
+      return;
+    }
+
     try {
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      const updatedUser = await updateUserStatus(id, newStatus);
-
-      setRows((prev) =>
-        prev.map((r) =>
-          r._id === id ? { ...r, status: updatedUser.status } : r
-        )
-      );
-
-      toast({
-        title: `User ${
-          updatedUser.status === 'active' ? 'activated' : 'deactivated'
-        } successfully`,
-      });
+      const updatedUser = await updateUserStatus(id, 'active');
+      setRows((prev) => prev.map((r) => (r._id === id ? { ...r, status: updatedUser.status } : r)));
+      toast({ title: 'User activated successfully' });
     } catch (error: any) {
-      toast({
-        title: 'Failed to update user status',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Failed to update user status', description: error.message, variant: 'destructive' });
+    }
+  }
+
+  async function submitUserSuspension() {
+    const row = suspendModal.row;
+    const reason = suspendReason.trim();
+    const explanation = suspendMessage.trim();
+    if (!row || !reason) {
+      toast({ title: 'Reason is required', description: 'Please enter why this user is being suspended.', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      setSuspendSaving(true);
+      const updatedUser = await updateUserStatus(row._id, 'suspended', { reason, explanation });
+      setRows((prev) => prev.map((r) => (r._id === row._id ? { ...r, status: updatedUser.status } : r)));
+      setSuspendModal({ open: false });
+      setSuspendReason('');
+      setSuspendMessage('');
+      toast({ title: 'User suspended successfully' });
+    } catch (error: any) {
+      toast({ title: 'Failed to suspend user', description: error.message, variant: 'destructive' });
+    } finally {
+      setSuspendSaving(false);
     }
   }
 
@@ -727,6 +735,31 @@ export default function AdminUsersPage() {
         </main>
       </div>
 
+
+      <Dialog open={suspendModal.open} onOpenChange={(open) => !suspendSaving && setSuspendModal({ open, row: open ? suspendModal.row : undefined })}>
+        <DialogContent className="max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Suspend user</DialogTitle>
+            <DialogDescription>
+              Enter the reason and message that will be emailed and shown in the user's notifications.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Reason</label>
+              <Input value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} placeholder="Example: Policy violation" />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Message to user</label>
+              <Textarea value={suspendMessage} onChange={(e) => setSuspendMessage(e.target.value)} rows={5} placeholder="Explain what happened and what the user can reply with." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={suspendSaving} onClick={() => setSuspendModal({ open: false })}>Cancel</Button>
+            <Button disabled={suspendSaving || !suspendReason.trim()} onClick={submitUserSuspension}>{suspendSaving ? 'Saving...' : 'Save and suspend'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={profileOpen} onOpenChange={handleProfileOpenChange}>
         <DialogContent className="max-w-4xl rounded-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -904,6 +937,9 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
+
+
 
 
 
