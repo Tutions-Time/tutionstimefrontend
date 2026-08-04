@@ -11,6 +11,7 @@ import { getUserProfile } from "@/services/bookingService";
 
 import TutorFilters from "@/components/student/TutorFilters";
 import TutorList from "@/components/student/TutorList";
+import { getAvatarUrl } from "@/utils/getImageUrl";
 
 /* ---------- Filter Definitions ---------- */
 type PriceBucket = {
@@ -144,28 +145,8 @@ function useUrlSync(state: QueryMap, setState: (next: QueryMap) => void) {
 
 export default function SearchTutors() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const IMAGE_BASE =
-    process.env.NEXT_PUBLIC_IMAGE_URL ||
-    process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") ||
-    "http://127.0.0.1:5000";
 
- function getImageUrl(photoUrl?: string) {
-  if (!photoUrl) return "/default-avatar.png";
-
-  // 👉 If URL is already full (S3), return as is
-  if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
-    return photoUrl;
-  }
-
-  const cleaned = photoUrl
-    .replace(/^([A-Za-z]:)?[\\/]+tutionstimebackend[\\/]+/, "")
-    .replace(/^[A-Za-z]:[\\/].*?[\\/]uploads[\\/]/i, "uploads/")
-    .replace(/\\/g, "/")
-    .replace(/^.*uploads\//, "uploads/");
-
-  return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
-}
-
+  const getImageUrl = getAvatarUrl;
 
   // centralize filter state for URL sync
   const [filter, setFilter] = useState<QueryMap>({
@@ -417,4 +398,6 @@ export default function SearchTutors() {
     </div>
   );
 }
+
+
 

@@ -34,7 +34,7 @@ import { formatTimeSlot12 } from '@/utils/timeFormat';
 import { getImageUrl } from '@/utils/getImageUrl';
 
 type Role = 'student' | 'tutor' | 'admin';
-type Status = 'active' | 'inactive';
+type Status = 'active' | 'inactive' | 'suspended';
 
 type UserRow = {
   _id: string;
@@ -569,7 +569,7 @@ export default function AdminUsersPage() {
                       ) : (
                         <ToggleRight className="w-4 h-4 mr-2" />
                       )}
-                      {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                      {u.status === 'active' ? 'Suspend' : 'Activate'}
                     </Button>
                     <Button
                       variant="destructive"
@@ -904,4 +904,6 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
+
 

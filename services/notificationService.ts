@@ -117,3 +117,21 @@ export const updateNotificationPreferences = async (prefs: { email?: boolean; pu
   }
 };
 
+
+export const getSuspensionAppeal = async (id: string) => {
+  try {
+    const res = await api.get(`/notifications/suspensions/${id}`);
+    return res.data?.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const replyToSuspensionAppeal = async (id: string, reply: string) => {
+  try {
+    const res = await api.post(`/notifications/suspensions/${id}/reply`, { reply });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(handleApiError(error));
+  }
+};

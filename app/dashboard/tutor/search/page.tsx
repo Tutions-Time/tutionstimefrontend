@@ -7,7 +7,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { toast } from "react-hot-toast";
 import { fetchStudents, getTutorProfile } from "@/services/tutorService";
-import { getImageUrl } from "@/utils/getImageUrl";
+import { getAvatarUrl } from "@/utils/getImageUrl";
 import { AlertCircle } from "lucide-react";
 
 import StudentFilters from "@/components/tutors/StudentFilters";
@@ -26,8 +26,7 @@ const SORT_OPTIONS: SortOption[] = [
   { value: "createdAt_asc", label: "Oldest first" },
 ];
 
-const getStudentImageUrl = (photoUrl?: string) =>
-  getImageUrl(photoUrl) || "/default-avatar.png";
+const getStudentImageUrl = getAvatarUrl;
 
 /* ---------- URL Sync Hook ---------- */
 function useUrlSync(
@@ -238,4 +237,6 @@ export default function SearchStudents() {
     </div>
   );
 }
+
+
 

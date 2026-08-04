@@ -81,8 +81,12 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
   const payoutId = getMetaString(meta, 'payoutId');
   const refundRequestId = getMetaString(meta, 'refundRequestId');
   const noteId = getMetaString(meta, 'noteId');
+  const suspensionAppealId = getMetaString(meta, 'suspensionAppealId');
 
   if (isAdmin) {
+    if (suspensionAppealId) {
+      return `/dashboard/admin/suspensions/${suspensionAppealId}`;
+    }
     const metaUserId = asString((meta as any)?.userId);
     const metaRole = String((meta as any)?.role || '').toLowerCase();
     const tutorId =
@@ -146,6 +150,9 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
   }
 
   if (isTutor) {
+    if (suspensionAppealId) {
+      return `/dashboard/tutor/suspension/${suspensionAppealId}`;
+    }
     const studentUserId = (meta as any)?.studentUserId;
     if (
       notificationType.includes('kyc') ||
@@ -186,6 +193,9 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
   }
 
   if (isStudent) {
+    if (suspensionAppealId) {
+      return `/dashboard/student/suspension/${suspensionAppealId}`;
+    }
     if (notificationType === 'monthly' || text.includes('monthly summary')) {
       return '/dashboard/student/progress';
     }
@@ -244,3 +254,5 @@ export function deriveNotificationRoute(context: NotificationRouteContext) {
 
   return undefined;
 }
+
+

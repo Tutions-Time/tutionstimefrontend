@@ -370,3 +370,14 @@ export const deleteAdminBlog = async (id: string) => {
   }
 };
 
+
+export const getAdminSuspensionAppeal = async (id: string) => {
+  try {
+    const res = await api.get(`/admin/suspensions/${id}`);
+    return res.data?.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+
