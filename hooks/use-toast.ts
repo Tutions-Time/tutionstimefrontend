@@ -142,8 +142,52 @@ function dispatch(action: Action) {
 }
 
 type Toast = Omit<ToasterToast, 'id'>;
+const isValidationNotice = (value: React.ReactNode) => {
+  if (typeof value !== 'string') return false;
+  const text = value.toLowerCase();
+  return [
+    'required',
+    'enter ',
+    'select ',
+    'invalid',
+    'missing',
+    'too short',
+    'too long',
+    'valid ',
+    'fill all',
+    'must be',
+    'cannot',
+    'already',
+    'no slots',
+    'overlap',
+    'complete the',
+    'reason',
+    'date and time',
+    'time required',
+    'description required',
+  ].some((needle) => text.includes(needle));
+};
+
+const normalizeToastTone = (props: Toast): Toast => {
+  if (isValidationNotice(props.title) || isValidationNotice(props.description)) {
+    return {
+      ...props,
+      title: 'Note',
+      variant: 'note' as Toast['variant'],
+    };
+  }
+  if (typeof props.title === 'string' && ['error', 'failed', 'server error'].includes(props.title.toLowerCase())) {
+    return {
+      ...props,
+      title: 'Notice',
+      variant: props.variant === 'destructive' ? props.variant : ('note' as Toast['variant']),
+    };
+  }
+  return props;
+};
 
 function toast({ ...props }: Toast) {
+  props = normalizeToastTone(props);
   const id = genId();
 
   const update = (props: ToasterToast) =>
@@ -193,3 +237,4 @@ function useToast() {
 }
 
 export { useToast, toast };
+

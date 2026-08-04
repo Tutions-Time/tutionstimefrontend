@@ -24,6 +24,7 @@ import {
   DEMO_CLASS_DURATION_MINUTES,
   getClassJoinWindowState,
 } from '@/utils/classJoinNotice';
+import { formatTime12 } from '@/utils/timeFormat';
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -237,7 +238,7 @@ export default function TutorDemoRequests() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        Demo Session
+                        {[formatTime12(b.preferredTime), 'Demo Session'].filter(Boolean).join(' - ')}
                       </span>
                     </div>
                   </div>
@@ -392,6 +393,7 @@ export default function TutorDemoRequests() {
     </div>
   );
 }
+
 
 
 

@@ -461,6 +461,47 @@ export default function AdminTutorsPage() {
       toast({ title: "Export failed", description: err.message, variant: "destructive" });
     }
   }
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const res = await getAllTutors({
+          page,
+          limit,
+          q: query,
+          kyc,
+          status,
+          sort,
+        });
+        const data = (res?.data || []).filter((t: any) => {
+          const statusVal = String(t?.status || "").toLowerCase();
+          const isDeleted = t?.deleted || t?.isDeleted || t?.softDeleted || statusVal === "deleted";
+          const isSuspended = statusVal === "suspended";
+          if (isDeleted) return false;
+          if (status !== "suspended" && isSuspended) return false;
+          return true;
+        });
+        setRows(data);
+        setTotal(res?.pagination?.total || data.length || 0);
+        setPages(res?.pagination?.pages || 1);
+      } catch (err: any) {
+        toast({
+          title: "Failed to load tutors",
+          description: err.message || "Unexpected error",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [page, limit, query, kyc, status, sort]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, kyc, status, sort, limit]);
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
@@ -1325,6 +1366,7 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
 
 
 
