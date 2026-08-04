@@ -48,16 +48,20 @@ export default function TutorDemoRequests() {
     return null;
   };
 
+  const getDecisionReason = (booking: any) => {
+    const note = String(booking?.note || '').trim();
+    if (!note) return null;
+    if (booking?.status === 'rejected' || booking?.status === 'cancelled') return note;
+    return null;
+  };
+
   // Load demo requests
   const loadBookings = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getTutorDemoRequests();
       if (res.success) {
-        const filtered = (res.data || []).filter(
-          (b: any) => b.status !== 'cancelled'
-        );
-        setBookings(filtered);
+        setBookings(res.data || []);
       } else {
         toast({
           title: 'Error',
@@ -275,6 +279,12 @@ export default function TutorDemoRequests() {
                   <p className="mt-3 text-sm text-gray-500">
                     {getExpiryMessage(b)}
                   </p>
+                )}
+                {getDecisionReason(b) && (
+                  <div className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    <span className="font-semibold">Reason:</span>{' '}
+                    {getDecisionReason(b)}
+                  </div>
                 )}
 
                 {/* Actions */}

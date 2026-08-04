@@ -34,7 +34,7 @@ import { formatTimeSlot12 } from '@/utils/timeFormat';
 import { getImageUrl } from '@/utils/getImageUrl';
 
 type Role = 'student' | 'tutor' | 'admin';
-type Status = 'active' | 'inactive' | 'suspended';
+type Status = 'active' | 'inactive';
 
 type UserRow = {
   _id: string;
@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
 
   // Filters
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<Status | 'all'>('all');
+  const [status, setStatus] = useState<Status>('active');
   const [sort, setSort] = useState<
     'createdAt_desc' | 'createdAt_asc' | 'lastActive_desc' | 'lastActive_asc'
   >('createdAt_desc');
@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
           page,
           limit,
           role: 'student',
-          status: status === 'all' ? undefined : (status as Status),
+          status,
           q: query,
           sort,
         });
@@ -473,7 +473,6 @@ export default function AdminUsersPage() {
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
               >
-                <option value="all">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>

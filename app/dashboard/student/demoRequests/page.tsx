@@ -51,6 +51,13 @@ export default function StudentDemoRequests() {
     return null;
   };
 
+  const getDecisionReason = (booking: any) => {
+    const note = String(booking?.note || '').trim();
+    if (!note) return null;
+    if (booking?.status === 'rejected' || booking?.status === 'cancelled') return note;
+    return null;
+  };
+
   // Load Requests
   const loadRequests = useCallback(async () => {
     try {
@@ -58,10 +65,7 @@ export default function StudentDemoRequests() {
       const res = await getStudentDemoRequests();
 
       if (res.success) {
-        const filtered = (res.data || []).filter(
-          (x: any) => x.status !== "cancelled"
-        );
-        setRequests(filtered);
+        setRequests(res.data || []);
       } else {
         toast({
           title: "Error",
@@ -272,6 +276,12 @@ export default function StudentDemoRequests() {
                   <p className="mt-3 text-sm text-gray-500">
                     {getExpiryMessage(req)}
                   </p>
+                )}
+                {getDecisionReason(req) && (
+                  <div className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    <span className="font-semibold">Reason:</span>{' '}
+                    {getDecisionReason(req)}
+                  </div>
                 )}
 
                 {/* Actions */}

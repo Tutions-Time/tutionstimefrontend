@@ -17,6 +17,8 @@ import TutorResumeSection from "@/components/TutorCompleteProfile/TutorResumeSec
 import { toast } from "@/hooks/use-toast";
 import TutorAgeConfirmationSection from
   "@/components/TutorCompleteProfile/TutorAgeConfirmationSection";
+import TutorTeachingSetupConfirmationSection from
+  "@/components/TutorCompleteProfile/TutorTeachingSetupConfirmationSection";
 import { useAuth } from "@/hooks/useAuth";
 
 
@@ -119,6 +121,9 @@ export default function TutorProfileCompletePage() {
     if (!profile.isAgeConfirmed)
       e.isAgeConfirmed =
         "You must confirm that you are 18+ and uploading your documents with consent";
+    if (!profile.hasRequiredTeachingSetup)
+      e.hasRequiredTeachingSetup =
+        "You must confirm that you have a laptop or tablet and high-speed internet for online classes";
 
     const msgs = Object.values(e).filter(Boolean) as string[];
 
@@ -231,6 +236,7 @@ export default function TutorProfileCompletePage() {
         phone: profile.phone || "",
         altPhone: profile.altPhone || "",
         isAgeConfirmed: profile.isAgeConfirmed,
+        hasRequiredTeachingSetup: profile.hasRequiredTeachingSetup,
       };
 
       // Append normal fields
@@ -428,6 +434,7 @@ export default function TutorProfileCompletePage() {
         </section>
 
         <TutorAgeConfirmationSection />
+        <TutorTeachingSetupConfirmationSection />
 
           <div className="flex justify-between border-t pt-4">
             <SecondaryButton onClick={() => router.back()}>
@@ -435,7 +442,7 @@ export default function TutorProfileCompletePage() {
             </SecondaryButton>
             <PrimaryButton
               onClick={handleSubmit}
-              disabled={profile.isSubmitting || !profile.isAgeConfirmed}
+              disabled={profile.isSubmitting || !profile.isAgeConfirmed || !profile.hasRequiredTeachingSetup}
             >
               {profile.isSubmitting ? "Saving..." : "Save & Continue"}
             </PrimaryButton>

@@ -16,6 +16,7 @@ export interface TutorProfileState {
   pincode: string;
   photoUrl: string;
   isAgeConfirmed: boolean,
+  hasRequiredTeachingSetup: boolean,
 
   // ----- Academic & Teaching -----
   qualification: string;
@@ -74,6 +75,7 @@ export const initialState: TutorProfileState = {
   pincode: "",
   photoUrl: "",
   isAgeConfirmed: false,
+  hasRequiredTeachingSetup: false,
 
   // Academic
   qualification: "",
