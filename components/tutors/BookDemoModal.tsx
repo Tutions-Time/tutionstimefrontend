@@ -233,6 +233,7 @@ export default function BookDemoModal({
                 value={time}
                 onChange={(newValue) => setTime(newValue)}
                  ampm
+                 referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                  minTime={minTime}
                 minutesStep={1} // ✅ every single minute available
                 viewRenderers={{
@@ -282,3 +283,4 @@ export default function BookDemoModal({
     </div>
   );
 }
+

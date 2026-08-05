@@ -276,6 +276,7 @@ export default function BookStudentDemoModal({
                 value={selectedTime}
                 onChange={setSelectedTime}
                 ampm
+                referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                 minutesStep={1}
                 viewRenderers={{
                   hours: renderTimeViewClock,
@@ -318,4 +319,5 @@ export default function BookStudentDemoModal({
     </div>
   );
 }
+
 

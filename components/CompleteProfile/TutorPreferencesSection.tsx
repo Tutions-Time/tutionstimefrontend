@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { LocalizationProvider, MobileTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { Textarea } from "../ui/textarea";
 import {
   HOURLY_RATE_OPTIONS,
@@ -38,6 +38,11 @@ const buildBudget = (hourly: string, monthly: string) => {
   if (hourly) parts.push(`Hourly: Rs.${hourly}`);
   if (monthly) parts.push(`Monthly: Rs.${monthly}`);
   return parts.join("; ");
+};
+
+const getDefaultPmDraft = () => {
+  const start = dayjs().hour(12).minute(0).second(0).millisecond(0);
+  return { start, end: start.add(1, "hour") };
 };
 
 export default function TutorPreferencesSection({
@@ -142,7 +147,7 @@ export default function TutorPreferencesSection({
     syncSubjectTimeSlots(nextSlots);
     setTimeDrafts((prev) => ({
       ...prev,
-      [subject]: { start: null, end: null },
+      [subject]: getDefaultPmDraft(),
     }));
     setTimeError("");
   };
@@ -202,7 +207,7 @@ export default function TutorPreferencesSection({
           ) : (
             <div className="space-y-4">
               {profile.subjects.map((subject) => {
-                const draft = timeDrafts[subject] || { start: null, end: null };
+                const draft = timeDrafts[subject] || getDefaultPmDraft();
                 const slots = getSlotsForSubject(subject);
                 return (
                   <div
@@ -232,6 +237,7 @@ export default function TutorPreferencesSection({
                             setTimeError("");
                           }}
                           ampm
+                          referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                           minutesStep={1}
                           disabled={disabled}
                           slotProps={{
@@ -254,6 +260,7 @@ export default function TutorPreferencesSection({
                             setTimeError("");
                           }}
                           ampm
+                          referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                           minutesStep={1}
                           disabled={disabled}
                           slotProps={{
@@ -377,6 +384,8 @@ export default function TutorPreferencesSection({
     </div>
   );
 }
+
+
 
 
 

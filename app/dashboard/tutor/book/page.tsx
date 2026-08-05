@@ -278,6 +278,7 @@ export default function TutorBookingFlow() {
                   </h3>
                   <StaticTimePicker
                     orientation="landscape"
+                    referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                     value={startTime}
                     onChange={(val) => setStartTime(val)}
                   />
@@ -286,6 +287,7 @@ export default function TutorBookingFlow() {
                       <h4 className="mt-4 text-sm text-gray-600">Select End Time</h4>
                       <StaticTimePicker
                         orientation="landscape"
+                        referenceDate={dayjs().hour(12).minute(0).second(0).millisecond(0)}
                         value={endTime}
                         onChange={(val) => setEndTime(val)}
                       />
@@ -427,4 +429,5 @@ export default function TutorBookingFlow() {
     </div>
   );
 }
+
 
