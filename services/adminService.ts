@@ -186,6 +186,7 @@ export const getClassesMonitor = async (params?: {
   kind?: 'all' | 'group' | 'regular';
   status?: 'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired';
   isLive?: 'all' | 'true' | 'false';
+  regularMode?: 'all' | 'online' | 'offline';
   from?: string;
   to?: string;
   page?: number;
@@ -387,6 +388,7 @@ export const getAdminSuspensionAppeal = async (id: string) => {
     throw new Error(handleApiError(error));
   }
 };
+
 
 
 

@@ -1250,7 +1250,7 @@ export default function AdminTutorsPage() {
         </DialogContent>
       </Dialog>
       {kycModal.open && kycModal.row && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[130] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4">
           <div
             className="absolute inset-0"
             onClick={() => setKycModal({ open: false })}
@@ -1424,6 +1424,7 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
 
 
 

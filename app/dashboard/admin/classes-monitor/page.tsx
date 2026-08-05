@@ -25,7 +25,8 @@ type LiveSession = {
   isLive?: boolean;
   meetingLink?: string;
   tutor?: { _id?: string; userId?: string; name?: string; photoUrl?: string } | null;
-  student?: { name?: string } | null;
+  student?: { name?: string; learningMode?: string } | null;
+  classMode?: string | null;
   enrolled?: { _id: string; name?: string }[];
   presence?: {
     tutorJoined?: boolean;
@@ -88,6 +89,7 @@ export default function AdminClassesMonitorPage() {
     'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired'
   >('all');
   const [isLive, setIsLive] = useState<'all' | 'true' | 'false'>('all');
+  const [regularMode, setRegularMode] = useState<'all' | 'online' | 'offline'>('all');
   const [range, setRange] = useState<'next7' | 'today' | 'last7' | 'custom'>('next7');
   const [from, setFrom] = useState<string>(() => toDateInput(new Date()));
   const [to, setTo] = useState<string>(() => toDateInput(addDays(new Date(), 7)));
@@ -117,6 +119,7 @@ export default function AdminClassesMonitorPage() {
     kind: 'all' | 'group' | 'regular';
     status: 'all' | 'scheduled' | 'completed' | 'cancelled' | 'expired';
     isLive: 'all' | 'true' | 'false';
+    regularMode: 'all' | 'online' | 'offline';
     from: string;
     to: string;
     page: number;
@@ -127,6 +130,7 @@ export default function AdminClassesMonitorPage() {
     const qKind = overrides?.kind ?? kind;
     const qStatus = overrides?.status ?? status;
     const qIsLive = overrides?.isLive ?? isLive;
+    const qRegularMode = overrides?.regularMode ?? regularMode;
     const qFrom = overrides?.from ?? from;
     const qTo = overrides?.to ?? to;
     const qPage = overrides?.page ?? page;
@@ -139,6 +143,7 @@ export default function AdminClassesMonitorPage() {
         kind: qKind === 'all' ? undefined : qKind,
         status: qStatus === 'all' ? undefined : qStatus,
         isLive: qIsLive === 'all' ? undefined : qIsLive,
+        regularMode: qKind === 'regular' && qRegularMode !== 'all' ? qRegularMode : undefined,
         from: qFrom || undefined,
         to: qTo || undefined,
         page: qPage,
@@ -157,7 +162,13 @@ export default function AdminClassesMonitorPage() {
 
   useEffect(() => {
     refresh();
-  }, [kind, status, isLive, from, to, page, limit]);
+  }, [kind, status, isLive, regularMode, from, to, page, limit]);
+
+  useEffect(() => {
+    if (kind !== 'regular' && regularMode !== 'all') {
+      setRegularMode('all');
+    }
+  }, [kind, regularMode]);
 
   useEffect(() => {
     const today = new Date();
@@ -270,12 +281,31 @@ export default function AdminClassesMonitorPage() {
                 <select
                   className="h-9 rounded-md border px-2 text-xs"
                   value={kind}
-                  onChange={(e) => setKind(e.target.value as any)}
+                  onChange={(e) => {
+                    const nextKind = e.target.value as 'all' | 'group' | 'regular';
+                    setPage(1);
+                    setKind(nextKind);
+                    if (nextKind !== 'regular') setRegularMode('all');
+                  }}
                 >
                   <option value="all">All Types</option>
                   <option value="regular">Regular</option>
                   <option value="group">Group</option>
                 </select>
+                {kind === 'regular' && (
+                  <select
+                    className="h-9 rounded-md border px-2 text-xs"
+                    value={regularMode}
+                    onChange={(e) => {
+                      setPage(1);
+                      setRegularMode(e.target.value as 'all' | 'online' | 'offline');
+                    }}
+                  >
+                    <option value="all">Mode: All</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                  </select>
+                )}
                 <select
                   className="h-9 rounded-md border px-2 text-xs"
                   value={range}
@@ -435,7 +465,10 @@ export default function AdminClassesMonitorPage() {
                               </div>
                             </details>
                           ) : (
-                            <div className="text-muted">Student: {s.student?.name || '-'}</div>
+                            <>
+                              <div className="text-muted">Student: {s.student?.name || '-'}</div>
+                              {s.classMode && (<div className="text-muted">Mode: {s.classMode}</div>)}
+                            </>
                           )}
                           {s.presence && (
                             <div className="text-muted">
@@ -661,4 +694,7 @@ export default function AdminClassesMonitorPage() {
     </ProtectedRoute>
   );
 }
+
+
+
 
