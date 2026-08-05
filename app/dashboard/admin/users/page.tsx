@@ -134,6 +134,19 @@ export default function AdminUsersPage() {
     return String(value) || '-';
   };
 
+  const formatSubjectTimeSlots = (slots?: any[] | null) => {
+    if (!Array.isArray(slots) || !slots.length) return '-';
+    return slots
+      .map((item) => {
+        const subject = item?.subject || 'Subject';
+        const times = Array.isArray(item?.slots)
+          ? item.slots.map(formatTimeSlot12).join(', ')
+          : '-';
+        return `${subject}: ${times || '-'}`;
+      })
+      .join(' | ');
+  };
+
   useEffect(() => {
     const t = setTimeout(async () => {
       try {
@@ -815,6 +828,10 @@ export default function AdminUsersPage() {
                     <div>{formatText(profileData?.addressLine1)}</div>
                   </div>
                   <div>
+                    <div className="text-muted">Address Line 2</div>
+                    <div>{formatText(profileData?.addressLine2)}</div>
+                  </div>
+                  <div>
                     <div className="text-muted">State</div>
                     <div>{formatText(profileData?.state)}</div>
                   </div>
@@ -833,6 +850,14 @@ export default function AdminUsersPage() {
                   <div>
                     <div className="text-muted">Learning Mode</div>
                     <div>{formatText(profileData?.learningMode)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Profile Status</div>
+                    <div>{profileUser?.isProfileComplete || selectedUser?.isProfileComplete ? 'Complete' : 'Incomplete'}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Account Status</div>
+                    <div>{formatText(profileUser?.status || selectedUser?.status)}</div>
                   </div>
                 </div>
               </div>
@@ -910,8 +935,12 @@ export default function AdminUsersPage() {
               </div>
 
               <div className="border-t pt-4">
-                <div className="text-base font-semibold mb-3">Tutor Preferences</div>
+                <div className="text-base font-semibold mb-3">Budget & Tutor Preferences</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">Budget</div>
+                    <div>{formatText(profileData?.budget)}</div>
+                  </div>
                   <div>
                     <div className="text-muted">Preferred Tutor Gender</div>
                     <div>{formatText(profileData?.tutorGenderPref || profileData?.tutorGenderOther)}</div>
@@ -919,6 +948,10 @@ export default function AdminUsersPage() {
                   <div>
                     <div className="text-muted">Preferred Time Slots</div>
                     <div>{formatList(Array.isArray(profileData?.preferredTimes) ? profileData.preferredTimes.map(formatTimeSlot12) : profileData?.preferredTimes)}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-muted">Subject-wise Preferred Slots</div>
+                    <div>{formatText(formatSubjectTimeSlots(profileData?.subjectTimeSlots))}</div>
                   </div>
                   <div>
                     <div className="text-muted">Learning Goals</div>
@@ -930,6 +963,28 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="border-t pt-4">
+                <div className="text-base font-semibold mb-3">Refund / Payout Details</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted">UPI ID</div>
+                    <div>{formatText(profileData?.upiId)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Account Holder Name</div>
+                    <div>{formatText(profileData?.accountHolderName)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">Bank Account Number</div>
+                    <div>{formatText(profileData?.bankAccountNumber)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted">IFSC</div>
+                    <div>{formatText(profileData?.ifsc)}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
@@ -937,6 +992,8 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
+
 
 
 

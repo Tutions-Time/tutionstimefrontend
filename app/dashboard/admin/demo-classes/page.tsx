@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { Calendar, CheckCircle, Clock, Download, Eye, RefreshCw, Search, Trash2, XCircle } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Navbar } from '@/components/layout/Navbar';
@@ -101,6 +100,131 @@ const participantSummary = (person?: Person | null) => {
   return details.length ? details.join(' | ') : 'Profile details not filled';
 };
 
+
+const formatList = (value: any) => {
+  if (Array.isArray(value)) return value.filter(Boolean).join(', ') || '-';
+  return value || '-';
+};
+
+const formatSubjectSlots = (slots: any) => {
+  if (!Array.isArray(slots) || !slots.length) return '-';
+  return slots
+    .map((item) => `${item.subject || 'Subject'}: ${formatList(item.slots)}`)
+    .join(' | ');
+};
+
+const Detail = ({ label, value }: { label: string; value: any }) => (
+  <div className="rounded-md border bg-white px-3 py-2">
+    <div className="text-[11px] uppercase tracking-wide text-muted">{label}</div>
+    <div className="mt-0.5 break-words text-sm font-medium text-text">{formatList(value)}</div>
+  </div>
+);
+
+const ProfileModal = ({ person, role, onClose }: { person: Person; role: 'student' | 'tutor'; onClose: () => void }) => {
+  const p = person.profile || {};
+  const isStudent = role === 'student';
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/45 p-3">
+      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b bg-white px-5 py-4">
+          <div>
+            <div className="text-xs uppercase text-muted">{role} profile</div>
+            <h2 className="text-xl font-semibold text-text">{person.name || 'Unknown'}</h2>
+            <div className="mt-1 text-sm text-muted">{person.email || '-'} | {person.phone || '-'}</div>
+          </div>
+          <button className="rounded-md p-2 text-muted hover:bg-gray-100" onClick={onClose}>
+            <XCircle className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="space-y-5 p-5">
+          <section>
+            <h3 className="mb-2 text-sm font-semibold text-text">Account</h3>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <Detail label="Status" value={person.status} />
+              <Detail label="Profile" value={person.isProfileComplete ? 'Complete' : 'Incomplete'} />
+              <Detail label="User ID" value={person.userId || person._id} />
+            </div>
+          </section>
+          {isStudent ? (
+            <>
+              <section>
+                <h3 className="mb-2 text-sm font-semibold text-text">Student Details</h3>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                  <Detail label="Gender" value={p.genderOther || p.gender} />
+                  <Detail label="Learning Mode" value={p.learningMode} />
+                  <Detail label="Budget" value={p.budget} />
+                  <Detail label="Board" value={p.boardOther || p.board} />
+                  <Detail label="Class" value={p.classLevelOther || p.classLevel} />
+                  <Detail label="Track" value={p.track} />
+                  <Detail label="Stream" value={p.streamOther || p.stream} />
+                  <Detail label="Program" value={p.programOther || p.program} />
+                  <Detail label="Discipline" value={p.disciplineOther || p.discipline} />
+                  <Detail label="Year/Sem" value={p.yearSemOther || p.yearSem} />
+                  <Detail label="Exam" value={p.examOther || p.exam} />
+                  <Detail label="Target Year" value={p.targetYearOther || p.targetYear} />
+                </div>
+              </section>
+              <section>
+                <h3 className="mb-2 text-sm font-semibold text-text">Learning Preferences</h3>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <Detail label="Subjects" value={p.subjectOther ? [...(p.subjects || []), p.subjectOther] : p.subjects} />
+                  <Detail label="Preferred Times" value={p.preferredTimes} />
+                  <Detail label="Subject Time Slots" value={formatSubjectSlots(p.subjectTimeSlots)} />
+                  <Detail label="Tutor Gender Preference" value={p.tutorGenderOther || p.tutorGenderPref} />
+                  <Detail label="Goals" value={p.goals} />
+                  <Detail label="Availability" value={p.availability} />
+                </div>
+              </section>
+            </>
+          ) : (
+            <>
+              <section>
+                <h3 className="mb-2 text-sm font-semibold text-text">Tutor Details</h3>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                  <Detail label="Gender" value={p.gender} />
+                  <Detail label="Qualification" value={p.qualification} />
+                  <Detail label="Specialization" value={p.specialization} />
+                  <Detail label="Experience" value={p.experience !== undefined ? `${p.experience} years` : ''} />
+                  <Detail label="Teaching Mode" value={p.teachingMode} />
+                  <Detail label="Tuition Type" value={p.tuitionType} />
+                  <Detail label="Hourly Rate" value={p.hourlyRate ? `Rs. ${p.hourlyRate}` : ''} />
+                  <Detail label="Monthly Rate" value={p.monthlyRate ? `Rs. ${p.monthlyRate}` : ''} />
+                  <Detail label="Rating" value={p.ratingCount ? `${p.rating || 0} (${p.ratingCount})` : p.rating} />
+                </div>
+              </section>
+              <section>
+                <h3 className="mb-2 text-sm font-semibold text-text">Teaching Coverage</h3>
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <Detail label="Subjects" value={p.subjects} />
+                  <Detail label="Classes" value={p.classLevels} />
+                  <Detail label="Boards" value={p.boards} />
+                  <Detail label="Exams" value={p.exams} />
+                  <Detail label="Student Types" value={p.studentTypes} />
+                  <Detail label="Availability" value={p.availability} />
+                  <Detail label="Bio" value={p.bio} />
+                  <Detail label="Achievements" value={p.achievements} />
+                </div>
+              </section>
+            </>
+          )}
+          <section>
+            <h3 className="mb-2 text-sm font-semibold text-text">Location & Payout</h3>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <Detail label="Address" value={[p.addressLine1, p.addressLine2].filter(Boolean).join(', ')} />
+              <Detail label="City" value={p.city} />
+              <Detail label="State" value={p.state} />
+              <Detail label="Pincode" value={p.pincode} />
+              <Detail label="UPI ID" value={p.upiId} />
+              <Detail label="Account Holder" value={p.accountHolderName} />
+              <Detail label="Bank Account" value={p.bankAccountNumber} />
+              <Detail label="IFSC" value={p.ifsc} />
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
 const csvValue = (value: unknown) => {
   const text = String(value ?? '').replace(/\r?\n/g, ' ');
   return `"${text.replace(/"/g, '""')}"`;
@@ -172,6 +296,7 @@ export default function AdminDemoClassesPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<{ role: 'student' | 'tutor'; person: Person } | null>(null);
 
   const refresh = async (overrides?: Partial<{ page: number; q: string }>) => {
     const nextPage = overrides?.page ?? page;
@@ -433,10 +558,8 @@ export default function AdminDemoClassesPage() {
                                     <div className="text-xs uppercase text-muted">{role}</div>
                                     <div className="font-semibold text-text">{person?.name || 'Unknown'}</div>
                                   </div>
-                                  {id && (
-                                    <Link href={`/dashboard/admin/users/${id}`}>
-                                      <Button variant="outline" size="sm"><Eye className="mr-2 h-4 w-4" /> Profile</Button>
-                                    </Link>
+                                  {id && person && (
+                                    <Button variant="outline" size="sm" onClick={() => setSelectedProfile({ role, person })}><Eye className="mr-2 h-4 w-4" /> Profile</Button>
                                   )}
                                 </div>
                                 <div className="space-y-1 text-sm text-muted">
@@ -482,8 +605,16 @@ export default function AdminDemoClassesPage() {
           </main>
         </div>
       </div>
+        {selectedProfile && (
+          <ProfileModal
+            role={selectedProfile.role}
+            person={selectedProfile.person}
+            onClose={() => setSelectedProfile(null)}
+          />
+        )}
     </ProtectedRoute>
   );
 }
+
 
 

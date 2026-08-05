@@ -1,5 +1,8 @@
+export const ZOOM_SIGN_IN_NOTE =
+  "Before joining, please sign in to the Zoom app with your Zoom account for a smoother class experience and to avoid interruptions.";
+
 export const CLASS_JOIN_NOTICE =
-  "Tab/Laptop and high speed internet is required.";
+  `Tab/Laptop and high speed internet is required. ${ZOOM_SIGN_IN_NOTE}`;
 
 export const CLASS_JOIN_BEFORE_MINUTES = 10;
 export const CLASS_JOIN_AVAILABLE_SOON_LABEL = "Join opens 10 mins before class";
@@ -88,3 +91,4 @@ export const openClassLinkWithNotice = (url?: string | null) => {
   window.open(url, "_blank", "noopener,noreferrer");
   return true;
 };
+

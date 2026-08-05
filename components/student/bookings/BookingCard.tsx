@@ -20,6 +20,7 @@ import {
   CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 type BookingType = {
   _id: string;
@@ -164,7 +165,8 @@ export default function BookingCard({
         {/* JOIN BUTTON: only for confirmed demos inside join window           */}
         {/* ---------------------------------------------------------------- */}
         {booking.status === "confirmed" && booking.meetingLink ? (
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <ZoomJoinNote />
             <button
               type="button"
               disabled={!canJoin}
@@ -275,5 +277,7 @@ export default function BookingCard({
     </>
   );
 }
+
+
 
 

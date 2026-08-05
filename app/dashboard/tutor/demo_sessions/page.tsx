@@ -25,6 +25,7 @@ import {
   getClassJoinWindowState,
 } from '@/utils/classJoinNotice';
 import { formatTime12 } from '@/utils/timeFormat';
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 export default function TutorDemoRequests() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -350,7 +351,8 @@ export default function TutorDemoRequests() {
                       durationMin: DEMO_CLASS_DURATION_MINUTES,
                     });
                     return (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
+            <ZoomJoinNote />
                         <button
                           disabled={!joinState.canJoin}
                           onClick={async () => {
@@ -393,6 +395,8 @@ export default function TutorDemoRequests() {
     </div>
   );
 }
+
+
 
 
 

@@ -44,6 +44,7 @@ import {
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -580,7 +581,8 @@ export default function StudentSessions() {
 
                   {/* Join Now */}
                   {s.status === "confirmed" && s.zoomLink && (
-                    <div className="space-y-1">
+                    <div className="space-y-2">
+                        <ZoomJoinNote />
                       <Button
                         onClick={() =>
                           listJoinState.canJoin &&
@@ -814,7 +816,8 @@ export default function StudentSessions() {
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="space-y-1 text-right">
+                          <div className="space-y-2 text-right">
+                            <ZoomJoinNote className="text-left" />
                             <Button
                               onClick={async () => {
                                 if (!canJoin) return;
@@ -1023,6 +1026,8 @@ export default function StudentSessions() {
     </div>
   );
 }
+
+
 
 
 

@@ -27,6 +27,7 @@ import {
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { formatTimeSlot12 } from "@/utils/timeFormat";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 // ======================================================
 // ⭐ BEAUTIFUL UploadCard Component (with types)
@@ -494,7 +495,8 @@ const TutorRegularClasses = () => {
                   {/* Buttons */}
                   <div className="mt-4 flex gap-3">
                     {!isExpired && (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
+                        <ZoomJoinNote />
                         <button
                           onClick={() => {
                             if (!canJoin) return;
@@ -733,7 +735,8 @@ const TutorRegularClasses = () => {
 
                         {/* Join Button */}
                         {!isExpired && s.status !== "completed" && (
-                          <div className="space-y-1 text-right">
+                          <div className="space-y-2 text-right">
+                            <ZoomJoinNote className="text-left" />
                             <button
                               onClick={async () => {
                                 if (!canJoin) return;
@@ -894,5 +897,7 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
 };
+
+
 
 

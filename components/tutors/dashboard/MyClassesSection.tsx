@@ -11,6 +11,7 @@ import {
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { joinSession } from "@/services/tutorService";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 export interface TutorClass {
   id: string;
@@ -147,7 +148,8 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
 
                   {/* JOIN BUTTON FROM NEXT SESSION */}
                   {next?.meetingLink ? (
-                    <div className="space-y-1">
+                    <div className="space-y-2">
+            <ZoomJoinNote />
                       <button
                         disabled={!canJoin}
                         onClick={async () => {
@@ -195,4 +197,6 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     </section>
   );
 }
+
+
 

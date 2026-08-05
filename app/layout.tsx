@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import ReduxProvider from "@/providers/ReduxProvider";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as HotToaster } from "react-hot-toast";
 import Script from "next/script";
 import NavigationLoader from "@/components/NavigationLoader";
 
@@ -87,8 +88,28 @@ export default function RootLayout({
 
           <WhatsAppFloatingButton />
           <Toaster />
+          <HotToaster
+            toastOptions={{
+              style: {
+                background: "rgba(255, 213, 79, 0.22)",
+                border: "1px solid rgba(255, 213, 79, 0.65)",
+                color: "#222",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+              },
+              error: {
+                iconTheme: { primary: "#FFD54F", secondary: "#222" },
+                style: {
+                  background: "rgba(255, 213, 79, 0.22)",
+                  border: "1px solid rgba(255, 213, 79, 0.65)",
+                  color: "#222",
+                },
+              },
+            }}
+          />
         </ReduxProvider>
       </body>
     </html>
   );
 }
+
+

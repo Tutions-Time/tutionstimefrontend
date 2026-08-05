@@ -13,6 +13,7 @@ import {
   CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 export default function UpcomingSessions() {
   const [loading, setLoading] = useState(true);
@@ -107,7 +108,8 @@ export default function UpcomingSessions() {
               </span> */}
           </div>
           <div className="mt-4 flex justify-between items-start gap-3">
-            <div className="space-y-1">
+            <div className="space-y-2">
+            <ZoomJoinNote />
               <Button
                 onClick={() => handleJoin(displaySession.session._id)}
                 disabled={!joinState.canJoin}
@@ -130,3 +132,5 @@ export default function UpcomingSessions() {
     </div>
   );
 }
+
+

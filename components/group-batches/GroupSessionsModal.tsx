@@ -6,6 +6,7 @@ import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
 } from "@/utils/classJoinNotice";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 type Props = {
   open: boolean;
@@ -94,7 +95,8 @@ export default function GroupSessionsModal({
                         <div className="text-xs text-gray-500">{s.status}</div>
                       </div>
                       {!isExpired && s.status !== "completed" && (
-                        <div className="space-y-1 text-right">
+                        <div className="space-y-2 text-right">
+                          <ZoomJoinNote className="text-left" />
                           <button
                             onClick={() => {
                               if (!canJoin) return;
@@ -345,4 +347,6 @@ export default function GroupSessionsModal({
     </Dialog>
   );
 }
+
+
 

@@ -26,6 +26,7 @@ import {
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { getAvatarUrl } from "@/utils/getImageUrl";
+import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 const emptyRefundDetails = {
   upiId: "",
@@ -336,7 +337,8 @@ export default function StudentBookingsPage() {
                         <div className="mt-4 flex flex-wrap gap-3">
                           {/* JOIN BUTTON (never hidden, just disabled when outside window) */}
                           {!joinState.isExpired && (
-                            <div className="space-y-1">
+                            <div className="space-y-2">
+                        <ZoomJoinNote />
                               <Button
                                 onClick={() =>
                                   joinState.inJoinWindow &&
@@ -451,7 +453,8 @@ export default function StudentBookingsPage() {
                         </div>
 
                         {!isExpired && (
-                          <div className="space-y-1 text-right">
+                          <div className="space-y-2 text-right">
+                            <ZoomJoinNote className="text-left" />
                             <Button
                               onClick={async () => {
                                 if (!inJoinWindow) return;
@@ -784,6 +787,8 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+
+
 
 
 
