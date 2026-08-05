@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { setTutorKyc } from '@/store/slices/tutorKycSlice';
 
-import { CheckCircle, CreditCard, ShieldCheck } from 'lucide-react';
+import { CheckCircle, CreditCard, FileText, ShieldCheck, Upload } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 
-import { getTutorProfile } from '@/services/tutorService';
+import { getTutorProfile, uploadTutorKyc } from '@/services/tutorService';
 import { updateTutorPayoutDetails } from '@/services/profileService';
 
 type ReviewStatus = 'pending' | 'submitted' | 'approved' | 'rejected';
@@ -66,11 +66,18 @@ export default function TutorKycPage() {
     bankAccountNumber: '',
     ifsc: '',
   });
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [panFile, setPanFile] = useState<File | null>(null);
+  const [savingDocuments, setSavingDocuments] = useState(false);
 
   const hasPayoutDetails = Boolean(
     kyc.upiId && kyc.accountHolderName && kyc.bankAccountNumber && kyc.ifsc
   );
   const bankReviewStatus = kyc.payoutDetailsStatus || 'pending';
+  const documentReviewStatus = kyc.kycDocumentsStatus || 'pending';
+  const hasDocuments = Boolean((kyc.aadhaarUrls || []).length || kyc.panUrl);
+  const documentsLocked = documentReviewStatus === 'approved';
+  const canUploadDocuments = !documentsLocked;
   const isLocked = ['submitted', 'under_review', 'approved'].includes(bankReviewStatus) && !allowEditing;
 
   useEffect(() => {
@@ -170,6 +177,118 @@ export default function TutorKycPage() {
     }
   };
 
+  const handleDocumentSubmit = async () => {
+    if (documentsLocked) {
+      toast({ title: 'KYC documents are approved and cannot be changed.' });
+      return;
+    }
+    if (!aadhaarFile && !panFile) {
+      toast({ title: 'Select at least one document to upload' });
+      return;
+    }
+
+    const formData = new FormData();
+    if (aadhaarFile) formData.append('aadhaar', aadhaarFile);
+    if (panFile) formData.append('pan', panFile);
+
+    try {
+      setSavingDocuments(true);
+      const updated = await uploadTutorKyc(formData);
+      dispatch(
+        setTutorKyc({
+          ...kyc,
+          kycStatus: mapKycStatus(updated?.kycStatus || 'submitted'),
+          payoutDetailsStatus: mapReviewStatus(updated?.payoutDetailsStatus || kyc.payoutDetailsStatus),
+          kycDocumentsStatus: mapReviewStatus(updated?.kycDocumentsStatus || 'submitted'),
+          aadhaarUrls: updated?.aadhaarUrls || kyc.aadhaarUrls || [],
+          panUrl: updated?.panUrl || kyc.panUrl || null,
+          kycRejectionReason: String(updated?.kycRejectionReason || ''),
+        })
+      );
+      setAadhaarFile(null);
+      setPanFile(null);
+      const aadhaarInput = document.getElementById('aadhaar-upload') as HTMLInputElement | null;
+      const panInput = document.getElementById('pan-upload') as HTMLInputElement | null;
+      if (aadhaarInput) aadhaarInput.value = '';
+      if (panInput) panInput.value = '';
+      toast({ title: 'KYC documents submitted for review' });
+    } catch (err: any) {
+      toast({
+        title: 'Unable to upload documents',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingDocuments(false);
+    }
+  };
+
+  const renderDocumentStep = () => (
+    <div className="mt-6 space-y-4 rounded-lg border p-4 bg-white">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 font-semibold">
+            {hasDocuments ? <CheckCircle className="w-4 h-4 text-green-600" /> : <FileText className="w-4 h-4" />}
+            Identity documents
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            Upload Aadhaar and PAN documents for admin verification.
+          </div>
+        </div>
+        <Badge className={`capitalize border ${statusClass(documentReviewStatus)}`}>{documentReviewStatus}</Badge>
+      </div>
+
+      {documentReviewStatus === 'rejected' && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          Documents were declined{kyc.kycRejectionReason ? `: ${kyc.kycRejectionReason}` : '. Please upload corrected documents.'}
+        </div>
+      )}
+
+      {documentsLocked ? (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          Your documents are approved and locked. You can no longer change them from the tutor dashboard.
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="text-sm font-medium">Aadhaar document</label>
+            <Input
+              id="aadhaar-upload"
+              type="file"
+              accept="image/*,.pdf"
+              className="mt-1"
+              disabled={!canUploadDocuments || savingDocuments}
+              onChange={(e) => setAadhaarFile(e.target.files?.[0] || null)}
+            />
+            <div className="mt-1 text-xs text-muted-foreground">
+              Existing Aadhaar files: {(kyc.aadhaarUrls || []).length}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">PAN document</label>
+            <Input
+              id="pan-upload"
+              type="file"
+              accept="image/*,.pdf"
+              className="mt-1"
+              disabled={!canUploadDocuments || savingDocuments}
+              onChange={(e) => setPanFile(e.target.files?.[0] || null)}
+            />
+            <div className="mt-1 text-xs text-muted-foreground">
+              Existing PAN: {kyc.panUrl ? 'Uploaded' : 'Not uploaded'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canUploadDocuments && (
+        <Button disabled={savingDocuments || (!aadhaarFile && !panFile)} onClick={handleDocumentSubmit}>
+          <Upload className="w-4 h-4 mr-2" />
+          {savingDocuments ? 'Uploading...' : hasDocuments ? 'Reupload Documents' : 'Upload Documents'}
+        </Button>
+      )}
+    </div>
+  );
   const renderPayoutStep = () => (
     <div className="mt-6 space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
@@ -242,7 +361,7 @@ export default function TutorKycPage() {
       <Sidebar userRole="tutor" isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pr-64">
-        <Topbar title="Bank Verification" subtitle="Submit bank details for tutor payout verification" />
+        <Topbar title="Bank Verification" subtitle="Submit documents and bank details for tutor verification" />
 
         <main className="p-4 lg:p-8">
           <div className="max-w-5xl mx-auto space-y-6">
@@ -255,7 +374,7 @@ export default function TutorKycPage() {
                   <div>
                     <div className="text-lg font-semibold">Bank Verification</div>
                     <div className="text-sm text-muted-foreground">
-                      Add your UPI and bank details for payout review.
+                      Add your identity documents, UPI, and bank details for verification.
                     </div>
                   </div>
                 </div>
@@ -285,6 +404,8 @@ export default function TutorKycPage() {
                 <div className="mt-2 text-xs text-muted-foreground">Used by admin to verify payout ownership.</div>
               </div>
 
+              {renderDocumentStep()}
+
               {renderPayoutStep()}
 
               {isLocked && (
@@ -302,3 +423,5 @@ export default function TutorKycPage() {
     </div>
   );
 }
+
+

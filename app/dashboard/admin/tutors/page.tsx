@@ -131,6 +131,9 @@ export default function AdminTutorsPage() {
   const [suspendReason, setSuspendReason] = useState("");
   const [suspendMessage, setSuspendMessage] = useState("");
   const [suspendSaving, setSuspendSaving] = useState(false);
+  const [kycRejectModal, setKycRejectModal] = useState<{ open: boolean; row?: TutorRow }>({ open: false });
+  const [kycRejectReason, setKycRejectReason] = useState("");
+  const [kycRejectSaving, setKycRejectSaving] = useState(false);
   const incompleteTutorContacts = useMemo(
     () =>
       rows
@@ -294,15 +297,44 @@ export default function AdminTutorsPage() {
                 kyc: updated?.kycStatus || nextKyc,
                 kycDocumentsStatus: updated?.kycDocumentsStatus || r.kycDocumentsStatus,
                 payoutDetailsStatus: updated?.payoutDetailsStatus || r.payoutDetailsStatus,
-                kycRejectionReason: updated?.kycRejectionReason || reason || r.kycRejectionReason,
+                kycRejectionReason: updated?.kycRejectionReason || reason || '',
               }
             : r,
         ),
       );
-      setKycModal((prev) => ({ ...prev, row: prev.row ? { ...prev.row, kyc: nextKyc } : prev.row }));
+      setKycModal((prev) => ({
+        ...prev,
+        row: prev.row
+          ? {
+              ...prev.row,
+              kyc: updated?.kycStatus || nextKyc,
+              kycDocumentsStatus: updated?.kycDocumentsStatus || prev.row.kycDocumentsStatus,
+              payoutDetailsStatus: updated?.payoutDetailsStatus || prev.row.payoutDetailsStatus,
+              kycRejectionReason: updated?.kycRejectionReason || reason || '',
+            }
+          : prev.row,
+      }));
       toast({ title: `KYC ${nextKyc}` });
     } catch (err: any) {
       toast({ title: "Failed to update KYC", description: err.message, variant: "destructive" });
+      throw err;
+    }
+  }
+
+  async function submitKycRejection() {
+    const row = kycRejectModal.row;
+    const reason = kycRejectReason.trim();
+    if (!row || !reason) {
+      toast({ title: "Rejection reason is required" });
+      return;
+    }
+    try {
+      setKycRejectSaving(true);
+      await setKycStatus(row.id, "rejected", reason);
+      setKycRejectModal({ open: false });
+      setKycRejectReason("");
+    } finally {
+      setKycRejectSaving(false);
     }
   }
   function csvValue(value: any) {
@@ -1188,6 +1220,35 @@ export default function AdminTutorsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={kycRejectModal.open} onOpenChange={(open) => {
+        if (kycRejectSaving) return;
+        setKycRejectModal({ open, row: open ? kycRejectModal.row : undefined });
+        if (!open) setKycRejectReason("");
+      }}>
+        <DialogContent className="max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Reject KYC documents</DialogTitle>
+            <DialogDescription>
+              Share the exact reason with the tutor. This message will be sent by email and website notification, and the tutor can reupload documents.
+            </DialogDescription>
+          </DialogHeader>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Reason for rejection</label>
+            <Textarea
+              value={kycRejectReason}
+              onChange={(e) => setKycRejectReason(e.target.value)}
+              rows={5}
+              placeholder="Example: PAN image is blurry. Please upload a clearer PAN document."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" disabled={kycRejectSaving} onClick={() => setKycRejectModal({ open: false })}>Cancel</Button>
+            <Button disabled={kycRejectSaving || !kycRejectReason.trim()} onClick={submitKycRejection}>
+              {kycRejectSaving ? "Saving..." : "Save and reject"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {kycModal.open && kycModal.row && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4">
           <div
@@ -1349,11 +1410,8 @@ export default function AdminTutorsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const reason = prompt(
-                      `Reject KYC for ${kycModal.row?.name}. Enter reason:`,
-                    );
-                    if (reason !== null)
-                      setKycStatus(kycModal.row!.id, "rejected", reason);
+                    setKycRejectReason(kycModal.row?.kycRejectionReason || "");
+                    setKycRejectModal({ open: true, row: kycModal.row });
                   }}
                 >
                   <XCircle className="w-4 h-4 mr-2" /> Reject
@@ -1366,6 +1424,8 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
+
 
 
 
