@@ -142,6 +142,15 @@ export default function StudentDetailPage() {
   const locationParts = [student.city, student.state].filter(Boolean);
   const broadLocation = locationParts.length > 0 ? locationParts.join(", ") : null;
 
+
+  const formatSubjectBudget = (item: any) => {
+    if (!item?.amount) return "";
+    const type = item.billingType === "monthly" ? "Monthly" : "Hourly";
+    return `${item.subject}: ${type}: Rs.${item.amount}`;
+  };
+  const subjectBudgetText = Array.isArray(student.subjectBudgets)
+    ? student.subjectBudgets.map(formatSubjectBudget).filter(Boolean).join(", ")
+    : "";
   // Track Logic
   const track = student.track;
   const todayStart = new Date();
@@ -472,7 +481,7 @@ export default function StudentDetailPage() {
                         <IndianRupee className="w-4 h-4" /> Budget
                       </h3>
                       <p className="text-sm text-gray-800 font-medium">
-                        {student.budget || "Not provided"}
+                        {subjectBudgetText || student.budget || "Not provided"}
                       </p>
                     </div>
                   </CardContent>
@@ -509,6 +518,8 @@ export default function StudentDetailPage() {
     </div>
   );
 }
+
+
 
 
 

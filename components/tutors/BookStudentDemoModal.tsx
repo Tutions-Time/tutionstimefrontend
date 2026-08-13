@@ -19,6 +19,12 @@ const resolveStudentUserId = (student: any) => {
   return String(userId.id || userId._id || "");
 };
 
+const formatSubjectBudget = (item: any) => {
+  if (!item?.amount) return "";
+  const type = item.billingType === "monthly" ? "Monthly" : "Hourly";
+  return `${item.subject}: ${type}: Rs.${item.amount}`;
+};
+
 const formatBudget = (budget?: string) => {
   const value = String(budget || "").trim();
   if (!value) return "Not provided";
@@ -55,7 +61,12 @@ export default function BookStudentDemoModal({
     ? student.preferredTimes
     : EMPTY_ARRAY;
   const board = student?.board;
-  const budget = formatBudget(student?.budget);
+  const subjectBudgetLines = Array.isArray(student?.subjectBudgets)
+    ? student.subjectBudgets.map(formatSubjectBudget).filter(Boolean)
+    : [];
+  const budget = subjectBudgetLines.length
+    ? subjectBudgetLines.join(" | ")
+    : formatBudget(student?.budget);
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(null);
@@ -319,5 +330,6 @@ export default function BookStudentDemoModal({
     </div>
   );
 }
+
 
 

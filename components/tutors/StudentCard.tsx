@@ -36,6 +36,8 @@ export default function StudentCard({
     preferredTimeSlot,
     preferredTimes = [],
     budget,
+    subjectBudgets = [],
+    leadSubject,
     photoUrl,
   } = student || {};
 
@@ -51,7 +53,15 @@ export default function StudentCard({
     (Array.isArray(preferredTimes) && preferredTimes.length
       ? preferredTimes[0]
       : "");
-  const displayedBudget = typeof budget === "string" ? budget.trim() : "";
+  const activeSubject = leadSubject || normalizedSubjects[0] || "";
+  const subjectBudget = Array.isArray(subjectBudgets)
+    ? subjectBudgets.find((item: any) => item?.subject === activeSubject)
+    : null;
+  const displayedBudget = subjectBudget?.amount
+    ? `${activeSubject ? `${activeSubject}: ` : ""}${subjectBudget.billingType === "monthly" ? "Monthly" : "Hourly"}: Rs.${subjectBudget.amount}`
+    : typeof budget === "string"
+      ? budget.trim()
+      : "";
 
   return (
     <>
@@ -182,3 +192,5 @@ export default function StudentCard({
     </>
   );
 }
+
+

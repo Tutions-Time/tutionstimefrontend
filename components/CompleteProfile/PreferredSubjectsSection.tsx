@@ -95,6 +95,12 @@ export default function PreferredSubjectsSection({
       dispatch(setField({ key: "subjectTimeSlots", value: subjectTimeSlots }));
       dispatch(
         setField({
+          key: "subjectBudgets",
+          value: (profile.subjectBudgets || []).filter((item) => next.includes(item.subject)),
+        })
+      );
+      dispatch(
+        setField({
           key: "preferredTimes",
           value: Array.from(new Set(subjectTimeSlots.flatMap((item) => item.slots))),
         })
@@ -237,3 +243,4 @@ export default function PreferredSubjectsSection({
     </section>
   );
 }
+

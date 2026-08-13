@@ -63,7 +63,7 @@ export default function BookDemoPage() {
 
     const normalizeBookingError = (msg: string) =>
       msg.includes("active demo")
-        ? "You already have an active demo. Complete it before booking another."
+        ? "You already have an active demo for this subject. Please choose another subject or wait until it is completed."
         : msg;
 
     try {
@@ -174,3 +174,4 @@ export default function BookDemoPage() {
     </div>
   );
 }
+

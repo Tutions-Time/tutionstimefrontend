@@ -152,6 +152,55 @@ export default function TutorPreferencesSection({
     setTimeError("");
   };
 
+
+
+  const getBudgetForSubject = (subject: string) =>
+    (profile.subjectBudgets || []).find((item) => item.subject === subject) || {
+      subject,
+      billingType: "hourly" as const,
+      amount: "",
+    };
+
+  const updateSubjectBudget = (
+    subject: string,
+    patch: Partial<{ billingType: "hourly" | "monthly"; amount: string }>
+  ) => {
+    if (disabled) return;
+    const current = profile.subjectBudgets || [];
+    const existing = current.find((item) => item.subject === subject);
+    const nextItem = {
+      subject,
+      billingType: patch.billingType || existing?.billingType || "hourly",
+      amount:
+        patch.amount !== undefined
+          ? patch.amount
+          : patch.billingType && patch.billingType !== existing?.billingType
+            ? ""
+            : existing?.amount || "",
+    };
+    const next = existing
+      ? current.map((item) => (item.subject === subject ? nextItem : item))
+      : [...current, nextItem];
+    dispatch(
+      setField({
+        key: "subjectBudgets",
+        value: next.filter((item) => profile.subjects.includes(item.subject)),
+      })
+    );
+    const first = next.find((item) => item.amount);
+    if (first) {
+      dispatch(
+        setField({
+          key: "budget",
+          value:
+            first.billingType === "hourly"
+              ? buildBudget(first.amount, "")
+              : buildBudget("", first.amount),
+        })
+      );
+    }
+  };
+
   const removeSlot = (subject: string, slot: string) => {
     if (disabled) return;
     const nextSlots = (profile.subjectTimeSlots || [])
@@ -310,62 +359,58 @@ export default function TutorPreferencesSection({
         </div>
 
         <div className="md:col-span-2">
-          <Label className="mb-2 block">How do you want to pay?</Label>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Select
-              disabled={disabled}
-              value={budgetMode}
-              onValueChange={(value) =>
-                updateBudgetMode(value as "hourly" | "monthly")
-              }
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue placeholder="Select hourly or monthly" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hourly">Hourly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {budgetMode === "hourly" && (
-              <Select
-                disabled={disabled}
-                value={budget.hourly}
-                onValueChange={(value) => updateBudget({ hourly: value })}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select hourly budget" />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOURLY_RATE_OPTIONS.map((rate) => (
-                    <SelectItem key={rate} value={String(rate)}>
-                      Rs.{rate}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {budgetMode === "monthly" && (
-              <Select
-                disabled={disabled}
-                value={budget.monthly}
-                onValueChange={(value) => updateBudget({ monthly: value })}
-              >
-                <SelectTrigger className="h-10">
-                  <SelectValue placeholder="Select monthly budget" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MONTHLY_RATE_OPTIONS.map((rate) => (
-                    <SelectItem key={rate} value={String(rate)}>
-                      Rs.{rate}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+          <Label className="mb-2 block">Subject-wise Budget</Label>
+          {profile.subjects.length === 0 ? (
+            <p className="text-sm text-gray-500">Select subjects first to add budgets.</p>
+          ) : (
+            <div className="space-y-3">
+              {profile.subjects.map((subject) => {
+                const subjectBudget = getBudgetForSubject(subject);
+                const options =
+                  subjectBudget.billingType === "monthly"
+                    ? MONTHLY_RATE_OPTIONS
+                    : HOURLY_RATE_OPTIONS;
+                return (
+                  <div key={subject} className="grid md:grid-cols-[1fr_180px_180px] gap-3 rounded-xl border border-gray-200 bg-gray-50/70 p-4 items-center">
+                    <div className="text-sm font-semibold text-gray-900">{subject}</div>
+                    <Select
+                      disabled={disabled}
+                      value={subjectBudget.billingType}
+                      onValueChange={(value) =>
+                        updateSubjectBudget(subject, {
+                          billingType: value as "hourly" | "monthly",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Hourly or monthly" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hourly">Hourly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      disabled={disabled}
+                      value={subjectBudget.amount}
+                      onValueChange={(value) => updateSubjectBudget(subject, { amount: value })}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select budget" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map((rate) => (
+                          <SelectItem key={rate} value={String(rate)}>
+                            Rs.{rate}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="md:col-span-2">

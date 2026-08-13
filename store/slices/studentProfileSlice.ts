@@ -61,6 +61,7 @@ export interface StudentProfileState {
   availability: string[];
   preferredTimes: string[];
   subjectTimeSlots: { subject: string; slots: string[] }[];
+  subjectBudgets: { subject: string; billingType: "hourly" | "monthly"; amount: string }[];
 
   budget: string;
   goals: string;
@@ -122,6 +123,7 @@ const initialState: StudentProfileState = {
   availability: [],
   preferredTimes: [],
   subjectTimeSlots: [],
+  subjectBudgets: [],
 
   budget: '',
   goals: '',
@@ -260,4 +262,5 @@ export function validateStudentProfile(p: StudentProfileState) {
 
   return e;
 }
+
 

@@ -73,8 +73,8 @@ export default function StudentProfileCompletePage() {
         const data = res?.data?.data || res?.data || {};
         const profileData = data?.profile || null;
         const user = data?.user || {};
-        if (profileData?.name) {
-          dispatch(setField({ key: "name", value: profileData.name }));
+        if (profileData) {
+          dispatch(setBulk(profileData));
         }
         if (user?.phone) {
           dispatch(setField({ key: "phone", value: String(user.phone) }));
@@ -267,3 +267,5 @@ export default function StudentProfileCompletePage() {
     </div>
   );
 }
+
+

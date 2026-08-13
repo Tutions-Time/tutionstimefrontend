@@ -10,6 +10,7 @@ import { verifyGenericPayment, createSubscriptionOrder } from "@/services/razorp
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { openRazorpayCheckout } from "@/lib/razorpay";
+import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 
 export default function ReviewModal() {
   const dispatch = useAppDispatch();
@@ -31,6 +32,8 @@ export default function ReviewModal() {
   const [loadingPay, setLoadingPay] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [hourlyCount, setHourlyCount] = useState(4);
+  const [regularBooking, setRegularBooking] = useState<any>(null);
+  const [regularContext, setRegularContext] = useState<any>(null);
   const router = useRouter();
 
   const completeRegularPaymentFlow = () => {
@@ -57,6 +60,8 @@ export default function ReviewModal() {
     setStep(1);
     setTutorRates(null);
     setHourlyCount(4);
+    setRegularBooking(null);
+    setRegularContext(null);
   }, [bookingId, shouldShowReview]);
 
   if (!shouldShowReview) return null;
@@ -81,25 +86,18 @@ export default function ReviewModal() {
         likedTutor: likedTutor ?? false,
       });
 
-      if (likedTutor === true) {
-        if (typeof window !== "undefined" && bookingId) {
-          localStorage.setItem(`review_submitted_${bookingId}`, "1");
-        }
-        setTutorRates(
-          res?.data?.tutorRates ||
-            res?.tutorRates || {
-              hourlyRate: 0,
-              monthlyRate: 0,
-            }
-        );
-        setStep(2);
-        return;
-      }
-
       if (typeof window !== "undefined" && bookingId) {
         localStorage.setItem(`review_submitted_${bookingId}`, "1");
       }
-      dispatch(closeReviewModal());
+      setRegularContext(res?.data || res || null);
+      setTutorRates(
+        res?.data?.tutorRates ||
+          res?.tutorRates || {
+            hourlyRate: 0,
+            monthlyRate: 0,
+          }
+      );
+      setStep(2);
     } catch (err: any) {
       const message = (err?.message || "").toLowerCase();
       if (message.includes("already submitted")) {
@@ -228,25 +226,33 @@ export default function ReviewModal() {
   const DecisionStep = () => (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">
-        Continue with {tutorName}?
+        Do you want to continue to regular class?
       </h2>
       <p className="text-sm text-gray-600">
-        Would you like to join regular classes with this tutor?
+        You can start regular classes with {tutorName || "this tutor"} now.
       </p>
       <button
         className="w-full bg-[#FFD54F] text-black font-semibold py-3 rounded-full hover:bg-[#eac747]"
-        onClick={() => setStep(3)}
+        onClick={() =>
+          setRegularBooking({
+            _id: bookingId,
+            tutorHourlyRate: hourlyRate,
+            tutorMonthlyRate: monthlyRate,
+            subject: regularContext?.bookingSubject || regularContext?.booking?.subject,
+            subjects: regularContext?.bookingSubjects || regularContext?.booking?.subjects || [],
+            studentBudget: regularContext?.studentBudget || "",
+            studentSubjectBudgets: regularContext?.studentSubjectBudgets || [],
+            requestedBy: regularContext?.booking?.requestedBy,
+          })
+        }
       >
-        Yes, show regular class plans
+        Yes
       </button>
       <button
         className="w-full bg-gray-100 text-gray-700 font-semibold py-3 rounded-full hover:bg-gray-200"
-        onClick={() => {
-          dispatch(closeReviewModal());
-          router.push("/dashboard/student/search");
-        }}
+        onClick={() => dispatch(closeReviewModal())}
       >
-        No, find another tutor
+        No
       </button>
     </div>
   );
@@ -316,6 +322,19 @@ export default function ReviewModal() {
       setLoadingPay(false);
     }
   };
+
+  if (regularBooking) {
+    return (
+      <UpgradeToRegularModal
+        booking={regularBooking}
+        onClose={() => {
+          setRegularBooking(null);
+    setRegularContext(null);
+          dispatch(closeReviewModal());
+        }}
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -393,3 +412,9 @@ export default function ReviewModal() {
     </div>
   );
 }
+
+
+
+
+
+

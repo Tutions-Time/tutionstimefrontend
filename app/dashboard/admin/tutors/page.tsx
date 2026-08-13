@@ -103,6 +103,7 @@ type TutorRow = {
   earnings30d?: number;
   status: Status;
   joinedAt: string;
+  kycSubmittedAt?: string | null;
 };
 
 export default function AdminTutorsPage() {
@@ -610,7 +611,7 @@ export default function AdminTutorsPage() {
                 value={sort}
                 onChange={(e) => setSort(e.target.value as any)}
               >
-                <option value="joined_desc">Joined (newest)</option>
+                <option value="joined_desc">KYC review / newest</option>
                 <option value="joined_asc">Joined (oldest)</option>
                 <option value="name_asc">Name (A → Z)</option>
                 <option value="name_desc">Name (Z → A)</option>
@@ -1424,6 +1425,7 @@ export default function AdminTutorsPage() {
     </div>
   );
 }
+
 
 
 
