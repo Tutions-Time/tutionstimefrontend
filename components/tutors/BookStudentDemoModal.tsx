@@ -35,12 +35,6 @@ const formatBudget = (budget?: string) => {
     .replace(/;\s*/g, " | ");
 };
 
-const getDefaultPmTime = (selectedDate?: string) => {
-  const noon = dayjs().hour(12).minute(0).second(0).millisecond(0);
-  if (!selectedDate || !dayjs(selectedDate).isSame(dayjs(), "day")) return noon;
-  if (noon.isAfter(dayjs())) return noon;
-  return dayjs().add(5, "minute").startOf("minute");
-};
 
 interface Props {
   open: boolean;
@@ -91,13 +85,13 @@ export default function BookStudentDemoModal({
   useEffect(() => {
     if (!open) return;
     setSelectedDate("");
-    setSelectedTime(getDefaultPmTime());
+    setSelectedTime(null);
     setSelectedPreferredSlot(singlePreferredSlot);
     setNote("");
   }, [open, singlePreferredSlot]);
 
   useEffect(() => {
-    setSelectedTime(getDefaultPmTime(selectedDate));
+    setSelectedTime(null);
     setSelectedPreferredSlot(singlePreferredSlot);
   }, [selectedDate, singlePreferredSlot]);
 

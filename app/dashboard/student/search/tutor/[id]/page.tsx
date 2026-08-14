@@ -53,6 +53,23 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
+function normalizeList(...values: any[]) {
+  return values
+    .flatMap((value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === "string") {
+        return value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      return [];
+    })
+    .map((item) => String(item || "").trim())
+    .filter(Boolean)
+    .filter((item, index, arr) => arr.indexOf(item) === index);
+}
+
 function StarRating({ value, size = 16 }: { value: number; size?: number }) {
   const clamped = Number.isFinite(value) ? Math.min(5, Math.max(0, value)) : 0;
 
@@ -154,6 +171,7 @@ export default function TutorDetailPage() {
   const upcomingAvailability = Array.isArray(tutor?.availability)
     ? tutor.availability.filter((d: string) => d >= todayStr)
     : [];
+  const boardList = normalizeList(tutor?.boards, tutor?.board, tutor?.tutorBoards);
 
   if (loading)
     return (
@@ -296,6 +314,11 @@ export default function TutorDetailPage() {
                         value={preferredTimeText}
                       />
                       <Fact
+                        icon={BookOpen}
+                        label="Boards"
+                        value={boardList.length ? boardList.join(", ") : "N/A"}
+                      />
+                      <Fact
                         icon={MapPin}
                         label="Location"
                         value={[tutor.city, tutor.state]
@@ -372,11 +395,28 @@ export default function TutorDetailPage() {
                             )}
                           </div>
                         </div>
+                        <div>
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-[--primary]" />
+                            Boards
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            {boardList.length ? (
+                              boardList.map((board: string) => (
+                                <Chip key={board}>{board}</Chip>
+                              ))
+                            ) : (
+                              <p className="text-xs text-gray-500">
+                                No boards listed.
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
                       <div>
                         <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
-                          Fees & Mode
+                          Fees/Mode
                         </h2>
                         <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-gray-800">
                           <p>
@@ -457,3 +497,5 @@ export default function TutorDetailPage() {
     </div>
   );
 }
+
+

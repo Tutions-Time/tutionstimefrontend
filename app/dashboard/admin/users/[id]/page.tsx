@@ -167,6 +167,7 @@ export default function UserDetailPage() {
                 <p><strong>Qualification:</strong> {user.tutorProfile.qualification}</p>
                 <p><strong>Experience:</strong> {user.tutorProfile.experience}</p>
                 <p><strong>Subjects:</strong> {user.tutorProfile.subjects?.join(', ')}</p>
+                <p><strong>Boards:</strong> {Array.isArray(user.tutorProfile.boards) && user.tutorProfile.boards.length ? user.tutorProfile.boards.join(', ') : 'N/A'}</p>
                 <p><strong>Bio:</strong> {user.tutorProfile.bio}</p>
               </div>
             )}

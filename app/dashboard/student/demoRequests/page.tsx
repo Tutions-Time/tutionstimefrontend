@@ -223,6 +223,11 @@ export default function StudentDemoRequests() {
                         Teaches: {req.tutorSubjects.slice(0, 4).join(", ")}
                       </div>
                     )}
+                    {Array.isArray(req.tutorBoards) && req.tutorBoards.length > 0 && (
+                      <div className="mt-1 text-xs text-gray-500">
+                        Boards: {req.tutorBoards.join(", ")}
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
@@ -419,6 +424,8 @@ export default function StudentDemoRequests() {
     </div>
   );
 }
+
+
 
 
 

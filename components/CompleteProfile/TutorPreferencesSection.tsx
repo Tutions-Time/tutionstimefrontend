@@ -40,10 +40,7 @@ const buildBudget = (hourly: string, monthly: string) => {
   return parts.join("; ");
 };
 
-const getDefaultPmDraft = () => {
-  const start = dayjs().hour(12).minute(0).second(0).millisecond(0);
-  return { start, end: start.add(1, "hour") };
-};
+const getDefaultPmDraft = () => ({ start: null, end: null });
 
 export default function TutorPreferencesSection({
   disabled = false,

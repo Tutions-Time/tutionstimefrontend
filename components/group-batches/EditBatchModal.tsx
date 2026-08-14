@@ -40,8 +40,8 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
     recurringDays: [],
     startDate: "",
     endDate: "",
-    classStartTime: "18:00",
-    classEndTime: "19:00",
+    classStartTime: "",
+    classEndTime: "",
     seatCap: "10",
     pricePerStudent: "500",
     description: "",
@@ -51,8 +51,8 @@ export default function EditBatchModal({ open, onOpenChange, batch, options, onS
 
   useEffect(() => {
     if (!batch) return;
-    const startTime = batch?.recurring?.time || "18:00";
-    const endTime = batch?.recurring?.endTime || "19:00";
+    const startTime = batch?.recurring?.time || "";
+    const endTime = batch?.recurring?.endTime || "";
     const boards = options?.boards || [];
     const currentBoard = String(batch?.board || "");
     const isKnownBoard = boards.includes(currentBoard);

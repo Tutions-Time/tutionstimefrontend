@@ -9,12 +9,6 @@ import { fetchTutorById, createDemoBooking } from "@/services/studentService";
 import { getUserProfile } from "@/services/profileService";
 import dayjs from "dayjs";
 
-const getDefaultPmTimeValue = (selectedDate?: string) => {
-  const noon = dayjs().hour(12).minute(0).second(0).millisecond(0);
-  if (!selectedDate || !dayjs(selectedDate).isSame(dayjs(), "day")) return "12:00";
-  if (noon.isAfter(dayjs())) return "12:00";
-  return dayjs().add(5, "minute").startOf("minute").format("HH:mm");
-};
 
 export default function BookDemoPage() {
   const router = useRouter();
@@ -23,7 +17,7 @@ export default function BookDemoPage() {
 
   const [tutor, setTutor] = useState<any>(null);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState(getDefaultPmTimeValue());
+  const [time, setTime] = useState("");
   const [subjects, setSubjects] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,7 +46,7 @@ export default function BookDemoPage() {
   }, []);
 
   useEffect(() => {
-    setTime(getDefaultPmTimeValue(date));
+    setTime("");
   }, [date]);
 
   const handleSubmit = async () => {
