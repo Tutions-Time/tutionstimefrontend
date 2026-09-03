@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -56,12 +57,16 @@ const validateRefundDetails = (details: typeof emptyRefundDetails) => {
 };
 
 export default function StudentBookingsPage() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bookings, setBookings] = useState<any[]>([]);
   const [regularClasses, setRegularClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<"demo" | "regular">("demo");
+  const [activeTab, setActiveTab] = useState<"demo" | "regular">(
+    tabParam === "regular" ? "regular" : "demo",
+  );
   const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -85,6 +90,10 @@ export default function StudentBookingsPage() {
   const themePrimary = "#FFD54F";
 
   const getImageUrl = getAvatarUrl;
+
+  useEffect(() => {
+    setActiveTab(tabParam === "regular" ? "regular" : "demo");
+  }, [tabParam]);
 
   const load = useCallback(async () => {
     try {
@@ -787,6 +796,8 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+
+
 
 
 

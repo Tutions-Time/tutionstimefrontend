@@ -77,7 +77,7 @@ export default function UpgradeToRegularModal({
 
   const completeUpgradeFlow = () => {
     onClose();
-    router.push(`/dashboard/student/demoBookings`);
+    router.push(`/dashboard/student/demoBookings?tab=regular`);
   };
 
   const openRazorpay = async (order: any, regularClassId: string) => {
@@ -119,6 +119,12 @@ export default function UpgradeToRegularModal({
           billingType === "hourly" ? Number(numberOfClasses) : undefined,
       });
 
+      if (res?.alreadyActive) {
+        toast.success(res?.message || "Regular class is already active");
+        completeUpgradeFlow();
+        return;
+      }
+
       if (!res.success) {
         toast.error(res.message);
         return;
@@ -131,6 +137,12 @@ export default function UpgradeToRegularModal({
         billingType,
         numberOfClasses: classes,
       });
+
+      if (orderRes?.alreadyActive) {
+        toast.success(orderRes?.message || "Regular class is already active");
+        completeUpgradeFlow();
+        return;
+      }
 
       if (orderRes?.walletPaid) {
         toast.success("Payment successful via wallet");
@@ -234,6 +246,8 @@ export default function UpgradeToRegularModal({
     </div>
   );
 }
+
+
 
 
 

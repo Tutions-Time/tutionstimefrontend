@@ -26,6 +26,7 @@ const landingLinks = [
   { label: "Blogs", href: "/blogs" },
   { label: "Services", href: "/services", icon: BriefcaseBusiness },
   { label: "How it works", href: "/how-it-works", icon: HelpCircle },
+  { label: "FAQ", href: "/faq", icon: HelpCircle },
   { label: "About us", href: "/about-us", icon: Info },
   { label: "Contact", href: "/contact", icon: Phone },
 ];
@@ -190,3 +191,4 @@ export default function Navbar() {
     </>
   );
 }
+

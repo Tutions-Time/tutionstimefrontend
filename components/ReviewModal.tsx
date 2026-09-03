@@ -41,7 +41,7 @@ export default function ReviewModal() {
       localStorage.setItem(`review_submitted_${bookingId}`, "1");
     }
     dispatch(closeReviewModal());
-    router.push(`/dashboard/student/demoBookings`);
+    router.push(`/dashboard/student/demoBookings?tab=regular`);
   };
 
   useEffect(() => {
@@ -412,6 +412,7 @@ export default function ReviewModal() {
     </div>
   );
 }
+
 
 
 

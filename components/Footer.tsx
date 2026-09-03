@@ -123,6 +123,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/faq" className="hover:text-text">
+                  FAQ
+                </Link>
+              </li>
+              <li>
                 <Link href="/terms-and-conditions" className="hover:text-text">
                   Terms & Conditions
                 </Link>
@@ -217,4 +222,5 @@ export default function Footer() {
     </footer>
   );
 }
+
 

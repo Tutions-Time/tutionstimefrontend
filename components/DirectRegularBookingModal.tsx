@@ -46,7 +46,7 @@ export default function DirectRegularBookingModal({
 
   const finish = () => {
     onClose();
-    router.push("/dashboard/student/my-classes");
+    router.push("/dashboard/student/demoBookings?tab=regular");
   };
 
   const openRazorpay = async (
@@ -106,6 +106,12 @@ export default function DirectRegularBookingModal({
           billingType === "hourly" ? Number(numberOfClasses) : undefined,
       });
 
+      if (res?.alreadyActive) {
+        toast.success(res?.message || "Regular class is already active");
+        finish();
+        return;
+      }
+
       if (!res?.success) {
         toast.error(res?.message || "Could not start regular classes");
         return;
@@ -118,6 +124,12 @@ export default function DirectRegularBookingModal({
         billingType,
         numberOfClasses: classes,
       });
+
+      if (orderRes?.alreadyActive) {
+        toast.success(orderRes?.message || "Regular class is already active");
+        finish();
+        return;
+      }
 
       if (orderRes?.walletPaid) {
         toast.success("Payment successful via wallet");
@@ -208,3 +220,4 @@ export default function DirectRegularBookingModal({
     </div>
   );
 }
+
