@@ -4,6 +4,11 @@ import {
   isAllowedMonthlyRate,
 } from "@/utils/rateOptions";
 
+const isPositiveAmount = (value: unknown) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0;
+};
+
 /* -------------------------------------------------------
    SHARED TYPES
 -------------------------------------------------------- */
@@ -157,13 +162,13 @@ export function validateTutorProfile(data: any): TutorProfileErrors {
 
   if (isEmpty(data.hourlyRate))
     errors.hourlyRate = "Hourly rate is required";
-  else if (!isAllowedHourlyRate(data.hourlyRate))
-    errors.hourlyRate = "Select an hourly rate from Rs.400 to Rs.2000";
+  else if (!isPositiveAmount(data.hourlyRate))
+    errors.hourlyRate = "Enter a valid hourly rate";
 
   if (isEmpty(data.monthlyRate))
     errors.monthlyRate = "Monthly rate is required";
-  else if (!isAllowedMonthlyRate(data.monthlyRate))
-    errors.monthlyRate = "Select a monthly rate from Rs.3500 to Rs.10000";
+  else if (!isPositiveAmount(data.monthlyRate))
+    errors.monthlyRate = "Enter a valid monthly rate";
 
   if (isEmpty(data.bio)) errors.bio = "Bio is required";
 
@@ -309,6 +314,7 @@ export default {
   validateTutorProfile,
   validateStudentProfileFields,
 };
+
 
 
 
