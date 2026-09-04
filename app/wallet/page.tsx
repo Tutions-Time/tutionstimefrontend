@@ -75,19 +75,21 @@ export default function WalletPage() {
   const isPayoutTransaction = (tx: any) => tx?.reference?.type === 'payout';
   const isPendingPayoutRequest = (tx: any) =>
     isPayoutTransaction(tx) && tx.status === 'pending';
+  const isCompletedPayout = (tx: any) =>
+    isPayoutTransaction(tx) && tx.status === 'completed';
   const displayTransactionDescription = (tx: any) =>
     isPendingPayoutRequest(tx)
       ? 'Withdrawal request submitted'
-      : isPayoutTransaction(tx)
-        ? 'Credited to your bank account'
+      : isCompletedPayout(tx)
+        ? 'Paid to your bank account'
         : tx.description || '—';
   const displayTransactionType = (tx: any) =>
     isPendingPayoutRequest(tx)
       ? 'Pending'
-      : isPayoutTransaction(tx)
-        ? 'Credit'
+      : isCompletedPayout(tx)
+        ? 'Paid'
         : String(tx.type || '').replace(/^./, (c) => c.toUpperCase());
-  const isPositiveTransaction = (tx: any) => isPayoutTransaction(tx) || tx.type === 'credit';
+  const isPositiveTransaction = (tx: any) => tx.type === 'credit';
   const displayAmountPrefix = (tx: any) =>
     isPendingPayoutRequest(tx) ? '' : isPositiveTransaction(tx) ? '+' : '-';
   const displayAmountClass = (tx: any) =>
