@@ -16,6 +16,12 @@ import {
   MONTHLY_RATE_OPTIONS,
 } from "@/utils/rateOptions";
 
+function normalizePositiveAmount(value: string) {
+  const digitsOnly = value.replace(/\D/g, "");
+  if (!digitsOnly) return "";
+  return String(Math.max(1, Number(digitsOnly)));
+}
+
 function RateField({
   label,
   value,
@@ -25,17 +31,20 @@ function RateField({
   onChange,
 }: {
   label: string;
-  value: string;
+  value: string | number;
   options: number[];
   disabled: boolean;
   placeholder: string;
   onChange: (value: string) => void;
 }) {
+  const inputValue = value == null ? "" : String(value);
+  const selectValue = options.includes(Number(inputValue)) ? inputValue : "";
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
-        <Select disabled={disabled} value={value} onValueChange={onChange}>
+      <div className="grid gap-3 sm:grid-cols-[1fr_170px]">
+        <Select disabled={disabled} value={selectValue} onValueChange={onChange}>
           <SelectTrigger className="h-10">
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
@@ -53,13 +62,12 @@ function RateField({
             Rs.
           </span>
           <input
-            type="number"
-            min={1}
-            step={1}
+            type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
             disabled={disabled}
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
+            value={inputValue}
+            onChange={(event) => onChange(normalizePositiveAmount(event.target.value))}
             placeholder="Exact amount"
             className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
