@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
-  CLASS_JOIN_NOTICE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { joinSession } from "@/services/tutorService";
@@ -158,7 +157,6 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
                             openClassLinkWithNotice(next.meetingLink);
                             return;
                           }
-                          if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                           try {
                             const res = await joinSession(next.sessionId);
                             const meetingUrl = res?.url || next.meetingLink;

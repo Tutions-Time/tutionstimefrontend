@@ -24,7 +24,6 @@ import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   CLASS_EXPIRE_AFTER_MINUTES,
-  CLASS_JOIN_NOTICE,
   REGULAR_CLASS_DURATION_MINUTES,
   getClassJoinWindowState,
   openClassLinkWithNotice,
@@ -336,7 +335,6 @@ export default function StudentBookingsPage() {
                               <Button
                                 onClick={async () => {
                                   if (!joinState.inJoinWindow) return;
-                                  if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                                   try {
                                     const res = await joinSession(next.sessionId);
                                     if (res?.success && res?.url) {
@@ -452,7 +450,6 @@ export default function StudentBookingsPage() {
                             <Button
                               onClick={async () => {
                                 if (!inJoinWindow) return;
-                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                                 try {
                                   const res = await joinSession(s._id);
                                   if (res?.success && res?.url)

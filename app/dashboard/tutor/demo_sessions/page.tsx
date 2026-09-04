@@ -20,7 +20,6 @@ import { useNotificationRefresh } from '@/hooks/useNotificationRefresh';
 import {
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
-  CLASS_JOIN_NOTICE,
   DEMO_CLASS_DURATION_MINUTES,
   getClassJoinWindowState,
 } from '@/utils/classJoinNotice';
@@ -357,7 +356,6 @@ export default function TutorDemoRequests() {
                           disabled={!joinState.canJoin}
                           onClick={async () => {
                             if (!joinState.canJoin) return;
-                            if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                             let meetingLink = b.meetingLink;
                             try {
                               const joinRes = await markTutorDemoJoin(b._id);

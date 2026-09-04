@@ -17,7 +17,6 @@ import { markDemoJoin } from "@/services/bookingService";
 import {
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
-  CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
 import ZoomJoinNote from "@/components/ZoomJoinNote";
@@ -172,7 +171,6 @@ export default function BookingCard({
               disabled={!canJoin}
               onClick={async () => {
                 if (!canJoin) return;
-                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
 
                 try {
                   const joinRes = await markDemoJoin(booking._id);

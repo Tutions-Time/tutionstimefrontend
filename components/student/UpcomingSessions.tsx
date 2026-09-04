@@ -10,7 +10,6 @@ import { joinSession } from "@/services/tutorService";
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
-  CLASS_JOIN_NOTICE,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
 import ZoomJoinNote from "@/components/ZoomJoinNote";
@@ -44,7 +43,6 @@ export default function UpcomingSessions() {
   }, []);
 
   const handleJoin = async (sessionId: string) => {
-    if (!window.confirm(CLASS_JOIN_NOTICE)) return;
     const res = await joinSession(sessionId);
     if (res?.success && res?.url) {
       window.open(res.url, "_blank");

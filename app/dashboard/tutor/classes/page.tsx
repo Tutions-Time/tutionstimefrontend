@@ -23,7 +23,6 @@ import { useNotificationRefresh } from "@/hooks/useNotificationRefresh";
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
-  CLASS_JOIN_NOTICE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { formatTimeSlot12 } from "@/utils/timeFormat";
@@ -500,7 +499,6 @@ const TutorRegularClasses = () => {
                         <button
                           onClick={() => {
                             if (!canJoin) return;
-                            if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                             joinSession(c.nextSession.sessionId)
                               .then((res) => {
                                 const meetingUrl = res?.url || c.nextSession.meetingLink;
@@ -740,7 +738,6 @@ const TutorRegularClasses = () => {
                             <button
                               onClick={async () => {
                                 if (!canJoin) return;
-                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                                 try {
                                   const res = await joinSession(s._id);
                                   if (res?.success && res?.url) {

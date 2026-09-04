@@ -37,7 +37,6 @@ import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileSe
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
-  CLASS_JOIN_NOTICE,
   DEMO_CLASS_DURATION_MINUTES,
   REGULAR_CLASS_DURATION_MINUTES,
   getClassJoinWindowState,
@@ -821,7 +820,6 @@ export default function StudentSessions() {
                             <Button
                               onClick={async () => {
                                 if (!canJoin) return;
-                                if (!window.confirm(CLASS_JOIN_NOTICE)) return;
                                 try {
                                   const res = await joinSession(s._id);
                                   if (res?.success && res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
