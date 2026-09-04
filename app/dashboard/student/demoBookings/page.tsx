@@ -23,7 +23,10 @@ import { getUserProfile, updateStudentPayoutDetails } from "@/services/profileSe
 import {
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
+  CLASS_EXPIRE_AFTER_MINUTES,
   CLASS_JOIN_NOTICE,
+  REGULAR_CLASS_DURATION_MINUTES,
+  getClassJoinWindowState,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
 import { getAvatarUrl } from "@/utils/getImageUrl";
@@ -187,37 +190,20 @@ export default function StudentBookingsPage() {
   };
 
   // ============================================
-  // JOIN BUTTON LOGIC — UNIVERSAL FUNCTION
+  // JOIN BUTTON LOGIC - UNIVERSAL FUNCTION
   // ============================================
-  const getUtcWallClockMs = (value: string) => {
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return NaN;
-    return new Date(
-      d.getUTCFullYear(),
-      d.getUTCMonth(),
-      d.getUTCDate(),
-      d.getUTCHours(),
-      d.getUTCMinutes(),
-      d.getUTCSeconds(),
-      d.getUTCMilliseconds()
-    ).getTime();
-  };
-
   const getJoinState = (startDateTime: string) => {
-    const startMs = getUtcWallClockMs(startDateTime);
-    if (!Number.isFinite(startMs)) {
-      return { isFuture: true, inJoinWindow: false, isExpired: false };
-    }
-    const nowMs = Date.now();
+    const state = getClassJoinWindowState(startDateTime, {
+      durationMin: REGULAR_CLASS_DURATION_MINUTES,
+      expireAfterMin: CLASS_EXPIRE_AFTER_MINUTES,
+      useUtcWallClock: true,
+    });
 
-    const joinOpenAt = startMs - 10 * 60 * 1000; // 10 min before
-    const joinCloseAt = startMs + 60 * 60 * 1000; // 1 hour after
-
-    const isFuture = nowMs < joinOpenAt;
-    const inJoinWindow = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
-    const isExpired = nowMs > joinCloseAt;
-
-    return { isFuture, inJoinWindow, isExpired };
+    return {
+      isFuture: state.isFuture,
+      inJoinWindow: state.inJoinWindow,
+      isExpired: state.isExpired,
+    };
   };
 
   const formatDateRaw = (value: string) =>
@@ -436,15 +422,9 @@ export default function StudentBookingsPage() {
                 <div className="text-center text-gray-500">No sessions found.</div>
               ) : (
                 sessions.map((s: any) => {
-                  const startMs = getUtcWallClockMs(s.startDateTime);
-                  if (!Number.isFinite(startMs)) return null;
-                  const nowMs = Date.now();
-
-                  const joinOpenAt = startMs - 10 * 60 * 1000;
-                  const joinCloseAt = startMs + 60 * 60 * 1000;
-
-                  const inJoinWindow = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
-                  const isExpired = nowMs > joinCloseAt;
+                  const joinState = getJoinState(s.startDateTime);
+                  const inJoinWindow = joinState.inJoinWindow;
+                  const isExpired = joinState.isExpired;
 
                   return (
                     <div key={s._id} className="border rounded-lg p-4 space-y-3">
@@ -796,6 +776,9 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+
+
+
 
 
 

@@ -83,6 +83,7 @@ export const startRegularDirect = async (
     subject: string;
     billingType: "hourly" | "monthly";
     numberOfClasses?: number;
+    selectedPreferredTime?: string;
   }
 ) => {
   try {
@@ -95,5 +96,6 @@ export const startRegularDirect = async (
     throw new Error(handleApiError(error));
   }
 };
+
 
 

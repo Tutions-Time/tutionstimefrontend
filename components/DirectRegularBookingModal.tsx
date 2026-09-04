@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { startRegularDirect } from "@/services/bookingService";
+import { getUserProfile, startRegularDirect } from "@/services/bookingService";
 import {
   createSubscriptionOrder,
   verifyGenericPayment,
@@ -29,6 +29,8 @@ export default function DirectRegularBookingModal({
     "hourly"
   );
   const [numberOfClasses, setNumberOfClasses] = useState(4);
+  const [preferredTimes, setPreferredTimes] = useState<string[]>([]);
+  const [selectedPreferredTime, setSelectedPreferredTime] = useState("");
   const [loading, setLoading] = useState(false);
 
   const hourlyRate = Number(tutor?.hourlyRate || 0);
@@ -42,6 +44,30 @@ export default function DirectRegularBookingModal({
     [billingType, hourlyRate, monthlyRate, numberOfClasses]
   );
 
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+
+    getUserProfile()
+      .then((profile) => {
+        if (!active) return;
+        const slots = Array.isArray(profile?.preferredTimes)
+          ? profile.preferredTimes.filter(Boolean)
+          : [];
+        setPreferredTimes(slots);
+        setSelectedPreferredTime((current) => current || slots[0] || "");
+      })
+      .catch(() => {
+        if (!active) return;
+        setPreferredTimes([]);
+        setSelectedPreferredTime("");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const finish = () => {
@@ -52,7 +78,7 @@ export default function DirectRegularBookingModal({
   const openRazorpay = async (
     order: any,
     regularClassId: string,
-  classes: number
+    classes: number
   ) => {
     const paymentResponse = await openRazorpayCheckout(order, {
       description: "Regular Class Payment",
@@ -92,6 +118,11 @@ export default function DirectRegularBookingModal({
         return;
       }
 
+      if (preferredTimes.length > 0 && !selectedPreferredTime) {
+        toast.error("Please select a preferred time");
+        return;
+      }
+
       if (billingType === "hourly" && Number(numberOfClasses) <= 0) {
         toast.error("Number of classes must be at least 1");
         return;
@@ -104,6 +135,7 @@ export default function DirectRegularBookingModal({
         billingType,
         numberOfClasses:
           billingType === "hourly" ? Number(numberOfClasses) : undefined,
+        selectedPreferredTime,
       });
 
       if (res?.alreadyActive) {
@@ -180,6 +212,23 @@ export default function DirectRegularBookingModal({
           ))}
         </select>
 
+        {preferredTimes.length > 0 && (
+          <>
+            <label className="font-medium text-sm mt-4 block">Preferred Time</label>
+            <select
+              className="border p-2 rounded w-full mt-1"
+              value={selectedPreferredTime}
+              onChange={(e) => setSelectedPreferredTime(e.target.value)}
+            >
+              {preferredTimes.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+
         <label className="font-medium text-sm mt-4 block">Billing Type</label>
         <select
           className="border p-2 rounded w-full mt-1"
@@ -220,4 +269,3 @@ export default function DirectRegularBookingModal({
     </div>
   );
 }
-
