@@ -63,10 +63,31 @@ const formatPlanLabel = (row: any) => {
 };
 
 
+const profileLinkClass =
+  "font-medium text-blue-700 underline-offset-2 hover:underline";
+
+const renderProfileLink = (name: string | undefined, href?: string | null) => {
+  const label = name || "-";
+  if (!href) return label;
+  return (
+    <Link href={href} className={profileLinkClass}>
+      {label}
+    </Link>
+  );
+};
+
+const studentProfileHref = (row: any) =>
+  row.studentUserId ? `/dashboard/admin/users/${row.studentUserId}` : null;
+
+const tutorProfileHref = (row: any) =>
+  row.tutorUserId ? `/dashboard/admin/tutors/${row.tutorUserId}/journey` : null;
 const formatOptionalAmount = (value: number | undefined | null) =>
   value !== undefined && value !== null
     ? formatCurrencyWithDecimals(Number(value))
     : "—";
+
+const formatAdminAmount = (row: any) =>
+  row.type === "payout" ? "—" : formatOptionalAmount(row.adminAmount);
 /* --------------------------------- Page ---------------------------------- */
 export default function AdminRevenuePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -446,10 +467,10 @@ function exportHistoryCsv() {
                   {txItems.map((h: any) => (
                     <tr key={h._id} className="border-t">
                       <td className="px-4 py-3 text-muted">{new Date(h.createdAt).toLocaleString()}</td>
-                      <td className="px-4 py-3">{h.studentName || '—'}</td>
-                      <td className="px-4 py-3">{h.tutorName || '—'}</td>
+                      <td className="px-4 py-3">{renderProfileLink(h.studentName, studentProfileHref(h))}</td>
+                      <td className="px-4 py-3">{renderProfileLink(h.tutorName, tutorProfileHref(h))}</td>
                       <td className="px-4 py-3">{formatOptionalAmount(h.amount)}</td>
-                      <td className="px-4 py-3">{formatOptionalAmount(h.adminAmount)}</td>
+                      <td className="px-4 py-3">{formatAdminAmount(h)}</td>
                       <td className="px-4 py-3">{formatOptionalAmount(h.tutorNetAmount)}</td>
                       <td className="px-4 py-3">{releaseLabel(h)}</td>
                       <td className="px-4 py-3">{formatPlanLabel(h)}</td>
@@ -491,4 +512,6 @@ function exportHistoryCsv() {
     </div>
   );
 }
+
+
 

@@ -279,7 +279,6 @@ export default function StudentBookingsPage() {
               <div className="grid gap-4">
                 {regularClasses.map((rc: any) => {
                   const next = rc.nextSession;
-                  const hasLink = !!next?.meetingLink;
 
                   let joinState = { isFuture: false, inJoinWindow: false, isExpired: false };
                   if (next) joinState = getJoinState(next.startDateTime);
@@ -328,17 +327,23 @@ export default function StudentBookingsPage() {
                         </Badge>
                       </div>
 
-                      {hasLink && (
+                      {next && (
                         <div className="mt-4 flex flex-wrap gap-3">
                           {/* JOIN BUTTON (never hidden, just disabled when outside window) */}
                           {!joinState.isExpired && (
                             <div className="space-y-2">
                         <ZoomJoinNote />
                               <Button
-                                onClick={() =>
-                                  joinState.inJoinWindow &&
-                                  openClassLinkWithNotice(next.meetingLink)
-                                }
+                                onClick={async () => {
+                                  if (!joinState.inJoinWindow) return;
+                                  if (!window.confirm(CLASS_JOIN_NOTICE)) return;
+                                  try {
+                                    const res = await joinSession(next.sessionId);
+                                    if (res?.success && res?.url) {
+                                      window.open(res.url, "_blank", "noopener,noreferrer");
+                                    }
+                                  } catch {}
+                                }}
                                 disabled={!joinState.inJoinWindow}
                                 className="bg-[#FFD54F] text-black font-semibold rounded-full px-5 shadow-md hover:shadow-lg disabled:bg-gray-200 disabled:text-gray-600 disabled:shadow-none"
                               >
@@ -776,6 +781,9 @@ export default function StudentBookingsPage() {
     </>
   );
 }
+
+
+
 
 
 
