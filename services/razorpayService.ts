@@ -145,6 +145,23 @@ export const markTutorPayablePaid = async (
     throw new Error(handleApiError(error));
   }
 };
+export const deleteTutorPayoutHistory = async (payoutId: string) => {
+  try {
+    const res = await api.delete(`/payments/admin/tutor-payables/history/${payoutId}`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const deleteTutorPayoutHistoryExceptCurrentMonth = async () => {
+  try {
+    const res = await api.delete(`/payments/admin/tutor-payables/history/cleanup/older-than-current-month`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
 
 export const settleAdminPayout = async (payoutId: string) => {
   try {

@@ -35,6 +35,10 @@ export default function SignupClient() {
   const { sendOtp, signup } = useAuth();
   const { toast } = useToast();
 
+  const goHome = () => {
+    window.location.assign("/");
+  };
+
   const handleRoleSelect = (selectedRole: "student" | "tutor") => {
     setRole(selectedRole);
     setStep("email");
@@ -139,7 +143,7 @@ export default function SignupClient() {
       <Card className="w-full max-w-md p-8 rounded-2xl shadow-soft">
         <button
           type="button"
-          onClick={() => router.push("/")}
+          onClick={goHome}
           className="inline-flex items-center gap-2 text-sm text-muted hover:text-text mb-6 transition-base"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -147,7 +151,7 @@ export default function SignupClient() {
         </button>
 
         <div className="mb-8">
-          {/* ✅ LOGO – SAME FORMAT AS LOGIN */}
+          {/* Logo same format as login */}
           <div className="flex items-center gap-2 mb-6">
             <div className="h-10 flex items-center">
               <Image

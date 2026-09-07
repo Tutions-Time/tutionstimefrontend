@@ -46,6 +46,10 @@ export default function LoginClient() {
     }
   }, [isAuthenticated, user, router]);
 
+  const goHome = () => {
+    window.location.assign("/");
+  };
+
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -114,16 +118,17 @@ export default function LoginClient() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 rounded-2xl shadow-soft">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={goHome}
           className="inline-flex items-center gap-2 text-sm text-muted hover:text-text mb-6 transition-base"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to home
-        </Link>
+        </button>
 
         <div className="mb-8">
-          {/* ✅ LOGO – format preserved */}
+          {/* Logo format preserved */}
           <div className="flex items-center gap-2 mb-6">
             <div className="h-10 flex items-center">
               <Image

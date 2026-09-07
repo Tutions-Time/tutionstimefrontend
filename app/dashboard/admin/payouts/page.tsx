@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckCircle, Clock, CreditCard, IndianRupee, RefreshCw, Search } from 'lucide-react';
+import { CheckCircle, Clock, CreditCard, Download, IndianRupee, RefreshCw, Search, Trash2 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 import { Navbar } from '@/components/layout/Navbar';
@@ -21,7 +21,12 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
-import { getAdminTutorPayables, markTutorPayablePaid } from '@/services/razorpayService';
+import {
+  deleteTutorPayoutHistory,
+  deleteTutorPayoutHistoryExceptCurrentMonth,
+  getAdminTutorPayables,
+  markTutorPayablePaid,
+} from '@/services/razorpayService';
 
 type PayoutRow = {
   payoutId?: string;
@@ -51,7 +56,7 @@ type PayoutRow = {
 };
 
 const inr = (value: number) =>
-  `₹${Number(value || 0).toLocaleString('en-IN', {
+  `\u20b9${Number(value || 0).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -72,6 +77,8 @@ export default function AdminTutorPayoutsPage() {
   const [note, setNote] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [marking, setMarking] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [cleaningHistory, setCleaningHistory] = useState(false);
 
   const pendingMode = status === 'pending';
 
@@ -196,7 +203,86 @@ export default function AdminTutorPayoutsPage() {
       setMarking(false);
     }
   };
+  const csvValue = (value: any) => {
+    const text = String(value ?? '');
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
 
+  const downloadCsv = () => {
+    const headers = [
+      'Tutor',
+      'Email',
+      'Sources',
+      'Collected',
+      'Platform Cut',
+      'Payable Amount',
+      'Payout Method',
+      'Status',
+      'Paid At',
+      'Note',
+    ];
+    const lines = rows.map((row) => [
+      row.tutorName,
+      row.tutorEmail || '',
+      row.requestType === 'withdrawal' ? 'Withdrawal request' : `${row.sourceCount || 0} payments`,
+      Number(row.grossAmount || 0).toFixed(2),
+      Number(row.commissionAmount || 0).toFixed(2),
+      Number(row.payableAmount || 0).toFixed(2),
+      row.upiId ? `UPI: ${row.upiId}` : row.bank ? `Bank: ${row.bank.accountHolderName || ''} ${row.bank.maskedAccountNumber || ''} ${row.bank.ifsc || ''}` : '',
+      pendingMode ? 'pending' : 'paid',
+      row.paidAt ? new Date(row.paidAt).toLocaleString('en-IN') : '',
+      row.note || '',
+    ]);
+    const csv = [headers, ...lines].map((line) => line.map(csvValue).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `tutor-payout-${pendingMode ? 'pending' : 'paid'}-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const deleteHistoryRow = async (row: PayoutRow) => {
+    if (!row.payoutId) return;
+    if (!window.confirm(`Delete payout history for ${row.tutorName}?`)) return;
+    try {
+      setDeletingId(row.payoutId);
+      await deleteTutorPayoutHistory(row.payoutId);
+      toast({ title: 'Payout history deleted' });
+      await load();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to delete payout history',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const deleteOldHistory = async () => {
+    if (!window.confirm('Delete all paid payout history except this month?')) return;
+    try {
+      setCleaningHistory(true);
+      const res = await deleteTutorPayoutHistoryExceptCurrentMonth();
+      const count = Number(res?.data?.deletedCount || 0);
+      toast({ title: 'Old payout history deleted', description: `${count} records removed.` });
+      await load();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to delete old payout history',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCleaningHistory(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="admin" userName="Admin" />
@@ -226,7 +312,7 @@ export default function AdminTutorPayoutsPage() {
           </div>
 
           <Card className="p-4 rounded-2xl bg-white shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-6 xl:grid-cols-8 gap-3">
               <div className="relative md:col-span-2">
                 <Search className="w-4 h-4 absolute left-3 top-3 text-muted" />
                 <Input
@@ -250,6 +336,16 @@ export default function AdminTutorPayoutsPage() {
                 <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
                 Refresh
               </Button>
+              <Button variant="outline" onClick={downloadCsv} disabled={loading || rows.length === 0}>
+                <Download className="w-4 h-4 mr-2" />
+                CSV
+              </Button>
+              {!pendingMode && (
+                <Button variant="outline" onClick={deleteOldHistory} disabled={loading || cleaningHistory}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {cleaningHistory ? 'Deleting...' : 'Delete Old'}
+                </Button>
+              )}
             </div>
           </Card>
 
@@ -300,7 +396,7 @@ export default function AdminTutorPayoutsPage() {
                         <div>
                           <div className="font-medium">{row.bank.accountHolderName || 'Bank'}</div>
                           <div className="text-xs text-muted">
-                            {row.bank.maskedAccountNumber || 'Account'} · {row.bank.ifsc || 'IFSC'}
+                            {row.bank.maskedAccountNumber || 'Account'} \u00b7 {row.bank.ifsc || 'IFSC'}
                           </div>
                         </div>
                       ) : (
@@ -325,9 +421,22 @@ export default function AdminTutorPayoutsPage() {
                           Pay
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={() => openMarkPaid(row)} disabled>
-                          Paid
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openMarkPaid(row)}>
+                            View
+                          </Button>
+                          {row.payoutId && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteHistoryRow(row)}
+                              disabled={deletingId === row.payoutId}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -357,7 +466,7 @@ export default function AdminTutorPayoutsPage() {
           <DialogHeader>
             <DialogTitle>{pendingMode ? 'Pay Tutor' : 'Payout Details'}</DialogTitle>
             <DialogDescription>
-              {selected ? `${selected.tutorName} · ${inr(selected.payableAmount)}` : ''}
+              {selected ? `${selected.tutorName} \u00b7 ${inr(selected.payableAmount)}` : ''}
             </DialogDescription>
           </DialogHeader>
 
@@ -384,7 +493,7 @@ export default function AdminTutorPayoutsPage() {
                   <div>UPI: {selected.upiId}</div>
                 ) : selected.bank ? (
                   <div>
-                    {selected.bank.accountHolderName || 'Bank account'} · {selected.bank.maskedAccountNumber} · {selected.bank.ifsc}
+                    {selected.bank.accountHolderName || 'Bank account'} \u00b7 {selected.bank.maskedAccountNumber} \u00b7 {selected.bank.ifsc}
                   </div>
                 ) : (
                   <div className="text-red-600">No payout details submitted.</div>

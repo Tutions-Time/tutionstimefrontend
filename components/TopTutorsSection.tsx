@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Award, GraduationCap, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchTopTutors } from "@/services/studentService";
@@ -37,10 +38,22 @@ function TutorSkeleton() {
 }
 
 export default function TopTutorsSection() {
+  const router = useRouter();
   const { ref, isInView } = useScrollAnimation();
   const [tutors, setTutors] = useState<TopTutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const goToLogin = () => {
+    router.push("/login");
+  };
+
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      goToLogin();
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -101,7 +114,11 @@ export default function TopTutorsSection() {
             tutors.slice(0, 10).map((tutor, index) => (
               <article
                 key={tutor._id}
-                className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-[#FFD54F] hover:shadow-md"
+                role="link"
+                tabIndex={0}
+                onClick={goToLogin}
+                onKeyDown={handleCardKeyDown}
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-[#FFD54F] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#FFD54F] focus:ring-offset-2"
               >
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div className="rounded-full bg-[#FFF7D6] px-3 py-1 text-sm font-bold text-[#9A6A00]">
