@@ -496,6 +496,7 @@ export default function AdminUsersPage() {
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+                <option value="suspended">Blocked / Suspended</option>
               </select>
 
               <select
