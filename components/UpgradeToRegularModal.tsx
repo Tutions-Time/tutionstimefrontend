@@ -19,6 +19,14 @@ const parseBudgetPreference = (budget = "") => {
   return null;
 };
 
+const parseBudgetAmounts = (budget = "") => {
+  const text = String(budget || "");
+  return {
+    hourly: Number(text.match(/Hourly:\s*(?:Rs\.?)?\s*(\d+)/i)?.[1] || 0),
+    monthly: Number(text.match(/Monthly:\s*(?:Rs\.?)?\s*(\d+)/i)?.[1] || 0),
+  };
+};
+
 export default function UpgradeToRegularModal({
   booking,
   onClose,
@@ -49,6 +57,7 @@ export default function UpgradeToRegularModal({
     ? `${subjectBudget.billingType === "monthly" ? "Monthly" : "Hourly"}: Rs.${subjectBudget.amount}`
     : fallbackBudget;
   const parsedFallbackBudget = parseBudgetPreference(fallbackBudget);
+  const fallbackBudgetAmounts = parseBudgetAmounts(fallbackBudget);
   const effectiveStudentBudget = subjectBudget?.amount
     ? {
         billingType: subjectBudget.billingType as "hourly" | "monthly",
@@ -59,21 +68,24 @@ export default function UpgradeToRegularModal({
   const payableHourlyRate = isTutorInitiatedDemo
     ? effectiveStudentBudget?.billingType === "hourly"
       ? Number(effectiveStudentBudget.amount || 0)
-      : 0
+      : Number(fallbackBudgetAmounts.hourly || hourlyRate || 0)
     : Number(hourlyRate || 0);
   const payableMonthlyRate = isTutorInitiatedDemo
     ? effectiveStudentBudget?.billingType === "monthly"
       ? Number(effectiveStudentBudget.amount || 0)
-      : 0
+      : Number(fallbackBudgetAmounts.monthly || monthlyRate || 0)
     : Number(monthlyRate || 0);
   const displayHourlyRate = payableHourlyRate ? `Rs.${payableHourlyRate}` : "-";
   const displayMonthlyRate = payableMonthlyRate ? `Rs.${payableMonthlyRate}` : "-";
 
   useEffect(() => {
-    if (isTutorInitiatedDemo && effectiveStudentBudget?.billingType) {
-      setBillingType(effectiveStudentBudget.billingType);
+    if (billingType === "hourly" && payableHourlyRate <= 0 && payableMonthlyRate > 0) {
+      setBillingType("monthly");
     }
-  }, [isTutorInitiatedDemo, effectiveStudentBudget?.billingType]);
+    if (billingType === "monthly" && payableMonthlyRate <= 0 && payableHourlyRate > 0) {
+      setBillingType("hourly");
+    }
+  }, [billingType, payableHourlyRate, payableMonthlyRate]);
 
   const completeUpgradeFlow = () => {
     onClose();
@@ -212,13 +224,12 @@ export default function UpgradeToRegularModal({
         <select
           className="mt-1 w-full rounded border p-2"
           value={billingType}
-          disabled={isTutorInitiatedDemo}
           onChange={(e) =>
             setBillingType(e.target.value as "hourly" | "monthly")
           }
         >
-          <option value="hourly" disabled={isTutorInitiatedDemo && effectiveStudentBudget?.billingType !== "hourly"}>Hourly (per class)</option>
-          <option value="monthly" disabled={isTutorInitiatedDemo && effectiveStudentBudget?.billingType !== "monthly"}>Monthly (subscription)</option>
+          <option value="hourly" disabled={payableHourlyRate <= 0}>Hourly (per class)</option>
+          <option value="monthly" disabled={payableMonthlyRate <= 0}>Monthly (subscription)</option>
         </select>
 
         {billingType === "hourly" && (

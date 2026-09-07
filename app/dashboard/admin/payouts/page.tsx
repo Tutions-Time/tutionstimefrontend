@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import {
+  deletePendingTutorPayables,
   deleteTutorPayoutHistory,
   deleteTutorPayoutHistoryExceptCurrentMonth,
   getAdminTutorPayables,
@@ -79,6 +80,7 @@ export default function AdminTutorPayoutsPage() {
   const [marking, setMarking] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [cleaningHistory, setCleaningHistory] = useState(false);
+  const [clearingPending, setClearingPending] = useState(false);
 
   const pendingMode = status === 'pending';
 
@@ -283,6 +285,24 @@ export default function AdminTutorPayoutsPage() {
       setCleaningHistory(false);
     }
   };
+  const deletePendingPayments = async () => {
+    if (!window.confirm('Delete all pending tutor payment rows? This will remove unreleased paid payment records and pending withdrawal requests.')) return;
+    try {
+      setClearingPending(true);
+      const res = await deletePendingTutorPayables();
+      const count = Number(res?.data?.deletedCount || 0);
+      toast({ title: 'Pending payments deleted', description: `${count} records removed.` });
+      await load();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to delete pending payments',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setClearingPending(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} userRole="admin" userName="Admin" />
@@ -340,7 +360,12 @@ export default function AdminTutorPayoutsPage() {
                 <Download className="w-4 h-4 mr-2" />
                 CSV
               </Button>
-              {!pendingMode && (
+              {pendingMode ? (
+                <Button variant="outline" onClick={deletePendingPayments} disabled={loading || clearingPending || rows.length === 0} className="text-red-600 hover:text-red-700">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {clearingPending ? 'Deleting...' : 'Delete Pending'}
+                </Button>
+              ) : (
                 <Button variant="outline" onClick={deleteOldHistory} disabled={loading || cleaningHistory}>
                   <Trash2 className="w-4 h-4 mr-2" />
                   {cleaningHistory ? 'Deleting...' : 'Delete Old'}

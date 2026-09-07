@@ -163,6 +163,15 @@ export const deleteTutorPayoutHistoryExceptCurrentMonth = async () => {
   }
 };
 
+export const deletePendingTutorPayables = async () => {
+  try {
+    const res = await api.delete(`/payments/admin/tutor-payables/pending`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const settleAdminPayout = async (payoutId: string) => {
   try {
     const res = await api.patch(`/payments/admin/payouts/${payoutId}/settle`);
