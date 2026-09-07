@@ -24,6 +24,7 @@ import { toast } from '@/hooks/use-toast';
 import {
   deletePendingTutorPayables,
   deleteTutorPayoutHistory,
+  deleteTutorPayoutHistoryCurrentMonth,
   deleteTutorPayoutHistoryExceptCurrentMonth,
   getAdminTutorPayables,
   markTutorPayablePaid,
@@ -81,6 +82,7 @@ export default function AdminTutorPayoutsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [cleaningHistory, setCleaningHistory] = useState(false);
   const [clearingPending, setClearingPending] = useState(false);
+  const [clearingCurrentMonth, setClearingCurrentMonth] = useState(false);
 
   const pendingMode = status === 'pending';
 
@@ -285,6 +287,24 @@ export default function AdminTutorPayoutsPage() {
       setCleaningHistory(false);
     }
   };
+  const deleteCurrentMonthHistory = async () => {
+    if (!window.confirm('Clear paid payout history for this month also?')) return;
+    try {
+      setClearingCurrentMonth(true);
+      const res = await deleteTutorPayoutHistoryCurrentMonth();
+      const count = Number(res?.data?.deletedCount || 0);
+      toast({ title: 'This month history cleared', description: `${count} records removed from history.` });
+      await load();
+    } catch (err: any) {
+      toast({
+        title: 'Failed to clear this month history',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setClearingCurrentMonth(false);
+    }
+  };
   const deletePendingPayments = async () => {
     if (!window.confirm('Delete all pending tutor payment rows? This will remove unreleased paid payment records and pending withdrawal requests.')) return;
     try {
@@ -366,10 +386,16 @@ export default function AdminTutorPayoutsPage() {
                   {clearingPending ? 'Deleting...' : 'Delete Pending'}
                 </Button>
               ) : (
-                <Button variant="outline" onClick={deleteOldHistory} disabled={loading || cleaningHistory}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {cleaningHistory ? 'Deleting...' : 'Delete Old'}
-                </Button>
+                <>
+                  <Button variant="outline" onClick={deleteOldHistory} disabled={loading || cleaningHistory}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {cleaningHistory ? 'Deleting...' : 'Delete Old'}
+                  </Button>
+                  <Button variant="outline" onClick={deleteCurrentMonthHistory} disabled={loading || clearingCurrentMonth || rows.length === 0} className="text-red-600 hover:text-red-700">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {clearingCurrentMonth ? 'Deleting...' : 'Delete This Month'}
+                  </Button>
+                </>
               )}
             </div>
           </Card>

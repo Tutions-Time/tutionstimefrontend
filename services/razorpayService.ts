@@ -163,6 +163,15 @@ export const deleteTutorPayoutHistoryExceptCurrentMonth = async () => {
   }
 };
 
+export const deleteTutorPayoutHistoryCurrentMonth = async () => {
+  try {
+    const res = await api.delete(`/payments/admin/tutor-payables/history/cleanup/current-month`);
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
 export const deletePendingTutorPayables = async () => {
   try {
     const res = await api.delete(`/payments/admin/tutor-payables/pending`);
