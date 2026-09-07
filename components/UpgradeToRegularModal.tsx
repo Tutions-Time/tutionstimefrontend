@@ -27,6 +27,21 @@ const parseBudgetAmounts = (budget = "") => {
   };
 };
 
+const parseTimeInputTo24 = (value?: string | null) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const start = raw.split("-")[0].trim();
+  const time24 = start.match(/^(\d{1,2}):(\d{2})$/);
+  if (time24) return time24[1].padStart(2, "0") + ":" + time24[2];
+  const time12 = start.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!time12) return "";
+  let hour = Number(time12[1]);
+  const minute = time12[2];
+  const period = time12[3].toUpperCase();
+  hour = hour % 12;
+  if (period === "PM") hour += 12;
+  return String(hour).padStart(2, "0") + ":" + minute;
+};
 export default function UpgradeToRegularModal({
   booking,
   onClose,
@@ -44,6 +59,7 @@ export default function UpgradeToRegularModal({
       ? [booking.subject]
       : [];
   const [subject, setSubject] = useState(subjects[0] || "");
+  const [selectedPreferredTime, setSelectedPreferredTime] = useState(() => parseTimeInputTo24(booking?.preferredTime));
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -127,6 +143,7 @@ export default function UpgradeToRegularModal({
         planType: "regular",
         billingType,
         subject,
+        selectedPreferredTime,
         numberOfClasses:
           billingType === "hourly" ? Number(numberOfClasses) : undefined,
       });
@@ -198,6 +215,16 @@ export default function UpgradeToRegularModal({
             </select>
           </div>
         )}
+
+        <div className="mb-4">
+          <label className="text-sm font-medium">Class Start Time</label>
+          <input
+            type="time"
+            className="mt-1 w-full rounded border p-2"
+            value={selectedPreferredTime}
+            onChange={(e) => setSelectedPreferredTime(e.target.value)}
+          />
+        </div>
 
         {isTutorInitiatedDemo && displayedBudget && (
           <div className="mb-4 rounded-lg border bg-yellow-50 p-3 text-sm text-gray-800">

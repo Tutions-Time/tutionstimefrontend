@@ -64,6 +64,7 @@ export const startRegularFromDemo = async (
     billingType: "hourly" | "monthly";
     numberOfClasses?: number;
     subject?: string;
+    selectedPreferredTime?: string;
   }
 ) => {
   try {
