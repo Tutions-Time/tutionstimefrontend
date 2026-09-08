@@ -42,6 +42,31 @@ const buildBudget = (hourly: string, monthly: string) => {
 
 const getDefaultPmDraft = () => ({ start: null, end: null });
 
+const parseTimeToMinutes = (value: string) => {
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const period = match[3].toUpperCase();
+  if (hours < 1 || hours > 12 || minutes < 0 || minutes > 59) return null;
+  if (period === "PM" && hours !== 12) hours += 12;
+  if (period === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+const parseSlotRange = (slot: string) => {
+  const [startText, endText] = slot.split("-").map((part) => part.trim());
+  const start = parseTimeToMinutes(startText || "");
+  const end = parseTimeToMinutes(endText || "");
+  if (start === null || end === null || end <= start) return null;
+  return { start, end };
+};
+
+const rangesOverlap = (
+  first: { start: number; end: number },
+  second: { start: number; end: number }
+) => first.start < second.end && second.start < first.end;
+
 export default function TutorPreferencesSection({
   disabled = false,
 }: {
@@ -109,10 +134,17 @@ export default function TutorPreferencesSection({
     (profile.subjectTimeSlots || []).find((item) => item.subject === subject)
       ?.slots || [];
 
-  const getSubjectUsingSlot = (slot: string, currentSubject: string) =>
-    (profile.subjectTimeSlots || []).find(
-      (item) => item.subject !== currentSubject && item.slots.includes(slot)
-    )?.subject || "";
+  const getSubjectUsingSlot = (slot: string, currentSubject: string) => {
+    const range = parseSlotRange(slot);
+    const conflict = (profile.subjectTimeSlots || []).find((item) => {
+      if (item.subject === currentSubject) return false;
+      return (item.slots || []).some((existingSlot) => {
+        const existingRange = parseSlotRange(existingSlot);
+        return range && existingRange && rangesOverlap(range, existingRange);
+      });
+    });
+    return conflict?.subject || "";
+  };
 
   const addSlot = (subject: string) => {
     const draft = timeDrafts[subject];
@@ -126,7 +158,7 @@ export default function TutorPreferencesSection({
     const usedBySubject = getSubjectUsingSlot(slot, subject);
     if (usedBySubject) {
       setTimeError(
-        `${slot} is already selected for ${usedBySubject}. Choose a different slot for ${subject}.`
+        `${slot} overlaps with an existing slot for ${usedBySubject}. Choose a different slot for ${subject}.`
       );
       return;
     }
