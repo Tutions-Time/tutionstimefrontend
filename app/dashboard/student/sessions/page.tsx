@@ -805,7 +805,7 @@ export default function StudentSessions() {
                   const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
                   const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
                   const nowMs = Date.now();
-                  const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
+                  const canJoin = true;
                   return (
                     <div key={s._id} className="border rounded-lg p-3 space-y-3">
                       <div className="flex items-center justify-between">
@@ -1024,6 +1024,7 @@ export default function StudentSessions() {
     </div>
   );
 }
+
 
 
 

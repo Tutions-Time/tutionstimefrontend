@@ -230,8 +230,8 @@ const TutorRegularClasses = () => {
     const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
     const nowMs = Date.now();
 
-    const canJoin = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
-    const isExpired = nowMs > joinCloseAt;
+    const canJoin = true;
+    const isExpired = false;
 
     return { canJoin, isExpired };
   };
@@ -894,6 +894,7 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
 };
+
 
 
 

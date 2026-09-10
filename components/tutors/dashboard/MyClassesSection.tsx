@@ -68,8 +68,7 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     const joinOpenAt = start - joinBeforeMin * 60000;
     const joinCloseAt = end + expireAfterMin * 60000;
 
-    const now = Date.now();
-    return now >= joinOpenAt && now <= joinCloseAt;
+    return true;
   };
 
   return (
@@ -195,6 +194,7 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     </section>
   );
 }
+
 
 
 

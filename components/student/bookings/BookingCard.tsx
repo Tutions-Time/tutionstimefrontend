@@ -71,28 +71,8 @@ export default function BookingCard({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    const EARLY_JOIN_MINUTES = 10;
-    const LATE_JOIN_MINUTES = 5;
-    const SESSION_DURATION_MIN = booking.type === "demo" ? 15 : 60;
-
-    const checkWindow = () => {
-      const now = new Date();
-
-      const joinOpenAt = new Date(
-        sessionStart.getTime() - EARLY_JOIN_MINUTES * 60 * 1000
-      );
-      const joinCloseAt = new Date(
-        sessionStart.getTime() +
-        (SESSION_DURATION_MIN + LATE_JOIN_MINUTES) * 60 * 1000
-      );
-
-      setCanJoin(now >= joinOpenAt && now <= joinCloseAt);
-    };
-
-    checkWindow();
-    const id = setInterval(checkWindow, 30 * 1000);
-    return () => clearInterval(id);
-  }, [sessionStart, booking.type]);
+    setCanJoin(booking.status === "confirmed");
+  }, [booking.status]);
 
   const dateFormatted = sessionStart.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -275,6 +255,7 @@ export default function BookingCard({
     </>
   );
 }
+
 
 
 
