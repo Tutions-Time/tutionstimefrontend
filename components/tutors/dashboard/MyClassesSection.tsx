@@ -9,7 +9,7 @@ import {
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   openClassLinkWithNotice,
 } from "@/utils/classJoinNotice";
-import { joinSession } from "@/services/tutorService";
+import { joinSession, openSessionLinkWithLeaveTracking } from "@/services/tutorService";
 import ZoomJoinNote from "@/components/ZoomJoinNote";
 
 export interface TutorClass {
@@ -160,7 +160,7 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
                             const res = await joinSession(next.sessionId);
                             const meetingUrl = res?.url || next.meetingLink;
                             if (meetingUrl) {
-                              window.open(meetingUrl, "_blank", "noopener,noreferrer");
+                              openSessionLinkWithLeaveTracking(next.sessionId, meetingUrl);
                             }
                           } catch {
                             openClassLinkWithNotice(next.meetingLink);
@@ -194,6 +194,8 @@ export default function MyClassesSection({ classes }: { classes: TutorClass[] })
     </section>
   );
 }
+
+
 
 
 

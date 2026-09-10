@@ -13,6 +13,7 @@ import {
   scheduleRegularClass,
   getRegularClassSessions,
   joinSession,
+  openSessionLinkWithLeaveTracking,
   uploadSessionRecording,
   uploadSessionNotes,
   uploadSessionAssignment,
@@ -503,7 +504,7 @@ const TutorRegularClasses = () => {
                               .then((res) => {
                                 const meetingUrl = res?.url || c.nextSession.meetingLink;
                                 if (meetingUrl) {
-                                  window.open(meetingUrl, "_blank", "noopener,noreferrer");
+                                  openSessionLinkWithLeaveTracking(c.nextSession.sessionId, meetingUrl);
                                 }
                               })
                               .catch(() => {
@@ -741,7 +742,7 @@ const TutorRegularClasses = () => {
                                 try {
                                   const res = await joinSession(s._id);
                                   if (res?.success && res?.url) {
-                                    window.open(res.url, "_blank", "noopener,noreferrer");
+                                    openSessionLinkWithLeaveTracking(s._id, res.url);
                                   }
                                 } catch {
                                   // ignore
@@ -894,6 +895,7 @@ const getImageUrl = (photoUrl?: string | null) => {
 
   return `${IMAGE_BASE.replace(/\/$/, "")}/${cleaned.replace(/^\//, "")}`;
 };
+
 
 
 

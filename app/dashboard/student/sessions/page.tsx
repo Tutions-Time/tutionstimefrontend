@@ -28,7 +28,7 @@ import {
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { getStudentRegularClasses } from "@/services/studentService";
 import { getRegularPaymentByClass, requestRefund, previewRefund } from "@/services/studentService";
-import { getRegularClassSessions, joinSession } from "@/services/tutorService";
+import { getRegularClassSessions, joinSession, openSessionLinkWithLeaveTracking } from "@/services/tutorService";
 import { Dialog } from "@headlessui/react";
 import UpgradeToRegularModal from "@/components/UpgradeToRegularModal";
 import { getStudentRefunds } from "@/services/studentService";
@@ -815,6 +815,7 @@ export default function StudentSessions() {
                           <div className="text-xs text-gray-500">{s.status}</div>
                         </div>
                         <div className="flex items-center gap-2">
+                          {s.status !== "completed" && (
                           <div className="space-y-2 text-right">
                             <ZoomJoinNote className="text-left" />
                             <Button
@@ -822,7 +823,7 @@ export default function StudentSessions() {
                                 if (!canJoin) return;
                                 try {
                                   const res = await joinSession(s._id);
-                                  if (res?.success && res?.url) window.open(res.url, "_blank", "noopener,noreferrer");
+                                  if (res?.success && res?.url) openSessionLinkWithLeaveTracking(s._id, res.url);
                                 } catch { }
                               }}
                               disabled={!canJoin}
@@ -834,6 +835,7 @@ export default function StudentSessions() {
                               <p className="text-xs text-gray-500">{CLASS_JOIN_AVAILABLE_SOON_MESSAGE}</p>
                             )}
                           </div>
+                          )}
 
                           {s.status === "completed" && s.notesUrl && (
                             <a href={safeUrl(s.notesUrl)} download target="_blank" rel="noreferrer">
@@ -1024,6 +1026,9 @@ export default function StudentSessions() {
     </div>
   );
 }
+
+
+
 
 
 

@@ -279,6 +279,36 @@ export const joinSession = async (sessionId: string) => {
   }
 };
 
+
+export const markSessionAttendance = async (
+  sessionId: string,
+  action: "join" | "leave"
+) => {
+  try {
+    const res = await api.post(`/sessions/${sessionId}/attendance`, { action });
+    return res.data;
+  } catch (error) {
+    throw new Error(handleApiError(error));
+  }
+};
+
+export const openSessionLinkWithLeaveTracking = (
+  sessionId: string,
+  url?: string | null
+) => {
+  if (!url || typeof window === "undefined") return false;
+
+  const meetingWindow = window.open(url, "_blank", "noopener,noreferrer");
+  if (!meetingWindow) return false;
+
+  const timer = window.setInterval(() => {
+    if (!meetingWindow.closed) return;
+    window.clearInterval(timer);
+    void markSessionAttendance(sessionId, "leave").catch(() => undefined);
+  }, 2000);
+
+  return true;
+};
 export const getTutorRefunds = async (params?: { status?: string }) => {
   try {
     const res = await api.get("/payments/tutor/refunds", { params });
@@ -341,5 +371,6 @@ export const uploadSessionAssignment = async (sessionId: string, file: File) => 
     throw new Error(handleApiError(error));
   }
 };
+
 
 
