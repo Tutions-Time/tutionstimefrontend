@@ -17,6 +17,8 @@ import { markDemoJoin } from "@/services/bookingService";
 import {
   CLASS_JOIN_AVAILABLE_SOON_MESSAGE,
   CLASS_JOIN_AVAILABLE_SOON_LABEL,
+  DEMO_CLASS_DURATION_MINUTES,
+  getClassJoinWindowState,
 } from "@/utils/classJoinNotice";
 import { formatTime12 } from "@/utils/timeFormat";
 import ZoomJoinNote from "@/components/ZoomJoinNote";
@@ -71,8 +73,17 @@ export default function BookingCard({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    setCanJoin(booking.status === "confirmed");
-  }, [booking.status]);
+    const checkWindow = () => {
+      const joinState = getClassJoinWindowState(sessionStart, {
+        durationMin: DEMO_CLASS_DURATION_MINUTES,
+      });
+      setCanJoin(booking.status === "confirmed" && joinState.canJoin);
+    };
+
+    checkWindow();
+    const id = setInterval(checkWindow, 30 * 1000);
+    return () => clearInterval(id);
+  }, [booking.status, sessionStart]);
 
   const dateFormatted = sessionStart.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -255,6 +266,7 @@ export default function BookingCard({
     </>
   );
 }
+
 
 
 

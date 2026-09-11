@@ -5,9 +5,9 @@ export const CLASS_JOIN_NOTICE =
   `Tab/Laptop and high speed internet is required. ${ZOOM_SIGN_IN_NOTE}`;
 
 export const CLASS_JOIN_BEFORE_MINUTES = 10;
-export const CLASS_JOIN_AVAILABLE_SOON_LABEL = "Join Now";
+export const CLASS_JOIN_AVAILABLE_SOON_LABEL = "Join opens 10 mins before class";
 export const CLASS_JOIN_AVAILABLE_SOON_MESSAGE =
-  "Join button is available anytime.";
+  "Join button will be available 10 minutes before your class time.";
 export const CLASS_EXPIRE_AFTER_MINUTES = 5;
 export const REGULAR_CLASS_DURATION_MINUTES = 60;
 export const DEMO_CLASS_DURATION_MINUTES = 15;
@@ -57,10 +57,10 @@ export const getClassJoinWindowState = (
   const endMs = startMs + durationMin * 60 * 1000;
   const joinOpenAt = startMs - joinBeforeMin * 60 * 1000;
   const joinCloseAt = endMs + expireAfterMin * 60 * 1000;
-  const inJoinWindow = true;
+  const inJoinWindow = nowMs >= joinOpenAt && nowMs <= joinCloseAt;
 
   return {
-    canJoin: true,
+    canJoin: inJoinWindow,
     inJoinWindow,
     isFuture: nowMs < joinOpenAt,
     isExpired: nowMs > joinCloseAt,
@@ -90,5 +90,6 @@ export const openClassLinkWithNotice = (url?: string | null) => {
   window.open(url, "_blank", "noopener,noreferrer");
   return true;
 };
+
 
 
