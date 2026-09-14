@@ -19,11 +19,11 @@ export default function HomePageClient() {
       <ContactTicker />
       <HeroSection />
       <WhyChooseUs />
-      <TopTutorsSection />
       <WhyChoose />
       <ForStudents />
       <ForTutors />
       <AboutUs />
+      <TopTutorsSection />
       <FAQSection />
       <CTASection />
       <Footer />

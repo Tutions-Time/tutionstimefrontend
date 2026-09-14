@@ -89,18 +89,25 @@ export default function RootLayout({
           <WhatsAppFloatingButton />
           <Toaster />
           <HotToaster
+            position="bottom-center"
+            containerStyle={{
+              bottom: "calc(5rem + env(safe-area-inset-bottom))",
+              left: "0.75rem",
+              right: "0.75rem",
+              zIndex: 100,
+            }}
             toastOptions={{
               style: {
-                background: "rgba(255, 213, 79, 0.22)",
-                border: "1px solid rgba(255, 213, 79, 0.65)",
+                background: "#ffffff",
+                border: "1px solid #facc15",
                 color: "#222",
                 boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
               },
               error: {
                 iconTheme: { primary: "#FFD54F", secondary: "#222" },
                 style: {
-                  background: "rgba(255, 213, 79, 0.22)",
-                  border: "1px solid rgba(255, 213, 79, 0.65)",
+                  background: "#ffffff",
+                  border: "1px solid #facc15",
                   color: "#222",
                 },
               },
