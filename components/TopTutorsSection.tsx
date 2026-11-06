@@ -116,7 +116,7 @@ export default function TopTutorsSection() {
             tutors.slice(0, 10).map((tutor, index) => (
               <article
                 key={tutor._id}
-                className="flex min-w-0 flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-300 hover:border-blue-200 hover:shadow-lg motion-reduce:transition-none sm:p-7"
+                className="flex min-w-0 flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,border-color] duration-300 hover:border-primary hover:shadow-lg motion-reduce:transition-none sm:p-7"
               >
                 <div className="flex items-start gap-3 sm:gap-5">
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-28 sm:w-28">
@@ -124,7 +124,7 @@ export default function TopTutorsSection() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                      <h3 className="flex min-w-0 items-center gap-1.5 text-lg font-bold tracking-tight text-blue-700 sm:text-xl">
+                      <h3 className="flex min-w-0 items-center gap-1.5 text-lg font-bold tracking-tight text-text sm:text-xl">
                         <span className="break-words">{tutor.name}</span>
                         {tutor.isVerifiedTutor && <ShieldCheck aria-label="Verified tutor" className="h-5 w-5 shrink-0 text-emerald-600" />}
                       </h3>
@@ -161,7 +161,7 @@ export default function TopTutorsSection() {
                   <TagRow label="Classes" values={tutor.classLevels} />
                   <TagRow label="Exams" values={tutor.exams} />
                 </div>
-                <Link href="/login" aria-label={`View ${tutor.name}'s profile`} className="mt-auto inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:ring-offset-2 motion-reduce:transition-none sm:text-base">
+                <Link href="/login" aria-label={`View ${tutor.name}'s profile`} className="mt-auto inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-text transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:transition-none sm:text-base">
                   <ExternalLink aria-hidden="true" className="h-4 w-4" />View profile
                 </Link>
               </article>
@@ -179,7 +179,7 @@ function TagRow({ label, values }: { label: string; values?: string[] }) {
     <div className="flex items-baseline gap-3 text-sm">
       <span className="w-20 shrink-0 text-slate-500">{label}</span>
       <div className="flex min-w-0 flex-wrap gap-2">
-        {values.map((value, index) => <span key={`${value}-${index}`} className="max-w-full break-words rounded-lg bg-blue-50 px-3 py-1.5 font-medium text-slate-700">{value}</span>)}
+        {values.map((value, index) => <span key={`${value}-${index}`} className="max-w-full break-words rounded-lg bg-primaryWeak/50 px-3 py-1.5 font-medium text-slate-700">{value}</span>)}
       </div>
     </div>
   );
